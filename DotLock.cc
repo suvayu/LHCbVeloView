@@ -143,7 +143,7 @@ error:
 char* DotLock::gethostname()
 {
     struct addrinfo hints, *info = 0;
-    char *hname = 0, *hostname = 0, *hnsrc = 0;
+    char *hname = 0, *hostname = 0;
     long len = sysconf(_SC_HOST_NAME_MAX);
     int errnosav = 0, rc = 0;
     if (-1 == len) len = 256;
@@ -162,10 +162,17 @@ char* DotLock::gethostname()
 	errno = errnosav;
 	throw DotLockException(rc, true);
     }
-    hnsrc = info ? info->ai_canonname : hname;
-    hostname = reinterpret_cast<char*>(
-	    malloc(sizeof(char) * (std::strlen(hnsrc) + 1)));
-    if (hostname) std::strcpy(hostname, hnsrc);
+    for (struct addrinfo *p = info; true; p = p->ai_next) {
+	/* skip entries beginning with "localhost" - they don't contain useful
+	 * any information, fall back to the result of gethostname if there is
+	 * no sufficiently informative answer from getaddrinfo */
+	if (p && 0 == strncmp(p->ai_canonname, "localhost", 9)) continue;
+	char *hnsrc = p ? p->ai_canonname : hname;
+	hostname = reinterpret_cast<char*>(
+		malloc(sizeof(char) * (std::strlen(hnsrc) + 1)));
+	if (hostname) std::strcpy(hostname, hnsrc);
+	break;
+    }
 done:
     errnosav = errno;
     if (info) freeaddrinfo(info);
@@ -312,3 +319,9 @@ error:
 }
 
 // vim:tw=78:sw=4:ft=cpp
+
+int main()
+{
+    DotLock dl("myfile");
+    return 0;
+}
