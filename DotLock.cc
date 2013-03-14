@@ -22,11 +22,11 @@ DotLock::DotLockException::DotLockException(int err, bool isgetaddrinfoerr) :
 {
     m_buf[0] = 0;
     if (!isgetaddrinfoerr) {
-	// FIXME: extremely ugly: apparently, there's no easy way to
-	// tell/force libc to give us either the GNU or POSIX version of
-	// strerror_r, so we have to hope for things to go well
+	/* FIXME: extremely ugly: apparently, there's no easy way to
+	 * tell/force libc to give us either the GNU or POSIX version of
+	 * strerror_r, so we have to hope for things to go well */
 	strerror_r(err, m_buf, s_sz);
-	m_buf[s_sz - 1] = 0; // enforce zero-termination
+	m_buf[s_sz - 1] = 0; /* enforce zero-termination */
     } else {
 	m_gaierr = gai_strerror(err);
     }
@@ -45,13 +45,13 @@ DotLock::DotLock(const std::string& filename) :
 
 void DotLock::init()
 {
-    // protect against empty filename
+    /* protect against empty filename */
     if (m_dotlockfilename.empty()) throw DotLockException(EINVAL);
     m_dotlockfilename += ".lock";
     int retVal = getlock(m_dotlockfilename.c_str());
     if (0 != retVal) {
-	// FIXME: perror in here is temporary to facilitate debugging when
-	// exceptions don't make it
+	/* FIXME: perror in here is temporary to facilitate debugging when
+	 * exceptions don't make it */
 	errno = retVal;
 	perror("Ran into trouble while acquiring lock");
 	throw DotLockException(retVal);
@@ -62,7 +62,7 @@ DotLock::~DotLock()
 {
     int retVal = releaselock(m_dotlockfilename.c_str());
     if (0 != retVal) {
-	// must not throw in destructor! print to stderr instead...
+	/* must not throw in destructor! print to stderr instead... */
 	errno = retVal;
 	perror("Ran into trouble while releasing lock");
     }
@@ -149,14 +149,14 @@ char* DotLock::gethostname()
     if (-1 == len) len = 256;
     if (!(hname = reinterpret_cast<char*>(malloc(1 + len)))) return hostname;
     if ((rc = ::gethostname(hname, len))) goto done;
-    hname[len] = 0; // make sure hostname is zero-terminated
+    hname[len] = 0; /* make sure hostname is zero-terminated */
     std::memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC; // either IPV4 or IPV6
+    hints.ai_family = AF_UNSPEC; /* either IPV4 or IPV6 */
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_CANONNAME;
     if ((rc = getaddrinfo(hname, "http", &hints, &info))) {
-	// we have to throw explicitly here, since getaddrinfo uses
-	// gai_strerror
+	/* we have to throw explicitly here, since getaddrinfo uses
+	 * gai_strerror */
 	errnosav = errno;
 	free(hname);
 	errno = errnosav;
@@ -198,8 +198,8 @@ int DotLock::getlock(const char *fname) const
     size_t ftmpsz = 0;
     int havelock = 0, retVal = 0, pid, uid;
     char *hostname = 0, *ftmpname = 0, *ftmpname2 = 0;
-    // if DotLock::gethostname throws, that's ok, as we have not allocated any
-    // resources yet, so nothing leaks...
+    /* if DotLock::gethostname throws, that's ok, as we have not allocated any
+     * resources yet, so nothing leaks... */
     if (!(hostname = DotLock::gethostname())) {
 	retVal = errno;
 	goto error;
@@ -273,7 +273,7 @@ int DotLock::getlock(const char *fname) const
 	} while(1);
 	/* failed to acquire lock... */
 	if (0 != retVal && EEXIST == errno) continue;
-	/* ok, open fname and read back into dummy2 */
+	/* ok, open fname and read back into ftmpname2 */
 	retVal = xfer(ftmpname, true, std::strlen(ftmpname), ftmpname2);
 	if (0 != retVal) goto error;
 	/* make sure that it's still "our" file */
@@ -318,10 +318,12 @@ error:
     return retVal;
 }
 
-// vim:tw=78:sw=4:ft=cpp
-
+#ifdef TEST_DOTLOCK
 int main()
 {
     DotLock dl("myfile");
     return 0;
 }
+#endif /* TEST_DOTLOCK */
+
+/* vim:tw=78:sw=4:ft=cpp */

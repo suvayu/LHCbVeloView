@@ -9,7 +9,26 @@
 #include <string>
 #include <exception>
 
-/// class acquiring a dotlock while in existence
+/** @brief class acquiring a dotlock while in existence
+ *
+ * @author Manuel Schiller
+ * @date 2009-08-06
+ * 	initial version
+ * @date 2013-03-14
+ * 	updates to be safe for use from multiple hosts
+ *
+ * If you need to serialise several processes wanting to write to the same
+ * file, you can use the following code:
+ * @code
+ * {
+ *     DotLock lock("/path/to/file.you.want.to.modify");
+ *     // by the time the DotLock constructor is done, we hold the lock
+ *     //
+ *     // modify that file in whatever way you see fit...
+ *     modify("/path/to/file.you.want.to.modify");
+ * } // lock's destructor is called here, releasing the lock
+ * @endcode
+ */
 class DotLock
 {
     public:
