@@ -32,19 +32,27 @@
 class DotLock
 {
     public:
-	/// constructor
-	DotLock(const char* filename);
-	/// constructor
-	DotLock(const std::string& filename);
+	/** @brief constructor
+	 *
+	 * @param filename	lock file name base
+	 * @param timeout	if >0, timeout after timeout seconds
+	 */
+	DotLock(const char* filename, int timeout = 0);
+	/** @brief constructor
+	 *
+	 * @param filename	lock file name base
+	 * @param timeout	if >0, timeout after timeout seconds
+	 */
+	DotLock(const std::string& filename, int timeout = 0);
 	/// destructor
 	virtual ~DotLock();
     private:
 	/// name of lock file
 	std::string m_dotlockfilename;
 	/// initialise
-	void init();
+	void init(int timeout);
 	/// routine to acquire lock (returns errno, doesn't leak resources)
-	int getlock(const char* fname) const;
+	int getlock(const char* fname, int timeout) const;
 	/// routine to release lock (returns errno, doesn't leak resources)
 	static int releaselock(const char* fname);
 	/// routine for safe reading/writing (returns errno, doesn't leak)

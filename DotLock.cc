@@ -35,20 +35,20 @@ DotLock::DotLockException::DotLockException(int err, bool isgetaddrinfoerr) :
 const char* DotLock::DotLockException::what() const throw()
 { return m_gaierr ? m_gaierr : m_buf; }
 
-DotLock::DotLock(const char* filename) :
+DotLock::DotLock(const char* filename, int timeout) :
     m_dotlockfilename(filename)
-{ init(); }
+{ init(timeout); }
 
-DotLock::DotLock(const std::string& filename) :
+DotLock::DotLock(const std::string& filename, int timeout) :
     m_dotlockfilename(filename)
-{ init(); }
+{ init(timeout); }
 
-void DotLock::init()
+void DotLock::init(int timeout)
 {
     /* protect against empty filename */
     if (m_dotlockfilename.empty()) throw DotLockException(EINVAL);
     m_dotlockfilename += ".lock";
-    int retVal = getlock(m_dotlockfilename.c_str());
+    int retVal = getlock(m_dotlockfilename.c_str(), timeout);
     if (0 != retVal) {
 	/* FIXME: perror in here is temporary to facilitate debugging when
 	 * exceptions don't make it */
@@ -193,10 +193,10 @@ void DotLock::xor_in(unsigned char (&arr)[8], unsigned long long val)
     arr[7] ^= static_cast<unsigned char>(val & 0xff);
 }
 
-int DotLock::getlock(const char *fname) const
+int DotLock::getlock(const char *fname, int timeout) const
 {
     size_t ftmpsz = 0;
-    int havelock = 0, retVal = 0, pid, uid;
+    int havelock = 0, retVal = 0, pid, uid, to = timeout;
     char *hostname = 0, *ftmpname = 0, *ftmpname2 = 0;
     /* if DotLock::gethostname throws, that's ok, as we have not allocated any
      * resources yet, so nothing leaks... */
@@ -257,6 +257,15 @@ int DotLock::getlock(const char *fname) const
 		if (EINTR == errno) continue;
 		retVal = errno;
 		goto error;
+	    }
+	    if (0 < timeout) {
+		if (to > 0) {
+		    --to;
+		} else {
+		    // timeout - indicate that in retVal
+		    retVal = EBUSY;
+	            goto error;	    
+		}
 	    }
 	    sleep(1);
 	} while(1);
