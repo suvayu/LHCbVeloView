@@ -100,4 +100,4 @@ TimeStamp TimeStamp::operator-(Long64_t nsec) const
 Long64_t TimeStamp::operator-(const TimeStamp& other) const
 { return m_time - other.m_time; }
 
-// vim: tw=78:sw=4:ft=c++
+// vim: tw=78:sw=4:ft=cpp

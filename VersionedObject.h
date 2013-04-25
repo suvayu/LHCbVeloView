@@ -17,6 +17,9 @@
 
 /** @brief base class to keep a version history of objects
  *
+ * @author Manuel Schiller <manuel.schiller@nikhef.nl>
+ * @date 2013-04-15
+ *
  * This is a helper class never meant to be instantiated. It is used to keep
  * common traits of the templated family of VersionedObject classes in a
  * common place without massive code bloat.
@@ -43,6 +46,9 @@ class VersionedObjectBase
 
 /** @brief class to keep a version history of objects
  *
+ * @author Manuel Schiller <manuel.schiller@nikhef.nl>
+ * @date 2013-04-15
+ *
  * This class is templated with up to three parameters:
  * - T		type of object to be versioned
  * - VEROBJ	type of object to hold version information (e.g. a time stamp)
@@ -60,7 +66,8 @@ class VersionedObjectBase
  *   std::map, they can also be retrieved by index (just like an array). The
  *   latter access mode goes through the versions in the order given by CMP.
  * - There is the notion of an "active" version, i.e. the version you get when
- *   you do not ask for a specific version.
+ *   you do not ask for a specific version. You can access it with a
+ *   deferencing operation, just like a pointer.
  * - Objects and version data are immutable once inserted into a
  *   VersionedObject. Changing is only allowed by first erasing that version,
  *   then re-inserting it. (The rationale here is to prevent accidental
@@ -80,9 +87,9 @@ class VersionedObject : public VersionedObjectBase
 	/// type of payload to be stored
 	typedef typename map_type::mapped_type mapped_type;
 	/// type used for versioning (time stamp, version number, whatever)
-	typedef typename map_type::key_type version_type;
-	/// type used for versioning (time stamp, version number, whatever)
 	typedef typename map_type::key_type key_type;
+	/// type used for versioning (time stamp, version number, whatever)
+	typedef key_type version_type;
 	/// type of entries (version, obj)
 	typedef typename map_type::value_type value_type;
 	/// type to represent sizes
@@ -100,7 +107,7 @@ class VersionedObject : public VersionedObjectBase
 	/// type of version conparison function
 	typedef typename map_type::key_compare key_compare;
 	/// type of version conparison function
-	typedef typename map_type::key_compare version_compare;
+	typedef key_compare version_compare;
 	/// shorthand for the type of the class itself
 	typedef VersionedObject<
 	    mapped_type, version_type, version_compare> my_type;
@@ -144,9 +151,31 @@ class VersionedObject : public VersionedObjectBase
 	/// return reverse iterator one element past the last element (const)
 	const_reverse_iterator rend() const;
 
-	/// insert a pair (version, object)
+	/** @brief insert a pair (version, object)
+	 *
+	 * @return a pair of (iterator, bool) where the iterator points to the
+	 * element inserted (or not inserted), and the bool specifies if the
+	 * insertion took place
+	 *
+	 * Insertion can fail if that version is already present in the
+	 * container, if you intend to update it, erase the old version of the
+	 * version in question and re-insert. HOWEVER, THAT SHOULD NEVER BE
+	 * NECESSARY, SINCE A NEW VERSION SHOULD BE CREATED WITH UPDATED
+	 * VALUES, WE SHOULD NEVER OVERWRITE OLD VERSIONS!
+	 */ 
 	std::pair<iterator, bool> insert(const value_type& value);
-	/// insert a pair (version, object)
+	/** @brief insert a pair (version, object)
+	 *
+	 * @return a pair of (iterator, bool) where the iterator points to the
+	 * element inserted (or not inserted), and the bool specifies if the
+	 * insertion took place
+	 *
+	 * Insertion can fail if that version is already present in the
+	 * container, if you intend to update it, erase the old version of the
+	 * version in question and re-insert. HOWEVER, THAT SHOULD NEVER BE
+	 * NECESSARY, SINCE A NEW VERSION SHOULD BE CREATED WITH UPDATED
+	 * VALUES, WE SHOULD NEVER OVERWRITE OLD VERSIONS!
+	 */ 
 	std::pair<iterator, bool> insert(
 		const version_type& ver, const mapped_type& obj);
 	/// insert a range of pairs (version, object)
@@ -187,6 +216,8 @@ class VersionedObject : public VersionedObjectBase
 };
 
 #if defined(__CINT__) || defined(__GCCXML__)
+// instantiate most important versions of templated VersionedObject, so that
+// the CINT/GCCXML/Reflex dictionary generation process sees them
 #define INSTANTIATE_VERSIONEDOBJECTS_NOW
 #include "VersionedObjectInstantiations.h"
 #undef INSTANTIATE_VERSIONEDOBJECTS_NOW

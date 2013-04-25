@@ -84,4 +84,4 @@ class TimeStamp
 
 #endif // TIMESTAMP_H
 
-// vim: tw=78:sw=4:ft=c++
+// vim: tw=78:sw=4:ft=cpp
