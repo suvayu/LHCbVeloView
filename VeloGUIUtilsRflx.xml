@@ -3,5 +3,16 @@
     <selection>
 	<class name = "DotLock" />
 	<class name = "TimeStamp" />
+	<class name = "VersionedObjectBase::OutOfRangeException" />
+	<class name = "VersionedObjectBase" />
+	<class pattern = "VersionedObject<*>::mapped_type" />
+	<class pattern = "VersionedObject<*>::version_type" />
+	<class pattern = "VersionedObject<*>::value_type" />
+	<class pattern = "VersionedObject<*>::iterator" />
+	<class pattern = "VersionedObject<*>::const_iterator" />
+	<class pattern = "VersionedObject<*>::reverse_iterator" />
+	<class pattern = "VersionedObject<*>::const_reverse_iterator" />
+	<class pattern = "VersionedObject<*>::version_compare" />
+	<class pattern = "VersionedObject<*>" />
     </selection>
 </lcgdict>

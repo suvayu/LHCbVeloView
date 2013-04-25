@@ -4,26 +4,194 @@
  * @date 2013-04-15
  */
 
-#ifndef VERSIONED_OBJECT
-#define VERSIONED_OBJECT
+#ifndef VERSIONEDOBJECT_H
+#define VERSIONEDOBJECT_H
 
+#include <map>
 #include <vector>
+#include <string>
+#include <utility>
+#include <functional>
 
 #include "TimeStamp.h"
 
-template <class T, class VEROBJ = TimeStamp> class VersionedObject
+/** @brief base class to keep a version history of objects
+ *
+ * This is a helper class never meant to be instantiated. It is used to keep
+ * common traits of the templated family of VersionedObject classes in a
+ * common place without massive code bloat.
+ */
+class VersionedObjectBase
 {
     public:
-	typedef T value_type;
-	typedef VEROBJ version_type;
+	/// exception to throw in operator[] of VersionedObject<...> & friends
+	class OutOfRangeException : public std::exception
+        {
+            public:
+                /// constructor
+                OutOfRangeException(const char* msg) throw ();
+                /// destructor
+                virtual ~OutOfRangeException() throw ();
+                /// description
+                virtual const char* what() const throw ();
+	    private:
+		/// message description
+		const char* m_msg;
+        };
+};
+
+
+/** @brief class to keep a version history of objects
+ *
+ * This class is templated with up to three parameters:
+ * - T		type of object to be versioned
+ * - VEROBJ	type of object to hold version information (e.g. a time stamp)
+ * - CMP	default ordering of versions
+ *
+ * The VEROBJ type must be comparable (less than, greater than) to other
+ * objects of that type so the individual revisions of an object can be sorted
+ * internally. When ordered by the ordering CMP, the first version according
+ * to that order becomes the "active" version, i.e. the version you get when
+ * you do not ask for a specific version.
+ *
+ * The VersionedObject class tries to stay as close as possible to the
+ * std::map interface of C++, with the following modifications:
+ * - Payload objects can not only be retrieved by version (VEROBJ) as in
+ *   std::map, they can also be retrieved by index (just like an array). The
+ *   latter access mode goes through the versions in the order given by CMP.
+ * - There is the notion of an "active" version, i.e. the version you get when
+ *   you do not ask for a specific version.
+ * - Objects and version data are immutable once inserted into a
+ *   VersionedObject. Changing is only allowed by first erasing that version,
+ *   then re-inserting it. (The rationale here is to prevent accidental
+ *   overwrites by client code. If that's what the code wants to do, it has to
+ *   use the right interface which is different from the read-only one.)
+ *
+ */
+template <class T, class VEROBJ = TimeStamp,
+	 class CMP = std::greater<VEROBJ> >
+class VersionedObject : public VersionedObjectBase
+{
+    private:
+	/// type used for the version-object mapping
+	typedef std::map<VEROBJ, T, CMP> map_type;
+
+    public:
+	/// type of payload to be stored
+	typedef typename map_type::mapped_type mapped_type;
+	/// type used for versioning (time stamp, version number, whatever)
+	typedef typename map_type::key_type version_type;
+	/// type used for versioning (time stamp, version number, whatever)
+	typedef typename map_type::key_type key_type;
+	/// type of entries (version, obj)
+	typedef typename map_type::value_type value_type;
+	/// type to represent sizes
+	typedef typename map_type::size_type size_type;
+	/// type to represent (size) differences
+	typedef typename map_type::difference_type difference_type;
+	// iterator type
+	typedef typename map_type::iterator iterator;
+	// const iterator type
+	typedef typename map_type::const_iterator const_iterator;
+	// reverse iterator type
+	typedef typename map_type::reverse_iterator reverse_iterator;
+	// const reverse iterator type
+	typedef typename map_type::const_reverse_iterator const_reverse_iterator;
+	/// type of version conparison function
+	typedef typename map_type::key_compare key_compare;
+	/// type of version conparison function
+	typedef typename map_type::key_compare version_compare;
+	/// shorthand for the type of the class itself
+	typedef VersionedObject<
+	    mapped_type, version_type, version_compare> my_type;
+
+	/// return "size" of the version object (i.e. number of versions)
+	size_type size() const;
+	/// return if empty
+	bool empty() const;
+
+	/// clear all stored objects/versions
+	void clear();
+
+	/// swap the contents of two VersionedObjects
+	void swap(my_type& other);
+	
+	/// access the object of the "active" version
+	const mapped_type& operator*() const;
+	/// access the object of the "active" version
+	const mapped_type& operator->() const;
+
+	/// access to elements by version
+	const mapped_type& operator[](const version_type& ver) const;
+
+	/// access to elements by index (0, ..., size())
+	const value_type& operator[](const size_type nver) const;
+
+	/// return iterator to first entry in map
+	iterator begin();
+	/// return iterator to first entry in map (const)
+	const_iterator begin() const;
+	/// return iterator one element past the last element
+	iterator end();
+	/// return iterator one element past the last element const
+	const_iterator end() const;
+	/// return reverse iterator to last entry in map
+	reverse_iterator rbegin();
+	/// return reverse iterator to last entry in map (const)
+	const_reverse_iterator rbegin() const;
+	/// return reverse iterator one element past the last element
+	reverse_iterator rend();
+	/// return reverse iterator one element past the last element (const)
+	const_reverse_iterator rend() const;
+
+	/// insert a pair (version, object)
+	std::pair<iterator, bool> insert(const value_type& value);
+	/// insert a pair (version, object)
+	std::pair<iterator, bool> insert(
+		const version_type& ver, const mapped_type& obj);
+	/// insert a range of pairs (version, object)
+	template<class input_iterator>
+	inline void insert(input_iterator first, input_iterator last)
+	{ m_objs.insert(first, last); }
+
+	/// erase element at given position
+	void erase(iterator pos);
+	/// erase range of elements
+	void erase(iterator begin, iterator last);
+	/// erase a specific version
+	void erase(const version_type& ver);
+	/// erase the n-th version in the order specified by CMP
+	void erase(const size_type nver);
+
+	/// return an iterator to given version
+	iterator find(const version_type& ver);
+	/// return a const iterator to given version
+	const_iterator find(const version_type& ver) const;
+
+	/// check if a given version is in the container
+	bool contains(const version_type& ver) const;
+
+	/// return iterator to first element with version ver or greater
+	iterator lower_bound(const version_type& ver);
+	/// return iterator to first element with version ver or greater
+	const_iterator lower_bound(const version_type& ver) const;
+
+	/// return iterator one after last element with version ver or smaller 
+	iterator upper_bound(const version_type& ver);
+	/// return iterator one after last element with version ver or smaller
+	const_iterator upper_bound(const version_type& ver) const;
 
     private:
 	/// keep the version information around
-	std::vector<version_type> m_vers;
-	/// keep the objects around
-	std::vector<value_type> m_objs;
+	map_type m_objs;
 };
 
-#endif // VERSIONED_OBJECT
+#if defined(__CINT__) || defined(__GCCXML__)
+#define INSTANTIATE_VERSIONEDOBJECTS_NOW
+#include "VersionedObjectInstantiations.h"
+#undef INSTANTIATE_VERSIONEDOBJECTS_NOW
+#endif
 
-// vim: sw=4:tw=78:ft=c++
+#endif // VERSIONEDOBJECT_H
+
+// vim: sw=4:tw=78:ft=cpp
