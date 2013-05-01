@@ -1,31 +1,30 @@
-"""
-python module to help with instantiating C++ types.
-
-@file TypeHelper.py
-
-@author Manuel Schiller <manuel.schiller@nikhef.nl>
-@date 2013-04-30
-"""
-
+## python module to help with instantiating C++ types.
+#
+# @file TypeHelper.py
+#
+# @author Manuel Schiller <manuel.schiller@nikhef.nl>
+# @date 2013-04-30
+#
 import ROOT, numpy
 from ROOT import std
 
+## map [(un)signed][bitwidth] to numpy integer types
 __itypes__ = [
 	{ 8: numpy.int8, 16: numpy.int16, 32: numpy.int32, 64: numpy.int64 },
 	{ 8: numpy.uint8, 16: numpy.uint16, 32: numpy.uint32, 64: numpy.uint64 }
 	]
 
+## simple integer type introspection.
+#
+# @param s name of C++ integer type for which to find a matching python type
+# @return an integer type with the same width as the one used by ROOT's C++
+# interpreter.
 def __getCType__(s):
-    """
-    simple integer type introspection.
-
-    returns an integer type with the same width as the one used by ROOT's C++
-    interpreter.
-    """
     from ROOT import gInterpreter
     unsigned = 1 if 'unsigned' in s else 0
     return __itypes__[unsigned][8 * gInterpreter.ProcessLine('sizeof(%s);' % s)]
 
+## dictionary of POD C/C++ type names to numpy type
 __typesPOD__ = {
 	'bool':			lambda : numpy.ndarray(1, dtype = numpy.bool_),
 	'char':			lambda : numpy.ndarray(1, dtype = __getCType__('char')),
@@ -59,6 +58,7 @@ __typesPOD__ = {
 	'Double_t':		lambda : numpy.ndarray(1, dtype = numpy.double)
 	}
 
+## dictionary of C++ STL type names to corresponding pythonised type
 __typesSTL__ = {
 	'complex':		ROOT.std.complex,
 	'deque':		ROOT.std.deque,
@@ -86,40 +86,46 @@ __typesSTL__ = {
 	'std::vector':		ROOT.std.vector
 	}
 
+## name-type cache for templated types, populated on the fly
 __othertemplates__ = {}
 
+## name-type cache for non-templated types, populated on the fly
 __othertypes__ = {}
 
+## return True if string s names a templated type.
+# 
+# @param s	string with name of type
+# @return	True/False
 def __istemplate__(s):
-    """
-    return True if string s names a templated type.
-    """
     return '<' in s or '>' in s
 
+## returns True if string s names a plain old data (POD) type.
+# 
+# @param s	string with name of type
+# @return	True/False
 def __isPOD__(s):
-    """
-    returns True if string s names a plain old data (POD) type
-    """
     s = s.expandtabs(1).strip()
     return s in __typesPOD__
 
+## returns True if string s names a type from the C++ STL.
+#
+#@param s	string with name of type
+#@return	True/False
 def __isSTL__(s):
-    """
-    returns True if string s names a type from the C++ STL
-    """
     s = s.strip()
     return s in __typesSTL__
 
+## converts a string s containing a C++ type name into a parsed
+# representation.
+# 
+# non-templated types return a tuple ( typename, () ).
+# 
+# templated types return a tuple ( typename, ( typeargs ... ) ) where
+# typeargs consists of one or more return values of __parsetype__.
+# 
+# @param s	name of type
+# @return	tuple with parsed components of type
 def __parsetype__(s):
-    """
-    converts a string s containing a C++ type name into a parsed
-    representation.
-
-    non-templated types return a tuple ( typename, () ).
-
-    templated types return a tuple ( typename, ( typeargs ... ) ) where
-    typeargs consists of one or more return values of __parsetype__.
-    """
     # normalise string
     s = s.expandtabs(1).strip()
     while '  ' in s:
@@ -160,25 +166,23 @@ def __parsetype__(s):
 	idx2 = idx2 + 1
     return classname, t	
 
+## returns an object which can be used to construct objects of the type
+# given in the string typename.
+#
+# @param typename	string containing the C++ name of the type
+# @return factory object which allows construction of said type
+#
+# usage example:
+#
+# @code
+# # get the factory object
+# vectdblfactory = getTypeFactory('std::vector<double>')
+# # use it to construct a 32 element vector
+# v = vectdblfactory(32, 3.14)
+# # set element 7 to 2.79
+# v[7] = 2.79
+# @endcode
 def getTypeFactory(typename):
-    """
-    returns an object which can be used to construct objects of the type given
-    in the string typename.
-
-    @params typename	string containing the C++ name of the type
-    @returns factory object which allows construction of said type
-
-    usage example:
-
-    @code
-    # get the factory object
-    vectdblfactory = getTypeFactory('std::vector<double>')
-    # use it to construct a 32 element vector
-    v = vectdblfactory(32, 3.14)
-    # set element 7 to 2.79
-    v[7] = 2.79
-    @endcode
-    """
     if type(typename) == type(''):
 	typetuple = __parsetype__(typename)
     elif type(typename) == type(()):
