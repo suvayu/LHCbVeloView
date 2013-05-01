@@ -1,30 +1,65 @@
 #!/usr/local/bin/pyroot
+import ROOT
+ROOT.SetMemoryPolicy(ROOT.kMemoryStrict)
+ROOT.gSystem.Load('libCintex')
+ROOT.Cintex.Enable()
+ROOT.gSystem.Load('libVeloGUIUtils')
 
+from TypeHelper import getTypeFactory
 
 def fillTree(filename, treename):
     from ROOT import TFile, TTree, TRandom3
-    from ctypes import c_double, c_int
+    from ROOT import DotLock, TimeStamp, VersionedObject, std
+    VString = VersionedObject(std.string, TimeStamp, 'std::greater<TimeStamp>')
+    VDouble = VersionedObject('double', TimeStamp, 'std::greater<TimeStamp>')
+    VMapVectDouble = VersionedObject(std.map('int', std.vector('double')),
+	    TimeStamp, 'std::greater<TimeStamp>')
+    sensors = []
+    sensors += [ i for i in xrange(0, 42) ]
+    sensors += [ i for i in xrange(64, 64 + 42) ]
+    sensors += [ i for i in xrange(128, 132) ]
     rnd = TRandom3()
+    dl = DotLock(filename)
     f = TFile(filename, 'RECREATE')
     t = TTree(treename, treename)
-    evnr = c_int(0)
-    data1 = c_double(0.)
-    data2 = c_double(0.)
-    data3 = c_double(0.)
-    t.Branch('evnr', evnr, 'evnr/i')
-    t.Branch('data1', data1, 'data1/D')
-    t.Branch('data2', data2, 'data2/D')
-    t.Branch('data3', data3, 'data3/D')
-    for i in xrange(0, 1024 * 1024):
-	evnr.value = i
-	data1.value = rnd.Uniform()
-	data2.value = rnd.Uniform()
-	data3.value = rnd.Uniform()
+    from TreeHelper import branchObj
+    print 'File and tree open.'
+    runnr = branchObj(t, 'runnr', 'UInt_t')
+    occupancy = branchObj(t, 'occupancy',
+	    'VersionedObject<std::map<int,std::vector<double> >, TimeStamp, std::greater<TimeStamp> >')
+    comment = branchObj(t, 'comment',
+	    'VersionedObject<std::string, TimeStamp, std::greater<TimeStamp> >')
+    meanpedestal = branchObj(t, 'meanpedestal',
+	    'VersionedObject<double, TimeStamp, std::greater<TimeStamp> >')
+    for i in xrange(0, 10):
+	print 'Filling run %u' % i
+	comment.clear()
+	occupancy.clear()
+	meanpedestal.clear()
+
+	runnr[0] = i
+	now = TimeStamp()
+	comment[now] = 'initial DQ for run %u' % i
+	meanpedestal[now] = -5. + 10. * rnd.Rndm()
+	for sensor in sensors:
+	    # vector of per-strip occupancies
+	    ov = std.vector('double')(2048)
+	    for strip in xrange(0, 2048):
+		# simulate dead, noisy and normal strips
+		#
+		# note: one has a small bug... ;)
+		tmp = rnd.Uniform()
+		if tmp < 0.0025: ov[strip] = 0.
+		elif tmp < 0.0075: ov[strip] = -rnd.Uniform()
+	        else: ov[strip] = -rnd.Gaus(0.01,0.0025)
+	    # fill that vector into the current version
+	    occupancy[now][sensor] = ov
 	t.Fill()
     t.Write()
     del t
     f.Close()
     del f
+    del dl
 
 def modtree(filename, treename, evnrv, data1v, data2v, data3v):
     from ROOT import TFile, TTree, TRandom3
@@ -60,5 +95,5 @@ def modtree(filename, treename, evnrv, data1v, data2v, data3v):
     from os import rename
     rename('%s.new' % filename, filename)
 
-#fillTree('test.root', 'testtree')
-modtree('test.root', 'testtree', 42, 42., 17., 78.)
+fillTree('test.root', 'testtree')
+#modtree('test.root', 'testtree', 42, 42., 17., 78.)

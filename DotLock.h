@@ -62,6 +62,7 @@ class DotLock
 	/// xor val into arr
 	static void xor_in(unsigned char (&arr)[8], unsigned long long val);
 
+    public:
 	/// throw a DotLockExpection in case of trouble during locking
 	class DotLockException : public std::exception
         {
@@ -75,7 +76,7 @@ class DotLock
 	    public:
 		/// constructor
 		DotLockException(int err, bool isgetaddrinfoerr = false);
-		/// routine returning a C string describing what went wrong
+		/// routine returning a C std::string describing what went wrong
 		const char* what() const throw ();
 	};
 };

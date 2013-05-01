@@ -22,12 +22,17 @@
  *
  * This is a helper class never meant to be instantiated. It is used to keep
  * common traits of the templated family of VersionedObject classes in a
- * common place without massive code bloat.
+ * common place without code bloat more massive than necessary due to the
+ * templated nature of VersionedObject.
  */
 class VersionedObjectBase
 {
     public:
-	/// exception to throw in operator[] of VersionedObject<...> & friends
+	/** @brief exception used in operator[] of VersionedObject<...> & friends
+	 *
+	 * @author Manuel Schiller <manuel.schiller@nikhef.nl>
+	 * @date 2013-04-15
+	 */
 	class OutOfRangeException : public std::exception
         {
             public:
@@ -41,8 +46,16 @@ class VersionedObjectBase
 		/// message description
 		const char* m_msg;
         };
-};
 
+	/// default constructor
+	VersionedObjectBase();
+	/// copy constructor
+	VersionedObjectBase(const VersionedObjectBase& other);
+	/// assignment operator
+	VersionedObjectBase& operator=(const VersionedObjectBase& other);
+	/// destructor
+	virtual ~VersionedObjectBase();
+};
 
 /** @brief class to keep a version history of objects
  *
@@ -75,17 +88,19 @@ class VersionedObjectBase
  *   use the right interface which is different from the read-only one.)
  *
  */
-template <class T, class VEROBJ = TimeStamp,
+template <class OBJ, class VEROBJ = TimeStamp,
 	 class CMP = std::greater<VEROBJ> >
 class VersionedObject : public VersionedObjectBase
 {
     private:
 	/// type used for the version-object mapping
-	typedef std::map<VEROBJ, T, CMP> map_type;
+	typedef std::map<VEROBJ, OBJ, CMP> map_type;
 
     public:
 	/// type of payload to be stored
 	typedef typename map_type::mapped_type mapped_type;
+	/// type of payload to be stored
+	typedef mapped_type obj_type;
 	/// type used for versioning (time stamp, version number, whatever)
 	typedef typename map_type::key_type key_type;
 	/// type used for versioning (time stamp, version number, whatever)
@@ -108,9 +123,22 @@ class VersionedObject : public VersionedObjectBase
 	typedef typename map_type::key_compare key_compare;
 	/// type of version conparison function
 	typedef key_compare version_compare;
+	/// type of allocator in underlying map
+	typedef typename map_type::allocator_type allocator_type;
 	/// shorthand for the type of the class itself
 	typedef VersionedObject<
-	    mapped_type, version_type, version_compare> my_type;
+	    obj_type, version_type, version_compare> my_type;
+	/// shorthand for type returned by insert methods
+	typedef std::pair<iterator, bool> insert_return_type;
+
+	/// default constructor
+	VersionedObject();
+	/// copy constructor
+	VersionedObject(const my_type& other);
+	/// assignment operator
+	my_type& operator=(const my_type& other);
+	/// destructor
+	virtual ~VersionedObject();
 
 	/// return "size" of the version object (i.e. number of versions)
 	size_type size() const;
@@ -124,12 +152,24 @@ class VersionedObject : public VersionedObjectBase
 	void swap(my_type& other);
 	
 	/// access the object of the "active" version
-	const mapped_type& operator*() const;
+	obj_type& operator*();
 	/// access the object of the "active" version
-	const mapped_type& operator->() const;
+	const obj_type& operator*() const;
+	/// access the object of the "active" version
+	obj_type& operator->();
+	/// access the object of the "active" version
+	const obj_type& operator->() const;
+	/// access the object of the "active" version
+	const obj_type& value() const;
 
 	/// access to elements by version
-	const mapped_type& operator[](const version_type& ver) const;
+	obj_type& operator[](const version_type& ver);
+
+	/// access to elements by version
+	const obj_type& operator[](const version_type& ver) const;
+
+	/// access to elements by index (0, ..., size())
+	value_type& operator[](const size_type nver);
 
 	/// access to elements by index (0, ..., size())
 	const value_type& operator[](const size_type nver) const;
@@ -163,7 +203,7 @@ class VersionedObject : public VersionedObjectBase
 	 * NECESSARY, SINCE A NEW VERSION SHOULD BE CREATED WITH UPDATED
 	 * VALUES, WE SHOULD NEVER OVERWRITE OLD VERSIONS!
 	 */ 
-	std::pair<iterator, bool> insert(const value_type& value);
+	insert_return_type insert(const value_type& value);
 	/** @brief insert a pair (version, object)
 	 *
 	 * @return a pair of (iterator, bool) where the iterator points to the
@@ -176,8 +216,8 @@ class VersionedObject : public VersionedObjectBase
 	 * NECESSARY, SINCE A NEW VERSION SHOULD BE CREATED WITH UPDATED
 	 * VALUES, WE SHOULD NEVER OVERWRITE OLD VERSIONS!
 	 */ 
-	std::pair<iterator, bool> insert(
-		const version_type& ver, const mapped_type& obj);
+	insert_return_type insert(
+		const version_type& ver, const obj_type& obj);
 	/// insert a range of pairs (version, object)
 	template<class input_iterator>
 	inline void insert(input_iterator first, input_iterator last)

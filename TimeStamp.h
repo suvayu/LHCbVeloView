@@ -68,6 +68,7 @@ class TimeStamp
 
 	static ULong64_t fromStr(const char* str);
 
+    public:
         /// throw a TimeStampExpection in case of trouble
         class TimeStampException : public std::exception
         {
