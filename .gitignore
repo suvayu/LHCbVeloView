@@ -1,0 +1,12 @@
+*.os
+*.o
+*.so
+*.a
+*.pyc
+*.pyo
+.*.swp
+*Dict.cxx
+*Rflx.cxx
+*.root
+*.log
+.deps
