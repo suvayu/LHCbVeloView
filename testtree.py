@@ -10,10 +10,7 @@ from TypeHelper import getTypeFactory
 def fillTree(filename, treename):
     from ROOT import TFile, TTree, TRandom3
     from ROOT import DotLock, TimeStamp, VersionedObject, std
-    VString = VersionedObject(std.string, TimeStamp, 'std::greater<TimeStamp>')
-    VDouble = VersionedObject('double', TimeStamp, 'std::greater<TimeStamp>')
-    VMapVectDouble = VersionedObject(std.map('int', std.vector('double')),
-	    TimeStamp, 'std::greater<TimeStamp>')
+    from GUITree import Tree
     sensors = []
     sensors += [ i for i in xrange(0, 42) ]
     sensors += [ i for i in xrange(64, 64 + 42) ]
@@ -21,26 +18,24 @@ def fillTree(filename, treename):
     rnd = TRandom3()
     dl = DotLock(filename)
     f = TFile(filename, 'RECREATE')
-    t = TTree(treename, treename)
-    from TreeHelper import branchObj
+    t = Tree(treename, {
+	# branch names and types
+	'runnr':	'UInt_t',
+	'comment':	'VersionedObject<std::string, TimeStamp, std::greater<TimeStamp> >',
+	'meanpedestal':	'VersionedObject<double, TimeStamp, std::greater<TimeStamp> >',
+	'occupancy':	'VersionedObject<std::map<int,std::vector<double> >, TimeStamp, std::greater<TimeStamp> >'
+	})
     print 'File and tree open.'
-    runnr = branchObj(t, 'runnr', 'UInt_t')
-    occupancy = branchObj(t, 'occupancy',
-	    'VersionedObject<std::map<int,std::vector<double> >, TimeStamp, std::greater<TimeStamp> >')
-    comment = branchObj(t, 'comment',
-	    'VersionedObject<std::string, TimeStamp, std::greater<TimeStamp> >')
-    meanpedestal = branchObj(t, 'meanpedestal',
-	    'VersionedObject<double, TimeStamp, std::greater<TimeStamp> >')
     for i in xrange(0, 10):
 	print 'Filling run %u' % i
-	comment.clear()
-	occupancy.clear()
-	meanpedestal.clear()
+	t.comment.clear()
+	t.occupancy.clear()
+	t.meanpedestal.clear()
 
-	runnr[0] = i
+	t.runnr = i
 	now = TimeStamp()
-	comment[now] = 'initial DQ for run %u' % i
-	meanpedestal[now] = -5. + 10. * rnd.Rndm()
+	t.comment[now] = 'initial DQ for run %u' % i
+	t.meanpedestal[now] = -5. + 10. * rnd.Rndm()
 	for sensor in sensors:
 	    # vector of per-strip occupancies
 	    ov = std.vector('double')(2048)
@@ -53,7 +48,7 @@ def fillTree(filename, treename):
 		elif tmp < 0.0075: ov[strip] = -rnd.Uniform()
 	        else: ov[strip] = -rnd.Gaus(0.01,0.0025)
 	    # fill that vector into the current version
-	    occupancy[now][sensor] = ov
+	    t.occupancy[now][sensor] = ov
 	t.Fill()
     t.Write()
     del t
