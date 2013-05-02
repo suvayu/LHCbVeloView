@@ -33,7 +33,7 @@ class Tree:
         self.branches = { }
 	## TTree holding the branch
 	self.tree = None
-	if None = branches:
+	if None == branches:
 	    # open for reading, get all branches from Tree
 	    branches = [ '.*']
 	if type(branches) == type([]):
@@ -62,6 +62,7 @@ class Tree:
 	    del bl
 	elif type(branches) == type({}):
 	    # open tree for writing, create the specified branches
+	    self.tree = ROOT.TTree(treename, treename)
 	    for bn in branches:
 		self.BranchObj(bn, branches[bn])
 	else:
@@ -98,35 +99,34 @@ class Tree:
     def BranchObj(self, bname, typestr = None):
         obj = None
         if None == typestr:
-    	# ok, branch for reading
-    	b = self.tree.FindBranch(bname)
-    	if None == b:
-    	    raise Exception('Unknown branch name \'%s\' in ' \
-    		    'TTree \'%a\' requested.' % (bname, self.tree.GetName()))
-    	l = b.GetLeaf(bname)
-    	if None == l:
-    	    raise Exception('Unknown leaf in branch in \'%s\' in ' \
-    		    'TTree \'%a\' requested.' % (bname, self.tree.GetName()))
-    	typestr = l.GetTypeName()
-    	obj = getTypeFactory(typestr)()
-    	self.tree.SetBranchAddress(bname, obj)
-        else:
-    	# new branch for writing
-    	b = self.tree.FindBranch(bname)
-    	if None != b:
-    	    raise Exception('Branch \'%s\' already exists in ' \
-    		    'TTree \'%s\'.' % (bname, self.tree.GetName()))
-    	obj = getTypeFactory(typestr)()
-    	bcallargs = (bname, obj)
-    	if type(obj) == numpy.ndarray:
-    	    # ok a POD type most likely, so ROOT needs telling what kind of
-    	    # branch it's supposed to create
-    	    if obj.shape != (1,) or obj.dtype.type not in __typedictPOD__:
-    		raise Exception('Unknown data type for branch \'%s\' in '\
-    			'tree \'%s\'' % (bname, self.tree.GetName()))
-    	    bcallargs += ('%s/%s' % (bname, __typedictPOD__[obj.dtype.type]),)
-    	self.tree.Branch(*bcallargs)
-	self.__dict__[bname] = obj
+	    # ok, branch for reading
+	    b = self.tree.FindBranch(bname)
+	    if None == b:
+		raise Exception('Unknown branch name \'%s\' in ' \
+			'TTree \'%a\' requested.' % (bname, self.tree.GetName()))
+		l = b.GetLeaf(bname)
+	    if None == l:
+		raise Exception('Unknown leaf in branch in \'%s\' in ' \
+			'TTree \'%a\' requested.' % (bname, self.tree.GetName()))
+		typestr = l.GetTypeName()
+	    obj = getTypeFactory(typestr)()
+	    self.tree.SetBranchAddress(bname, obj)
+	else:
+	    # new branch for writing
+	    b = self.tree.FindBranch(bname)
+	    if None != b:
+		raise Exception('Branch \'%s\' already exists in ' \
+			'TTree \'%s\'.' % (bname, self.tree.GetName()))
+	    obj = getTypeFactory(typestr)()
+	    bcallargs = (bname, obj)
+	    if type(obj) == numpy.ndarray:
+		# ok a POD type most likely, so ROOT needs telling what kind of
+		# branch it's supposed to create
+		if obj.shape != (1,) or obj.dtype.type not in self.__typedictPOD__:
+		    raise Exception('Unknown data type for branch \'%s\' in '\
+			    'tree \'%s\'' % (bname, self.tree.GetName()))
+	        bcallargs += ('%s/%s' % (bname, self.__typedictPOD__[obj.dtype.type]),)
+	    self.tree.Branch(*bcallargs)
 	self.branches[bname] = obj
         return obj
 
@@ -164,8 +164,8 @@ class Tree:
     # no support for changing attributes of the underlying tree is given on
     # purpose, this can be circumvented with the tree attribute of the class
     def __setattr__(self, name, value):
-	if 'branches' in self.__dict__ and key in self.__dict__['branches']:
-            obj = self.__dict__['branches'][key]
+	if 'branches' in self.__dict__ and name in self.__dict__['branches']:
+            obj = self.__dict__['branches'][name]
 	    # for POD branches, we need special treatment
 	    if numpy.ndarray == type(obj) and (1,) == obj.shape:
 		obj[0] = value
@@ -174,6 +174,6 @@ class Tree:
 		# object which is what we want
 		obj = value
         else:
-            self.__dict__[key] = value
+            self.__dict__[name] = value
 
 # vim: sw=4:tw=78:ft=python
