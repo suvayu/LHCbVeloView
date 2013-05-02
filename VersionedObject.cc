@@ -117,8 +117,17 @@ const typename VersionedObject<OBJ, VEROBJ, CMP>::obj_type&
 VersionedObject<OBJ, VEROBJ, CMP>::value() const
 {
     if (empty()) throw OutOfRangeException(
-	    "Empty VersionedObject instance, index out of range!");
+	    "Empty VersionedObject instance");
     return m_objs.begin()->second;
+}
+
+template<class OBJ, class VEROBJ, class CMP>
+const typename VersionedObject<OBJ, VEROBJ, CMP>::version_type&
+VersionedObject<OBJ, VEROBJ, CMP>::active_version() const
+{
+    if (empty()) throw OutOfRangeException(
+	    "Empty VersionedObject instance");
+    return m_objs.begin()->first;
 }
 
 template<class OBJ, class VEROBJ, class CMP>

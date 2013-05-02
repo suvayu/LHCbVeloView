@@ -80,13 +80,8 @@ class VersionedObjectBase
  *   latter access mode goes through the versions in the order given by CMP.
  * - There is the notion of an "active" version, i.e. the version you get when
  *   you do not ask for a specific version. You can access it with a
- *   deferencing operation, just like a pointer.
- * - Objects and version data are immutable once inserted into a
- *   VersionedObject. Changing is only allowed by first erasing that version,
- *   then re-inserting it. (The rationale here is to prevent accidental
- *   overwrites by client code. If that's what the code wants to do, it has to
- *   use the right interface which is different from the read-only one.)
- *
+ *   deferencing operation, just like a pointer, or the value() and
+ *   active_version() methods.
  */
 template <class OBJ, class VEROBJ = TimeStamp,
 	 class CMP = std::greater<VEROBJ> >
@@ -161,6 +156,8 @@ class VersionedObject : public VersionedObjectBase
 	const obj_type& operator->() const;
 	/// access the object of the "active" version
 	const obj_type& value() const;
+	/// get the active version
+	const version_type& active_version() const;
 
 	/// access to elements by version
 	obj_type& operator[](const version_type& ver);
