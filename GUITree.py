@@ -18,23 +18,17 @@ from TypeHelper import getTypeFactory
 #
 # It also provides improved drawing functionality compared to TTree.
 #
-# FIXME: switch off inactive branches
-# FIXME: get BranchObj to cooperate
-# FIXME: provide way to switch off branches somewhere along the way
-# FIXME: Drawing functionality is missing
+# TODO: switch off inactive branches provide way to switch off branches
+#       somewhere along the way
+# TODO: Drawing functionality is missing
 class Tree:
     ## constructor
     #
-    # @param file	ROOT file for tree
     # @param treename	name of tree
     # @param branches	(optional) either list of regexes of branches to
     # 			activate (when reading a tree), or dictionary of
     # 			branch name - types (when writing a new tree)
-    def __init__(self, file, treename, branches = None):
-	## ROOT file which houses the TTree
-	self._file_ = file
-	## tree name
-	self._treename_ = treename
+    def __init__(self, treename, branches = None):
 	## active branches; dictionary branch name - object saven on branch
         self.branches = { }
 	## TTree holding the branch
@@ -44,10 +38,9 @@ class Tree:
 	    branches = [ '.*']
 	if type(branches) == type([]):
 	    # open for reading, get matching branches from Tree
-	    self._file_.GetObject(treename, self.tree)
+	    ROOT.gDirectory.GetObject(treename, self.tree)
 	    if None == self.tree:
-		raise Exception('Tree \'%s\' not found in file \'%s\'!' % (
-		    treename, self._file_.GetName()))
+		raise Exception('Tree \'%s\' not found!' % treename)
 	    # modify list of branches
 	    matchlist = [ re.compile(s) for s in branches ]
 	    bl = self.tree.GetListOfBranches()
