@@ -198,7 +198,15 @@ def getTypeFactory(typename):
 	    a = a[2:]
 	    if () == ta[1] and __isPOD__(ta[0]): al += (ta[0]),
 	    else: al += (getTypeFactory(ta),)
-	if __isSTL__(t): t = __typesSTL__[t](*al)
+	if __isSTL__(t):
+	    tmp = t
+	    t = __typesSTL__[t](*al)
+	    if 'map' == tmp or 'std::map' == tmp:
+		# patch map, std::map to have a sane __getitem__
+		# implementation (PyROOT's implementation is doing something
+		# fishy at the moment)
+		print 'WARNING: patching map.__getitem__ for sane behaviour'
+		t.__getitem__ = lambda obj, idx: obj.at(idx)
 	else:
 	    if t not in __othertemplates__:
 		from ROOT import Template
