@@ -18,33 +18,56 @@ from TypeHelper import getTypeFactory
 #
 # It also provides improved drawing functionality compared to TTree.
 #
-# TODO: switch off inactive branches provide way to switch off branches
+# @todo switch off inactive branches provide way to switch off branches
 #       somewhere along the way
-# TODO: Drawing functionality is missing
+# @todo Drawing functionality is missing
 class Tree:
     ## constructor
     #
-    # @param treename	name of tree
+    # @param tree	name of tree or TTree instance to wrap
+    # @param treetitle	title of tree (use treename if unset)
     # @param branches	(optional) either list of regexes of branches to
     # 			activate (when reading a tree), or dictionary of
     # 			branch name - types (when writing a new tree)
-    def __init__(self, treename, branches = None):
+    def __init__(self, tree, treetitle = None, branches = None):
 	## active branches; dictionary branch name - object saven on branch
         self.branches = { }
 	## TTree holding the branch
 	self.tree = None
+	if None == treetitle: treetitle = tree
 	if None == branches:
 	    # open for reading, get all branches from Tree
 	    branches = [ '.*']
 	if type(branches) == type([]):
-	    # open for reading, get matching branches from Tree
-	    ROOT.gDirectory.GetObject(treename, self.tree)
+	    if type(tree) == type(''):
+		# open for reading, get matching branches from Tree
+	        self.tree = ROOT.gROOT.FindObject(tree)
+		if not self.tree.InheritsFrom('TTree'):
+		    raise Exception('Unsupported type (\'%s\') used for tree!'
+			    % str(type(tree)))
+		treetitle = self.tree.GetTitle()
+	    else:
+		try:
+		    if tree.InheritsFrom('TTree'):
+			self.tree = tree
+			tree = self.tree.GetName()
+		except:
+		    raise Exception('Unsupported type (\'%s\') used for tree!'
+			    % str(type(tree)))
+		if type(treetitle) != type(self):
+		    # we misuse the second argument when we're cloning
+		    # a tree
+		    raise Exception('Unsupported type ' \
+			    '(\'%s\') used for original Tree!'
+			    % str(type(treetitle)))
+		self.branches = treetitle.branches
+		return
 	    if None == self.tree:
-		raise Exception('Tree \'%s\' not found!' % treename)
+		raise Exception('Tree \'%s\' not found!' % tree)
 	    # modify list of branches
 	    matchlist = [ re.compile(s) for s in branches ]
 	    bl = self.tree.GetListOfBranches()
-	    it = bl.CreateIterator()
+	    it = bl.MakeIterator()
 	    ROOT.SetOwnership(it, True)
 	    b = it.Next()
 	    while None != b:
@@ -54,15 +77,18 @@ class Tree:
 		    match = None != m.match(bname)
 		    if match: break
 		if not match: continue
-		objtype = b.GetLeaf(bname).GetTypeName()
-		self.BranchObj(bname, objtype)
+		self.BranchObj(bname)
+		b = it.Next()
 	    del matchlist
 	    del it
 	    del b
 	    del bl
 	elif type(branches) == type({}):
 	    # open tree for writing, create the specified branches
-	    self.tree = ROOT.TTree(treename, treename)
+	    self.tree = ROOT.TTree(tree, treetitle)
+	    if type(tree) != type(''):
+		raise Exception('Unsupported type (\'%s\') used for tree!' %
+			str(type(tree)))
 	    for bn in branches:
 		self.BranchObj(bn, branches[bn])
 	else:
@@ -104,11 +130,11 @@ class Tree:
 	    if None == b:
 		raise Exception('Unknown branch name \'%s\' in ' \
 			'TTree \'%a\' requested.' % (bname, self.tree.GetName()))
-		l = b.GetLeaf(bname)
+	    l = b.GetLeaf(bname)
 	    if None == l:
 		raise Exception('Unknown leaf in branch in \'%s\' in ' \
 			'TTree \'%a\' requested.' % (bname, self.tree.GetName()))
-		typestr = l.GetTypeName()
+	    typestr = l.GetTypeName()
 	    obj = getTypeFactory(typestr)()
 	    self.tree.SetBranchAddress(bname, obj)
 	else:
@@ -175,5 +201,16 @@ class Tree:
 		obj = value
         else:
             self.__dict__[name] = value
+
+    ## execute TTree's CloneTree method, wrap the result in a new Tree
+    #
+    # clones the structure of the tree, and make old and new tree share all
+    # branch buffers
+    #
+    # @param nentries	number of entries to copy (-1 means all)
+    # @param options	options for cloning (see TTree documentation)
+    # @return	wrapped instance of cloned tree
+    def CloneTree(self, nentries = -1, options = ''):
+	return Tree(self.tree.CloneTree(nentries, options), self)
 
 # vim: sw=4:tw=78:ft=python
