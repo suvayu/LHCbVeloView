@@ -178,6 +178,53 @@ VersionedObject<OBJ, VEROBJ, CMP>::operator[](
 }
 
 template<class OBJ, class VEROBJ, class CMP>
+typename VersionedObject<OBJ, VEROBJ, CMP>::obj_type&
+VersionedObject<OBJ, VEROBJ, CMP>::at(
+	const typename VersionedObject<OBJ, VEROBJ, CMP>::version_type& ver)
+{ return m_objs[ver]; }
+
+template<class OBJ, class VEROBJ, class CMP>
+const typename VersionedObject<OBJ, VEROBJ, CMP>::obj_type&
+VersionedObject<OBJ, VEROBJ, CMP>::at(
+	const typename VersionedObject<OBJ, VEROBJ, CMP>::version_type& ver) const
+{
+    if (empty()) throw OutOfRangeException(
+	    "Empty VersionedObject instance, index out of range!");
+    const_iterator it = find(ver);
+    if (end() == it) throw OutOfRangeException(
+	    "VersionedObject: requested version not found!");
+    return it->second;
+}
+
+template<class OBJ, class VEROBJ, class CMP>
+typename VersionedObject<OBJ, VEROBJ, CMP>::value_type&
+VersionedObject<OBJ, VEROBJ, CMP>::at(
+	typename VersionedObject<OBJ, VEROBJ, CMP>::size_type nver)
+{
+    if (empty()) throw OutOfRangeException(
+	    "Empty VersionedObject instance, index out of range!");
+    if (nver >= size()) throw OutOfRangeException(
+	    "VersionedObject: requested index out of range!");
+    iterator it = begin();
+    std::advance(it, nver);
+    return *it;
+}
+
+template<class OBJ, class VEROBJ, class CMP>
+const typename VersionedObject<OBJ, VEROBJ, CMP>::value_type&
+VersionedObject<OBJ, VEROBJ, CMP>::at(
+	typename VersionedObject<OBJ, VEROBJ, CMP>::size_type nver) const
+{
+    if (empty()) throw OutOfRangeException(
+	    "Empty VersionedObject instance, index out of range!");
+    if (nver >= size()) throw OutOfRangeException(
+	    "VersionedObject: requested index out of range!");
+    const_iterator it = begin();
+    std::advance(it, nver);
+    return *it;
+}
+
+template<class OBJ, class VEROBJ, class CMP>
 typename VersionedObject<OBJ, VEROBJ, CMP>::iterator
 VersionedObject<OBJ, VEROBJ, CMP>::begin()
 { return m_objs.begin(); }

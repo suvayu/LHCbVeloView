@@ -171,6 +171,18 @@ class VersionedObject : public VersionedObjectBase
 	/// access to elements by index (0, ..., size())
 	const value_type& operator[](const size_type nver) const;
 
+	/// access to elements by version
+	obj_type& at(const version_type& ver);
+
+	/// access to elements by version
+	const obj_type& at(const version_type& ver) const;
+
+	/// access to elements by index (0, ..., size())
+	value_type& at(const size_type nver);
+
+	/// access to elements by index (0, ..., size())
+	const value_type& at(const size_type nver) const;
+
 	/// return iterator to first entry in map
 	iterator begin();
 	/// return iterator to first entry in map (const)
