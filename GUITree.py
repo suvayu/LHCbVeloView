@@ -14,6 +14,7 @@
 #
 import ROOT, numpy, re
 from TypeHelper import getTypeFactory
+import DrawHelper
 
 ## smart TTree replacement
 #
@@ -27,7 +28,6 @@ from TypeHelper import getTypeFactory
 # It also provides improved drawing functionality compared to TTree.
 #
 # @todo provide a way to switch off branches that are not needed
-# @todo Drawing functionality is missing
 class Tree:
     ## constructor
     #
@@ -246,5 +246,8 @@ class Tree:
     ## make tree iterable
     def __iter__(self):
 	return self.__TreeIter__(self)
+
+    ## plot Tree contents (see DrawHelper.Draw for details)
+    Plot = DrawHelper.Draw
 
 # vim: sw=4:tw=78:ft=python
