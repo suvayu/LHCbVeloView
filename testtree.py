@@ -11,11 +11,6 @@ ROOT.gSystem.Load('libCintex')
 ROOT.Cintex.Enable()
 ROOT.gSystem.Load('libVeloGUIUtils')
 
-# construct list of valid Velo sensor numbers
-sensors = tuple(xrange(0, 42))
-sensors += tuple(xrange(64, 64 + 42))
-sensors += tuple(xrange(128, 132))
-
 def createTree(filename, treename):
     from ROOT import TFile, TRandom3
     from ROOT import DotLock, TimeStamp, VersionedObject
@@ -38,10 +33,14 @@ def createTree(filename, treename):
 	'meanpedestal':	'VersionedObject<Float_t, TimeStamp, std::greater<TimeStamp> >',
 	'occupancy':	'VersionedObject<std::map<int,std::vector<Float_t> >, TimeStamp, std::greater<TimeStamp> >'
 	})
+    # construct list of valid Velo sensor numbers
+    sensors = tuple(xrange(0, 42))
+    sensors += tuple(xrange(64, 64 + 42))
+    sensors += tuple(xrange(128, 132))
     # get RNG to generate some data to put into the tuple
     rnd = TRandom3()
-    # fill tree
-    for i in xrange(0, 10):
+    # fill tree, 64 entries
+    for i in xrange(0, 64):
 	# clear out data from last run
 	t.comment.clear()
 	t.occupancy.clear()
@@ -109,7 +108,6 @@ def anatree(filename, treename):
     # dummy will point to t in the for loop below, and the for loop will
     # iterate over the entries of the tree
     for dummy in t:
-    #for i in xrange(0, t.GetEntries()):
 	print 'Analysing run %u: %s (%s)' % (
 		t.runnr, t.comment.value(), t.comment.active_version().toString())
 	# work out average occupancy in run
@@ -167,8 +165,30 @@ def anatree(filename, treename):
     # release write lock (dl goes out of scope)
     # del dl
 
+def summarisetree(filename, treename):
+    from ROOT import TFile, TimeStamp
+    from GUITree import Tree
+    print "Summarising DQ on file %s, tree %s" % (filename, treename)
+    # we're reading only, no need to lock...
+    # open original file for reading
+    f = TFile(filename, 'READ')
+    # get the DQ tree from that file
+    t = Tree('testtree')
+    # go through entries in t, modify where appropriate, and fill modified
+    # entries into tt
+    #
+    # dummy will point to t in the for loop below, and the for loop will
+    # iterate over the entries of the tree
+    for dummy in t:
+	print '\trun %u: %s (%s)' % (
+		t.runnr, t.comment.value(), t.comment.active_version().toString())
+    del t
+    f.Close()
+    del f
+
 print 'Creating DQ tree'
 createTree('test.root', 'testtree')
 print ''
-print 'Analysing DQ tree'
 anatree('test.root', 'testtree')
+print ''
+summarisetree('test.root', 'testtree')
