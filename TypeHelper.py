@@ -92,6 +92,9 @@ __othertemplates__ = {}
 ## name-type cache for non-templated types, populated on the fly
 __othertypes__ = {}
 
+## type factory cache
+__cache__ = {}
+
 ## return True if string s names a templated type.
 # 
 # @param s	string with name of type
@@ -166,6 +169,24 @@ def __parsetype__(s):
 	idx2 = idx2 + 1
     return classname, t	
 
+## patch the pythonised version of the C++ STL map for sane behaviour in python
+def __patchmap__(t):
+    # patch map, std::map to have a sane __getitem__ and a sane
+    # iterator implementation (PyROOT's implementation is doing
+    # something fishy at the moment)
+    print 'WARNING: patching %s for sane behaviour' % str(t)
+    t.__getitem__ = lambda obj, idx: obj.at(idx)
+    from IterTools import (RangeIter, ValueRangeIter,
+	    KeyRangeIter)
+    t.__iter__ = lambda obj: KeyRangeIter(obj.begin(), obj.end())
+    t.iterkeys = lambda obj: KeyRangeIter(obj.begin(), obj.end())
+    t.itervalues = lambda obj: ValueRangeIter(obj.begin(), obj.end())
+    t.iteritems = lambda obj: RangeIter(obj.begin(), obj.end())
+    t.keys = lambda obj: list(obj.iterkeys())
+    t.values = lambda obj: list(obj.itervalues())
+    t.items = lambda obj: list(obj.iteritems())
+    t.has_key = lambda obj, key: obj.end() != obj.find(key)
+
 ## returns an object which can be used to construct objects of the type
 # given in the string typename.
 #
@@ -183,9 +204,12 @@ def __parsetype__(s):
 # v[7] = 2.79
 # @endcode
 def getTypeFactory(typename):
-    if type(typename) == type(''):
+    if type(typename) == str:
+	typename = typename.expandtabs(1).strip()
+	if typename in __cache__:
+	    return __cache__[typename]
 	typetuple = __parsetype__(typename)
-    elif type(typename) == type(()):
+    elif type(typename) == tuple:
 	typetuple = typename
     else:
 	raise Exception('Wrong type: expect string!')
@@ -202,16 +226,15 @@ def getTypeFactory(typename):
 	    tmp = t
 	    t = __typesSTL__[t](*al)
 	    if 'map' == tmp or 'std::map' == tmp:
-		# patch map, std::map to have a sane __getitem__
-		# implementation (PyROOT's implementation is doing something
-		# fishy at the moment)
-		print 'WARNING: patching map.__getitem__ for sane behaviour'
-		t.__getitem__ = lambda obj, idx: obj.at(idx)
+		__patchmap__(t)
 	else:
 	    if t not in __othertemplates__:
 		from ROOT import Template
 		__othertemplates__[t] = Template(t)
+	    tmp = t
 	    t = __othertemplates__[t](*al)
+	    if 'VersionedObject' == tmp:
+		__patchmap__(t)
     else:
 	if __isPOD__(t): t = __typesPOD__[t]
 	elif 'string' in t and t in __typesSTL__:
@@ -221,6 +244,8 @@ def getTypeFactory(typename):
 		exec('from ROOT import %s' % t)
 		__othertypes__[t] = eval('ROOT.%s' % t)
 	    t = __othertypes__[t]
+    if type(typename) == str and typename not in __cache__:
+	__cache__[typename] = t
     return t
 
 # vim: sw=4:tw=78:ft=python
