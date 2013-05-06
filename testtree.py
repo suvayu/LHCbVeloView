@@ -12,76 +12,93 @@ sensors += tuple(xrange(128, 132))
 
 def createTree(filename, treename):
     from ROOT import TFile, TRandom3
-    from ROOT import DotLock, TimeStamp, VersionedObject, std
+    from ROOT import DotLock, TimeStamp, VersionedObject
+    from TypeHelper import getTypeFactory
     from GUITree import Tree
-    # get RNG to generate some data to put into the tuple
-    rnd = TRandom3()
     # acquire write lock
     dl = DotLock(filename)
-    # open file for writing
+    # open file for writing (overwriting destination if it exists)
     f = TFile(filename, 'RECREATE')
-    f.SetCompressionSettings(ROOT.CompressionSettings(ROOT.kLZMA, 1))
+    # be a bit more aggressive when compressing data: we're not CPU-limited
+    # when writing tuple files, but we're happy to get by using up less disk
+    # bandwidth
+    f.SetCompressionSettings(ROOT.CompressionSettings(ROOT.kLZMA, 6))
     # create tree with given structure
     t = Tree(treename, 'Velo DQ Tree prototype', {
 	# define branch names and types
-	'runnr':	'UInt_t',
+	'runnr':	'UInt_t', # this never gets updated, so no VersionedObject here
 	'checked':	'VersionedObject<UShort_t, TimeStamp, std::greater<TimeStamp> >',
 	'comment':	'VersionedObject<std::string, TimeStamp, std::greater<TimeStamp> >',
 	'meanpedestal':	'VersionedObject<Float_t, TimeStamp, std::greater<TimeStamp> >',
 	'occupancy':	'VersionedObject<std::map<int,std::vector<Float_t> >, TimeStamp, std::greater<TimeStamp> >'
 	})
+    # get RNG to generate some data to put into the tuple
+    rnd = TRandom3()
     # fill tree
-    for i in xrange(0, 64):
+    for i in xrange(0, 10):
 	# clear out data from last run
 	t.comment.clear()
 	t.occupancy.clear()
 	t.meanpedestal.clear()
 
-	# fill new run: step 1: generate time stamp (now)
+	# fill new run
+	# step 1: generate time stamp (now)
 	now = TimeStamp()
-	# fill branches
+	# step 2: fill branches
 	t.runnr = 100000 + i
 	print 'Generating dummy DQ data for run %u' % t.runnr
 	t.checked[now] = 0
 	t.comment[now] = 'initial DQ for run %u: UNCHECKED' % t.runnr
 	t.meanpedestal[now] = rnd.Uniform(-5., 5.)
-	# simulate about 3 permille dead, 5 permille noisy channels
+	# simulate about 3 permille dead, 5 permille noisy channels, and have
+	# that fluctuate a bit
 	fdead = rnd.Uniform(0.003, 0.002)
 	if fdead < 0.: fdead = 0.
-	fnoisy = rnd.Uniform(0.005,0.002)
+	fnoisy = rnd.Uniform(0.005,0.003)
 	if fnoisy < 0.: fnoisy = 0.
+	# ok, put the per-strip occupancies in
 	for sensor in sensors:
 	    # vector of per-strip occupancies
-	    ov = std.vector('float')(2048)
+	    ov = getTypeFactory('std::vector<Float_t>')(2048, 0.)
 	    for strip in xrange(0, 2048):
 		# simulate dead, noisy and normal strips
 		tmp = rnd.Uniform(0., 1.)
 		if tmp > (fdead + fnoisy): ov[strip] = rnd.Gaus(0.01, 0.0025)
 		elif tmp > fnoisy: ov[strip] = rnd.Uniform(0., 1.)
-	        else: ov[strip] = 0.
+	        else: pass # zero anyway
 	    # put that strip vector for the current sensor into the current
 	    # version
 	    t.occupancy[now][sensor] = ov
+	# step 3: fill tree
 	t.Fill()
+    # make sure tree is written to file
     t.Write()
+    # close file
     del t
     f.Close()
     del f
-    del dl
+    # release write lock (dl goes out of scope)
+    # del dl
 
 def anatree(filename, treename):
-    from ROOT import TFile, TRandom3
-    from ROOT import DotLock, TimeStamp, VersionedObject, std
+    from ROOT import TFile, DotLock, TimeStamp
+    from os import rename
     from GUITree import Tree
     print "Doing dummy DQ on file %s, tree %s" % (filename, treename)
     # acquire write lock
     dl = DotLock(filename)
-    # open file for writing
+    # open original file for reading
     f = TFile(filename, 'READ')
+    # get the DQ tree from that file
     t = Tree('testtree')
+    # open file to write the modified DQ to
     ff = TFile('%s.new' % filename, 'RECREATE')
-    ff.SetCompressionSettings(ROOT.CompressionSettings(ROOT.kLZMA, 1))
+    # same compression settings for new file
+    ff.SetCompressionSettings(f.GetCompressionSettings())
+    # new tree with same structure as t
     tt = t.CloneTree(0)
+    # go through entries in t, modify where appropriate, and fill modified
+    # entries into tt
     for i in xrange(0, t.GetEntries()):
 	t.GetEntry(i)
 	print 'Analysing run %u: %s (%s)' % (
@@ -89,7 +106,7 @@ def anatree(filename, treename):
 	# work out average occupancy in run
 	avgocc = 0.
 	nstrips = 0
-	for sensor in sensors:
+	for sensor in t.occupancy.value():
 	    ov = t.occupancy.value()[sensor]
 	    avgocc += sum(ov)
 	    nstrips += ov.size()
@@ -100,10 +117,9 @@ def anatree(filename, treename):
 	noisy = ()
 	thresh_noise = 3. * avgocc
 	thresh_dead = 0.1 * avgocc
-	for sensor in sensors:
-	    ov = t.occupancy.value()[sensor]
+	for sensor in t.occupancy.value():
 	    strip = 0
-	    for occ in ov:
+	    for occ in t.occupancy.value()[sensor]:
 		if thresh_noise < occ:
 		    noisy += ((sensor, strip), )
 		elif thresh_dead > occ:
@@ -125,16 +141,20 @@ def anatree(filename, treename):
 		tt.runnr, tt.comment.value(), tt.comment.active_version().toString())
 	# write to new tree
 	tt.Fill()
+    # write modified tree to new file
     tt.Write()
+    # close new file
     del tt
     ff.Close()
     del ff
+    # close source file
     del t
     f.Close()
     del f
-    from os import rename
+    # replace source file with modified one
     rename('%s.new' % filename, filename)
-    del dl
+    # release write lock (dl goes out of scope)
+    # del dl
 
 print 'Creating DQ tree'
 createTree('test.root', 'testtree')
