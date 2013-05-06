@@ -25,8 +25,8 @@
 //   from the greedy preprocessor... ;)
 // - a macro which does the instantiation for all the basic types:
 //   INSTANTIATE_BASICTYPES
-// - a macro which does the instantiation for all iterators and the basic
-//   types: INSTANTIATE_ITERATORS_BASICTYPES
+// - a macro which does the instantiation for all iterators and value_types
+//   and the basic types: INSTANTIATE_ITERATORS_BASICTYPES
 //
 // FIXME:
 // - the code does not play well with the std::vector<bool> specialisation, so
