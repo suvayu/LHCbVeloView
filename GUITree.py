@@ -213,4 +213,28 @@ class Tree:
     def CloneTree(self, nentries = -1, options = ''):
 	return Tree(self.tree.CloneTree(nentries, options), self)
 
+    ## helper class to make trees iterable
+    class __TreeIter__:
+	## constructor
+	def __init__(self, tree):
+	    self.__tree__ = tree
+	    self.__entry__ = 0
+	    self.__nentries__ = tree.GetEntries()
+
+	## return the iterator
+	def __iter__(self):
+	    return self
+
+        ## return the next entry in the tree
+	def next(self):
+	    if self.__entry__ >= self.__nentries__:
+		raise StopIteration()
+	    self.__tree__.GetEntry(self.__entry__)
+	    self.__entry__ += 1
+	    return self.__tree__
+
+    ## make tree iterable
+    def __iter__(self):
+	return self.__TreeIter__(self)
+
 # vim: sw=4:tw=78:ft=python
