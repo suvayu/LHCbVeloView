@@ -12,13 +12,13 @@
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-04-30
 #
-import ROOT, numpy
+import ROOT, ctypes
 from ROOT import std
 
-## map [(un)signed][bitwidth] to numpy integer types
+## map [(un)signed][bitwidth] to ctypes integer types
 __itypes__ = [
-	{ 8: numpy.int8, 16: numpy.int16, 32: numpy.int32, 64: numpy.int64 },
-	{ 8: numpy.uint8, 16: numpy.uint16, 32: numpy.uint32, 64: numpy.uint64 }
+	{ 8: ctypes.c_int8, 16: ctypes.c_int16, 32: ctypes.c_int32, 64: ctypes.c_int64 },
+	{ 8: ctypes.c_uint8, 16: ctypes.c_uint16, 32: ctypes.c_uint32, 64: ctypes.c_uint64 }
 	]
 
 ## simple integer type introspection.
@@ -31,38 +31,38 @@ def __getCType__(s):
     unsigned = 1 if 'unsigned' in s else 0
     return __itypes__[unsigned][8 * gInterpreter.ProcessLine('sizeof(%s);' % s)]
 
-## dictionary of POD C/C++ type names to numpy type
+## dictionary of POD C/C++ type names to ctypes type
 __typesPOD__ = {
-	'bool':			lambda : numpy.ndarray(1, dtype = numpy.bool_),
-	'char':			lambda : numpy.ndarray(1, dtype = __getCType__('char')),
-	'unsigned char':	lambda : numpy.ndarray(1, dtype = __getCType__('unsigned char')),
-	'short':		lambda : numpy.ndarray(1, dtype = __getCType__('short')),
-	'unsigned short':	lambda : numpy.ndarray(1, dtype = __getCType__('unsigned short')),
-	'int':			lambda : numpy.ndarray(1, dtype = __getCType__('int')),
-	'unsigned':		lambda : numpy.ndarray(1, dtype = __getCType__('unsigned int')),
-	'unsigned int':		lambda : numpy.ndarray(1, dtype = __getCType__('unsigned int')),
-	'long':			lambda : numpy.ndarray(1, dtype = __getCType__('long')),
-	'unsigned long':	lambda : numpy.ndarray(1, dtype = __getCType__('unsigned long')),
-	'long long':		lambda : numpy.ndarray(1, dtype = __getCType__('long long')),
-	'unsigned long long':	lambda : numpy.ndarray(1, dtype = __getCType__('unsigned long long')),
-	'float':		lambda : numpy.ndarray(1, dtype = numpy.single),
-	'double':		lambda : numpy.ndarray(1, dtype = numpy.double),
+	'bool':			ctypes.c_bool,
+	'char':			__getCType__('char'),
+	'unsigned char':	__getCType__('unsigned char'),
+	'short':		__getCType__('short'),
+	'unsigned short':	__getCType__('unsigned short'),
+	'int':			__getCType__('int'),
+	'unsigned':		__getCType__('unsigned int'),
+	'unsigned int':		__getCType__('unsigned int'),
+	'long':			__getCType__('long'),
+	'unsigned long':	__getCType__('unsigned long'),
+	'long long':		__getCType__('long long'),
+	'unsigned long long':	__getCType__('unsigned long long'),
+	'float':		ctypes.c_float,
+	'double':		ctypes.c_double,
 
-	'Bool_t':		lambda : numpy.ndarray(1, dtype = numpy.bool_),
-	'Char_t':		lambda : numpy.ndarray(1, dtype = numpy.int8),
-	'UChar_t':		lambda : numpy.ndarray(1, dtype = numpy.uint8),
-	'Short_t':		lambda : numpy.ndarray(1, dtype = numpy.int16),
-	'UShort_t':		lambda : numpy.ndarray(1, dtype = numpy.uint16),
-	'Int_t':		lambda : numpy.ndarray(1, dtype = numpy.int32),
-	'UInt_t':		lambda : numpy.ndarray(1, dtype = numpy.uint32),
-	'Long_t':		lambda : numpy.ndarray(1, dtype = __getCType__('long')),
-	'ULong_t':		lambda : numpy.ndarray(1, dtype = __getCType__('unsigned long')),
-	'Long64_t':		lambda : numpy.ndarray(1, dtype = numpy.int64),
-	'ULong64_t':		lambda : numpy.ndarray(1, dtype = numpy.uint64),
-	'Float16_t':		lambda : numpy.ndarray(1, dtype = numpy.single),
-	'Float_t':		lambda : numpy.ndarray(1, dtype = numpy.single),
-	'Double32_t':		lambda : numpy.ndarray(1, dtype = numpy.double),
-	'Double_t':		lambda : numpy.ndarray(1, dtype = numpy.double)
+	'Bool_t':		ctypes.c_bool,
+	'Char_t':		ctypes.c_int8,
+	'UChar_t':		ctypes.c_uint8,
+	'Short_t':		ctypes.c_int16,
+	'UShort_t':		ctypes.c_uint16,
+	'Int_t':		ctypes.c_int32,
+	'UInt_t':		ctypes.c_uint32,
+	'Long_t':		__getCType__('long'),
+	'ULong_t':		__getCType__('unsigned long'),
+	'Long64_t':		ctypes.c_int64,
+	'ULong64_t':		ctypes.c_uint64,
+	'Float16_t':		ctypes.c_float,
+	'Float_t':		ctypes.c_float,
+	'Double32_t':		ctypes.c_double,
+	'Double_t':		ctypes.c_double
 	}
 
 ## dictionary of C++ STL type names to corresponding pythonised type

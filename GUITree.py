@@ -12,7 +12,7 @@
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-05-02
 #
-import ROOT, numpy, re
+import ROOT, ctypes, re
 from TypeHelper import getTypeFactory
 import DrawHelper
 
@@ -102,14 +102,14 @@ class Tree:
 	    raise Exception('Unknown type for branches: %s' % \
 		    str(type(branches)))
 
-    ## map numpy types to type specifiers for TTree leaves
+    ## map ctype types to type specifiers for TTree leaves
     __typedictPOD__ = {
-    	numpy.bool:	'O',
-    	numpy.int8:	'B', numpy.uint8:	'b',
-    	numpy.int16:	'S', numpy.uint16:	's',
-    	numpy.int32:	'I', numpy.uint32:	'i',
-    	numpy.int64:	'L', numpy.uint64:	'l',
-    	numpy.single:	'F', numpy.double:	'D'
+    	ctypes.c_bool:	'O',
+    	ctypes.c_int8:	'B', ctypes.c_uint8:	'b',
+    	ctypes.c_int16:	'S', ctypes.c_uint16:	's',
+    	ctypes.c_int32:	'I', ctypes.c_uint32:	'i',
+    	ctypes.c_int64:	'L', ctypes.c_uint64:	'l',
+    	ctypes.c_float:	'F', ctypes.c_double:	'D'
     	}
     
     ## return the object associated with a branch of the given tree.
@@ -152,13 +152,13 @@ class Tree:
 			'TTree \'%s\'.' % (bname, self.tree.GetName()))
 	    obj = getTypeFactory(typestr)()
 	    bcallargs = (bname, obj)
-	    if type(obj) == numpy.ndarray:
+	    if isinstance(obj, ctypes._SimpleCData):
 		# ok a POD type most likely, so ROOT needs telling what kind of
 		# branch it's supposed to create
-		if obj.shape != (1,) or obj.dtype.type not in self.__typedictPOD__:
+		if type(obj) not in self.__typedictPOD__:
 		    raise Exception('Unknown data type for branch \'%s\' in '\
 			    'tree \'%s\'' % (bname, self.tree.GetName()))
-	        bcallargs += ('%s/%s' % (bname, self.__typedictPOD__[obj.dtype.type]),)
+	        bcallargs += ('%s/%s' % (bname, self.__typedictPOD__[type(obj)]),)
 	    self.tree.Branch(*bcallargs)
 	self.branches[bname] = obj
         return obj
@@ -176,8 +176,8 @@ class Tree:
 	if 'branches' in self.__dict__ and name in self.__dict__['branches']:
 	    obj = self.__dict__['branches'][name]
 	    # for POD branches, we need special treatment
-	    if numpy.ndarray == type(obj) and (1,) == obj.shape:
-		return obj[0]
+	    if isinstance(obj, ctypes._SimpleCData):
+		return obj.value
 	    else:
 		return obj
 	elif name in self.__dict__:
@@ -200,8 +200,8 @@ class Tree:
 	if 'branches' in self.__dict__ and name in self.__dict__['branches']:
             obj = self.__dict__['branches'][name]
 	    # for POD branches, we need special treatment
-	    if numpy.ndarray == type(obj) and (1,) == obj.shape:
-		obj[0] = value
+	    if isinstance(obj, ctypes._SimpleCData):
+		obj.value = value
 	    else:
 		# will this call the assignment operator of the underlying C++
 		# object which is what we want
