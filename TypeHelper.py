@@ -93,6 +93,9 @@ __othertemplates__ = {}
 __othertypes__ = {}
 
 ## type factory cache
+#
+# this is far from perfect because ROOT rewrites type names behind our backs,
+# still there are situations where this saves us some work...
 __cache__ = {}
 
 ## return True if string s names a templated type.
@@ -169,7 +172,8 @@ def __parsetype__(s):
 	idx2 = idx2 + 1
     return classname, t	
 
-## patch the pythonised version of the C++ STL map for sane behaviour in python
+## patch the pythonised version of C++ STL map-like objects for sane behaviour
+# in python
 def __patchmap__(t):
     # patch map, std::map to have a sane __getitem__ and a sane
     # iterator implementation (PyROOT's implementation is doing
