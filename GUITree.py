@@ -18,8 +18,7 @@ from TypeHelper import getTypeFactory
 #
 # It also provides improved drawing functionality compared to TTree.
 #
-# @todo switch off inactive branches provide way to switch off branches
-#       somewhere along the way
+# @todo provide a way to switch off branches that are not needed
 # @todo Drawing functionality is missing
 class Tree:
     ## constructor
@@ -214,6 +213,9 @@ class Tree:
 	return Tree(self.tree.CloneTree(nentries, options), self)
 
     ## helper class to make trees iterable
+    #
+    # @author Manuel Schiller <manuel.schiller@nikhef.nl>
+    # @date 2013-05-06
     class __TreeIter__:
 	## constructor
 	def __init__(self, tree):
