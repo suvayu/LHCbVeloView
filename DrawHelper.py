@@ -18,26 +18,17 @@ import ROOT
 #
 # When drawing some quantity, that quantity may be scalar or it may have vector
 # (of vector (of vector (...))) character. In the latter case, the qantity
-# needs to be flattened to a tuple of scalars.
+# needs to be flattened to a list of scalars.
 #
 # @param c	(unflattened) coordinate
-# @return	tuple of (flattened) values, scalars are converted to
-# 		one-element tuples
+# @return	list of (flattened) values, scalars are converted to
+# 		one-element lists
 def __flattenCoordinate(c):
-    try:
-	# if c behaves like a dictionary/map or like a vector/tuple/list, we
-	# create a tuple of the elements, flattening any "nesting" of vectors
-	# we might encounter
-	try:
-	    # behaves like dictionary/map
-	    c = tuple(__flattenCoordinate(v) for v in c.itervalues())
-	except:
-	    # behaves like vector/list/tuple
-	    c = tuple(__flattenCoordinate(v) for v in c)
-	return c
-    except:
-	# is scalar, convert to tuple
-	return (c,)
+    return sum(
+	    (__flattenCoordinate(item) if hasattr(item, '__iter__') or
+		hasattr(item, '__len__') else [float(item)]
+		for item in (c.itervalues() if hasattr(c, 'itervalues') else c)), []
+	    ) if hasattr(c, '__iter__') or hasattr(c, '__len__') else [float(c)]
 
 ## verify compatibility in shape of coordinates to be drawn, extend if needed
 #
@@ -55,29 +46,18 @@ def __flattenCoordinate(c):
 # @param w	tuple with weights (either scalar or vector)
 # @return	a tuple (coordinate(s), weight(s), extended as specified above
 def __verifyAndExtendShape(c, w):
-    maxlen = max(len(v) for v in w)
-    maxlen = max(maxlen, max(len(v) for v in w))
-    minlen = min(len(v) for v in w)
-    minlen = min(minlen, min(len(v) for v in w))
+    maxlen = max(max(len(v) for v in c), len(w))
+    minlen = min(min(len(v) for v in c), len(w))
     if 0 >= minlen or minlen > maxlen:
 	raise Exception('Incompatible shapes.')
-    cc = tuple()
-    for v in c:
-	if len(v) == maxlen:
-	    cc += (v,)
-	elif len(v) == 1:
-	    cc += maxlen * v
-	else:
-	    raise Exception('Incompatible shapes.')
-    del c
-    if len(w) == maxlen:
-	cc += (w,)
-    elif len(w) == 1:
-	cc += maxlen * w
-    else:
+    if len(w) != maxlen and len(w) != 1:
 	raise Exception('Incompatible shapes.')
-    del w
-    return cc
+    for v in c:
+	if len(v) != maxlen and len(v) != 1:
+	    raise Exception('Incompatible shapes.')
+    c += [w]
+    c = list(v if len(v) == maxlen else maxlen * v for v in c)
+    return c
 
 ## map number of dimensions to histogram type
 __histoMap__ = {
@@ -113,7 +93,7 @@ def __getHistoType(tree, ndim, histoconstructorargs = None, histotypehint =
     if None == histoconstructorargs:
 	hname = '%s_histo' % tree.GetName()
 	htitle = 'histogram drawn from tree %s' % tree.GetTitle()
-	histoconstructorargs = tuple(hname, htitle) + ndim * tuple(100, 0., 0.)
+	histoconstructorargs = (hname, htitle) + ndim * (100, 0., 0.)
     return histotypehint(*histoconstructorargs)
 
 ## draw contents of a tree (GUITree)
@@ -167,7 +147,7 @@ def Draw(tree, coords, cuts = None, weight = None, histo = None,
 		break
 	if not passed: continue
 	# yes, cuts passed, get what to draw
-	c = tuple(c(tree) for c in coords)
+	c = list([c(tree)] for c in coords)
 	if None == ndim:
 	    ndim = len(c)
 	    if None == histo:
@@ -176,7 +156,7 @@ def Draw(tree, coords, cuts = None, weight = None, histo = None,
 	else:
 	    if ndim != len(c):
 		raise Exception("Shape change during plotting.")
-	c = tuple(__flattenCoordinate(v) for v in c)
+	c = map(__flattenCoordinate, c)
 	# verify shape of what the functors returned, extend individual
 	# coordinates as needed to match
 	c = __verifyAndExtendShape(c, __flattenCoordinate(weight(tree)))
