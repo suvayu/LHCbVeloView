@@ -19,6 +19,7 @@ ROOT.gSystem.Load('libCintex')
 ROOT.Cintex.Enable()
 ROOT.gSystem.Load('libVeloGUIUtils')
 
+## short example of how to write a tree for Velo DQ
 def createTree(filename, treename):
     from ROOT import TFile, TRandom3
     from ROOT import DotLock, TimeStamp, VersionedObject
@@ -93,7 +94,8 @@ def createTree(filename, treename):
     # release write lock (dl goes out of scope)
     # del dl
 
-def anatree(filename, treename):
+## example on how to update a tree
+def anaTree(filename, treename):
     from ROOT import TFile, DotLock, TimeStamp
     from os import rename
     from GUITree import Tree
@@ -173,7 +175,8 @@ def anatree(filename, treename):
     # release write lock (dl goes out of scope)
     # del dl
 
-def summarisetree(filename, treename):
+## example on how to read a tree
+def summariseTree(filename, treename):
     from ROOT import TFile, TimeStamp
     from GUITree import Tree
     print "Summarising DQ on file %s, tree %s" % (filename, treename)
@@ -194,9 +197,105 @@ def summarisetree(filename, treename):
     f.Close()
     del f
 
+## examples for the plotting machinery for Velo DQ trees
+def makePlots(filename, treename):
+    from ROOT import TFile
+    from GUITree import Tree
+
+    f = ROOT.TFile(filename, 'READ')
+    t = Tree(treename)
+
+    # first plot: very simple: run number in a range versus DQ checked flag
+    print '\tproducing plot #1'
+    h = t.Plot( 
+	    ( # functions projecting out coordinates to plot
+		lambda t: t.runnr,
+		lambda t: t.checked.value()
+		),
+	    ( # cut(s) to apply
+		lambda t: t.runnr >= 100010 and t.runnr <= 100060,
+		),
+	    # no weights, do not draw into existing histogram
+	    None, None,
+	    # histogram constructor arguments
+	    ('runvschecked', 'run number versus DQ checked status flag;run number;DQ checked flag',
+		51, 100009.5, 100060.5, 10, -0.5, 9.5)
+	    )
+    h.Draw('COLZ')
+    ROOT.gPad.Print('plot1.eps')
+
+    # second plot: about as simple, plot the occupancy of all strips versus run
+    # number (conceptually about as simple as the last example)
+    #
+    # what is new here is that the occupancy is a map of sensor number to
+    # vector with strip occupancies - the Plot routine needs to flatten this
+    # structure to be able plot, and it does so automatically
+    #
+    # NOTE: while this automatic "flattening" of vectors etc. is nice, it costs
+    # time because python needs to do a lot of work on what comes out of the
+    # tuple (we munge about 1.6 MB of data here). This example is here to
+    # demonstrate that the framework is flexible enough to handle objects with
+    # structure like vectors, but in real life, this kind of plot would be
+    # produced at the Vetra level, and the DQ tuple would only contain a
+    # summary column (total occupancy or maybe average occupancy per sensor).
+    print '\tproducing plot #2'
+    h = t.Plot( (
+	lambda t: t.runnr,
+	lambda t: t.occupancy.value()
+	), (
+	    lambda t: t.runnr >= 100010 and t.runnr <= 100060,
+	    ),
+	None, None,
+	('runvsocc', 'run number versus occupancy;run number;occupancy',
+	    51, 100009.5, 100060.5, 50, 0., .05))
+    h.Draw('COLZ')
+    ROOT.gPad.Print('plot2.eps')
+    
+    # basically the same plot as the last example, but this time plotting to a
+    # TProfile - it's possible to give the type (class) of histogram into which
+    # to fill the data
+    print '\tproducing plot #3'
+    h = t.Plot( (
+	lambda t: t.runnr,
+	lambda t: t.occupancy.value()
+	), (
+	    lambda t: t.runnr >= 100010 and t.runnr <= 100060,
+	    ),
+	None, None,
+	('runvsocc2', 'run number versus occupancy;run number;occupancy',
+	    51, 100009.5, 100060.5), ROOT.TProfile)
+    h.Draw()
+    ROOT.gPad.Print('plot3.eps')
+
+    # this is a much smarter variant of the last example: instead of letting
+    # the plotting code do the flattening, we use the functors itself to
+    # calculate the average, so there is no need to flatten the per-sensor
+    # occpancy-per-strip vectors
+    print '\tproducing plot #4'
+    h = t.Plot( (
+       lambda t: tuple(t.occupancy.value()),
+       lambda t: tuple(sum(v) / float(len(v)) for v in t.occupancy.value().values())
+       ), (
+	   lambda t: t.runnr == 100010,
+	   ),
+       None,
+       None,
+       ('occpersensor', 'occupancy per sensor;sensor;occupancy',
+	   132, -0.5, 131.5), ROOT.TProfile)
+    h.Draw()
+    ROOT.gPad.Print('plot4.eps')
+
+    # clean up after ourselves
+    del h
+    del t
+    f.Close()
+    del f
+
 print 'Creating DQ tree'
 createTree('test.root', 'testtree')
 print ''
-anatree('test.root', 'testtree')
+anaTree('test.root', 'testtree')
 print ''
-summarisetree('test.root', 'testtree')
+summariseTree('test.root', 'testtree')
+print 'Producing example plots'
+makePlots('test.root', 'testtree')
