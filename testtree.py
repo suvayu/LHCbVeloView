@@ -105,8 +105,11 @@ def anatree(filename, treename):
     tt = t.CloneTree(0)
     # go through entries in t, modify where appropriate, and fill modified
     # entries into tt
-    for i in xrange(0, t.GetEntries()):
-	t.GetEntry(i)
+    #
+    # dummy will point to t in the for loop below, and the for loop will
+    # iterate over the entries of the tree
+    for dummy in t:
+    #for i in xrange(0, t.GetEntries()):
 	print 'Analysing run %u: %s (%s)' % (
 		t.runnr, t.comment.value(), t.comment.active_version().toString())
 	# work out average occupancy in run
