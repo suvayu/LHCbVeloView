@@ -44,6 +44,10 @@
 # 	fix automatic dependency tracking in standalone build system
 # 	for Reflex dictionaries (make could miss occasions when the
 # 	dictionaries need to be remade)
+# v0.11 2013-04-09 Manuel Schiller <manuel.schiller@nikhef.nl>
+# 	initial support for Mac OS/X
+# v0.12 2013-05-06 Manuel Schiller <manuel.schiller@nikhef.nl>
+#	fix issue with very old binutils on SLC5 installations
 #######################################################################
 
 #######################################################################
@@ -253,6 +257,8 @@ UNAME ?= uname
 HEAD ?= head
 TAIL ?= tail
 GREP ?= grep
+CAT ?= cat
+TR ?= tr
 
 # get compiler version(s) used to compile ROOT
 CC ?= $(shell $(ROOTCONFIG) --cc | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
@@ -346,6 +352,8 @@ UNAME := $(UNAME)
 HEAD := $(HEAD)
 TAIL := $(TAIL)
 GREP := $(GREP)
+CAT := $(CAT)
+TR := $(TR)
 TUNEFLAGS := $(TUNEFLAGS)
 ROOTLIBDIR := $(ROOTLIBDIR)
 ROOTLIBS := $(ROOTLIBS)
@@ -486,21 +494,27 @@ TUNEFLAGS.GNU ?= -ffast-math -fno-math-errno \
     $(SED) -e 's/ mmx / -mmmx /g' -e 's/ sse/ -msse/g' \
     -e 's/ ssse/ -mssse/g' -e 's/ avx/ -mavx/g' \
     -e 's/4_1/4.1/g' -e 's/4_2/4.2/g' -e 's/ /\n/g' | \
-    $(GREP) -- '-m')
+    $(GREP) -- '-m' | $(TR) ' ' '\n' | \
+    `$(ECHO) $$CMTCONFIG | $(GREP) -q slc5- && echo $(GREP) -v avx || \
+    $(ECHO) $(CAT)` | $(TR) '\n' ' ')
 # accept only last floating point feature (assume it's best)
 TUNEFLAGS.Intel ?= \
     $(shell $(ECHO) $(CPUFLAGS) | \
     $(SED) -e 's/ mmx / -mmmx /g' -e 's/ sse/ -msse/g' \
     -e 's/ ssse/ -mssse/g' -e 's/ avx/ -mavx/g' \
     -e 's/4_1/4.1/g' -e 's/4_2/4.2/g' -e 's/ /\n/g' | \
-    $(GREP) -- '-m' | $(TAIL) -1)
+    $(GREP) -- '-m' | $(TAIL) -1 | $(TR) ' ' '\n' | \
+    `$(ECHO) $$CMTCONFIG | $(GREP) -q slc5- && echo $(GREP) -v avx || \
+    $(ECHO) $(CAT)` | $(TR) '\n' ' ')
 TUNEFLAGS.Clang ?= -march=native -mtune=native -ffast-math \
     -fno-math-errno \
     $(shell $(ECHO) $(CPUFLAGS) | \
     $(SED) -e 's/ mmx / -mmmx /g' -e 's/ sse/ -msse/g' \
     -e 's/ ssse/ -mssse/g' -e 's/ avx/ -mavx/g' \
     -e 's/4_1/4.1/g' -e 's/4_2/4.2/g' -e 's/ /\n/g' | \
-    $(GREP) -- '-m')
+    $(GREP) -- '-m' | $(TR) ' ' '\n' | \
+    `$(ECHO) $$CMTCONFIG | $(GREP) -q slc5- && echo $(GREP) -v avx || \
+    $(ECHO) $(CAT)` | $(TR) '\n' ' ')
 # Open64's CPU feature detection does not work for sse4/avx
 TUNEFLAGS.Open64 ?= -march=auto -OPT:Ofast -OPT:ro=3 \
     −fno−math−errno −ffast−math \
@@ -515,7 +529,9 @@ TUNEFLAGS.PathScale ?= -march=auto -OPT:Ofast -OPT:ro=3 \
     $(shell $(ECHO) $(CPUFLAGS) | \
     $(SED) -e 's/ mmx / -mmmx /g' -e 's/ sse/ -msse/g' \
     -e 's/ ssse/ -mssse/g' -e 's/ avx/ -mavx/g' \
-    -e 's/ /\n/g' | $(GREP) -- '-m' | $(TAIL) -1)
+    -e 's/ /\n/g' | $(GREP) -- '-m' | $(TAIL) -1 | $(TR) ' ' '\n' | \
+    `$(ECHO) $$CMTCONFIG | $(GREP) -q slc5- && echo $(GREP) -v avx || \
+    $(ECHO) $(CAT)` | $(TR) '\n' ' ')
 TUNEFLAGS.SunPro ?= -xtarget=native -xarch=native -xbuiltin -fsimple=2
 
 #######################################################################
