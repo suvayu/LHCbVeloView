@@ -64,6 +64,7 @@
 #define JOIN3(x, y, z) JOIN3_HELPER(x, y, z)
 #define INSTANTIATE_ITERATORS(CTR1, CTR2, CLASS, ...) \
     namespace { struct JOIN3(__map_iterator_instantiations_, CTR1, CTR2) { \
+    CLASS <__VA_ARGS__>::value_type value; \
     CLASS <__VA_ARGS__>::iterator iterator; \
     CLASS <__VA_ARGS__>::const_iterator const_iterator; } ; }
 /*  CLASS <__VA_ARGS__>::reverse_iterator reverse_iterator; \
