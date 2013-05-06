@@ -4,6 +4,14 @@
 #
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-05-03
+#
+## @package IterTools
+#
+# @brief convenience python classes to deal with C++ STL type iterators
+#
+# @author Manuel Schiller <manuel.schiller@nikhef.nl>
+# @date 2013-05-03
+#
 
 ## iterate over the elements in a given range
 #

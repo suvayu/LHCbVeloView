@@ -5,6 +5,13 @@
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-04-30
 #
+## @package TypeHelper
+#
+# @brief python module to help with instantiating C++ types.
+#
+# @author Manuel Schiller <manuel.schiller@nikhef.nl>
+# @date 2013-04-30
+#
 import ROOT, numpy
 from ROOT import std
 

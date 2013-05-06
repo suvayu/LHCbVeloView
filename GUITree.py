@@ -4,6 +4,14 @@
 #
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-05-02
+#
+## @package GUITree
+#
+# @brief smart TTree replacement.
+#
+# @author Manuel Schiller <manuel.schiller@nikhef.nl>
+# @date 2013-05-02
+#
 import ROOT, numpy, re
 from TypeHelper import getTypeFactory
 
