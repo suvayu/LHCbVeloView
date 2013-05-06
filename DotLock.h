@@ -1,5 +1,8 @@
 /**
  * @file DotLock.h
+ *
+ * @brief implement dot locking.
+ *
  * @author Manuel Schiller
  * @date 2009-08-06
  */

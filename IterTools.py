@@ -1,6 +1,6 @@
-## convenience python classes to deal with C++ STL type iterators
+## @file IterTools.py
 #
-# @file IterTools.py
+# @brief convenience python classes to deal with C++ STL type iterators
 #
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-05-03

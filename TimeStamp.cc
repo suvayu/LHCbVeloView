@@ -1,5 +1,7 @@
 /** @file TimeStamp.cc
  *
+ * @brief class representing a time stamp
+ *
  * @author Manuel Schiller <manuel.schiller@nikhef.nl>
  * @date 2013-04-15
  */

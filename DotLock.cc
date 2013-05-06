@@ -1,5 +1,8 @@
 /**
  * @file DotLock.cc
+ *
+ * @brief implement dot locking.
+ *
  * @author Manuel Schiller
  * @date 2009-08-06
  */

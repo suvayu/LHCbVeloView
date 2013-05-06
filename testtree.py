@@ -1,4 +1,10 @@
 #!/usr/local/bin/pyroot
+## @file testtree.py
+#
+# @brief short demo program for the next generation of Velo GUI persistency
+#
+# @author Manuel Schiller <manuel.schiller@nikhef.nl>
+# @date 2013-04-16
 import ROOT
 ROOT.SetMemoryPolicy(ROOT.kMemoryStrict)
 ROOT.gSystem.Load('libCintex')

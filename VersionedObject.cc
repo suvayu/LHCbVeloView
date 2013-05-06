@@ -1,5 +1,7 @@
 /** @file VersionedObject.cc
  *
+ * @brief class mapping a version object to some kind of payload object
+ *
  * @author Manuel Schiller <manuel.schiller@nikhef.nl>
  * @date 2013-04-15
  */

@@ -1,6 +1,6 @@
-## python module to help with instantiating C++ types.
+## @file TypeHelper.py
 #
-# @file TypeHelper.py
+# @brief python module to help with instantiating C++ types.
 #
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-04-30

@@ -1,6 +1,6 @@
-## smart TTree replacement
+## @file GUITree.py
 #
-# @file GUITree
+# @brief smart TTree replacement.
 #
 # @author Manuel Schiller <manuel.schiller@nikhef.nl>
 # @date 2013-05-02
