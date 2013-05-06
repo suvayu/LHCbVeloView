@@ -141,10 +141,12 @@ def anatree(filename, treename):
 	# set the run OK threshold at 0.75% dead + noisy channels max.
 	now = TimeStamp()
 	if pdead + pnoisy < 0.75:
-	    tt.comment[now] = 'DQ for run %u: OK' % tt.runnr
+	    tt.comment[now] = 'DQ for run %u: OK, %4.2f%% dead %4.2f%% noisy' % (
+		    tt.runnr, pdead, pnoisy)
 	    tt.checked[now] = 2
 	else:
-	    tt.comment[now] = 'DQ for run %u: BAD' % tt.runnr
+	    tt.comment[now] = 'DQ for run %u: BAD, %4.2f%% dead %4.2f%% noisy' % (
+		    tt.runnr, pdead, pnoisy)
 	    tt.checked[now] = 1
 	print 'Analysed run %u: %s (%s)' % (
 		tt.runnr, tt.comment.value(), tt.comment.active_version().toString())
