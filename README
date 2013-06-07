@@ -1,0 +1,27 @@
+# -*- mode: org; -*-
+
+* Common
+All scripts are in the top level directory.
+
+* Python
+All python classes and utilities are in ~VeloCronPyTools~.  Add the
+directory to =$PYTHONPATH= to use them in scripts.
+
+* Shell scripts
+All common functionality is factored out in "libraries" and are
+located in ~VeloCronShTools~.  Source and use them.
+
+* TODOs
+** TODO Run lock class
+- Analyse
+- Merge
+
+** TODO BKK query parser
+
+** TODO Environment wrapper
+- =ulimit=
+- LHCb environment
+
+Look at =subprocess=
+
+** TODO Config file
