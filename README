@@ -12,16 +12,25 @@ All common functionality is factored out in "libraries" and are
 located in ~VeloCronShTools~.  Source and use them.
 
 * TODOs
-** TODO Run lock class
-- Analyse
-- Merge
+** TODO A =$PYTHONPATH= setup routine
 
-** TODO BKK query parser
+** WInP Run lock class [1/2]
+   :LOGBOOK:
+   - State "WInP"       from "TODO"       [2013-06-10 Mon 21:46]
+   :END:
+- [X] Analyse
+- [ ] Merge
+
+** WInP BKK query parser
+   :LOGBOOK:
+   - State "WInP"       from "TODO"       [2013-06-10 Mon 21:46]
+   :END:
+- [[file:VeloCronPyTools/tests/rdbt-output.txt][Sample output for single run]]
+- [[file:VeloCronPyTools/tests/rdbt-range-output.txt][Sample output for run range]]
 
 ** TODO Environment wrapper
 - =ulimit=
 - LHCb environment
-
-Look at =subprocess=
+- Look at =subprocess=
 
 ** TODO Config file
