@@ -7,45 +7,16 @@
 """
 
 
-## rundb.RunDB(): works only at the pit
-# 1. get last processed run
-
-# 2. get run fill from (1)
-
-# 3. get latest fill (is getting latest physics fill sufficient?
-# probably not)
-
-# 4. generate list of runs from fill id (2), last processed run (1)
-# and latest fill (3).
-
-# 5. trim list of runs by run duration.
-
-# 6. Check if another job is already processing before starting to
-# process (use lock files)
-
-## alternate approach: use rundb web api (courtesy Gerhard)
-# <https://twiki.cern.ch/twiki/bin/view/LHCb/RunDb>
+## Accessing the run database
+## <https://twiki.cern.ch/twiki/bin/view/LHCb/RunDb>
+# 1. rundb.RunDB(): works only at the pit
 #
-# def getRunDBRunInfo(run):
-#    import urllib, json
-#    info = json.loads( urllib.urlopen("http://lbrundb.cern.ch/api/run/"+str(run)).read() )
-#    info['tck'] = int(info['tck'])
-#    return info
-#
-# import sys
-# try:
-#     info = getRunDBRunInfo(sys.argv[1])
-#     print 'run = %(runid)s    ->  DDDB = %(dddbTag)s    CondDB = %(conddbTag)s   starttime = %(starttime)s endtime= %(endtime)s  %(program)s %(programVersion)s  TCK=0x%(tck)08x' % info
-# except ValueError as err:
-#     print sys.exc_info()[1]
-#     print 'Probably %s is an invalid run number' % sys.argv[1]
-
-
-import sys, os
+# 2. alternate approach: use rundb web api (courtesy Gerhard)
 
 
 def RunInfo(run, json=False):
     """Return run information.  Use the JSON backend if `json` is True."""
+
     if json:
         import urllib, json
         info = json.loads(urllib.urlopen('http://lbrundb.cern.ch/api/run/'
@@ -70,6 +41,7 @@ class RunDBQuery(object):
         `json` determines the backend.
 
         """
+
         self.__use_json__ = json
         self.__trimmed__ = False
         try:
@@ -78,20 +50,19 @@ class RunDBQuery(object):
             self.runs = [runs]
 
 
-    def get_valid_runs(self, time_threshold):
-        """Return valid runs which are longer than threshold duration.
+    def get_valid_runs(self, time_threshold, timefmt='%Y-%m-%dT%H:%M:%S'):
+        """Return valid runs which are longer than threshold duration."""
 
-        """
         from timemodule import strptime, mktime
         validruns = []
         for run in self.runs:
             try:
                 info = RunInfo(run, self.__use_json__)
-            except ValueError:
-                print 'Probably %s is not a valid run number' % run
+            except ValueError as err:
+                print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
                 continue
-            epoch = (mktime(strptime(info['starttime'], '%Y-%m-%dT%H:%M:%S')),
-                     mktime(strptime(info['endtime'], '%Y-%m-%dT%H:%M:%S')))
+            epoch = (mktime(strptime(info['starttime'], timefmt)),
+                     mktime(strptime(info['endtime'], timefmt)))
             if epoch[1] - epoch[0] > time_threshold:
                 validruns.append(run)
         return validruns
