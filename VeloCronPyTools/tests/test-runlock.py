@@ -55,4 +55,5 @@ class TestExceptions(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    print '='*5, '{0:^{width}}'.format('RunLock', width=40), '='*5
     unittest.main()
