@@ -9,6 +9,7 @@
 
 ## Accessing the run database
 ## <https://twiki.cern.ch/twiki/bin/view/LHCb/RunDb>
+## <https://lbtwiki.cern.ch/bin/view/Online/RunDataBase>
 # 1. rundb.RunDB(): works only at the pit
 #
 # 2. alternate approach: use rundb web api (courtesy Gerhard)
