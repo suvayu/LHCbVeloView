@@ -54,8 +54,8 @@ class RunDBQuery(object):
     def get_valid_runs(self, time_threshold, timefmt='%Y-%m-%dT%H:%M:%S'):
         """Return valid runs which are longer than threshold duration."""
 
-        from timemodule import strptime, mktime
-        validruns = []
+        from timemodule import time, strptime, mktime
+        validruns, fresh_validruns = [], []
         for run in self.runs:
             try:
                 info = RunInfo(run, self.__use_json__)
@@ -65,5 +65,11 @@ class RunDBQuery(object):
             epoch = (mktime(strptime(info['starttime'], timefmt)),
                      mktime(strptime(info['endtime'], timefmt)))
             if epoch[1] - epoch[0] > time_threshold:
-                validruns.append(run)
-        return validruns
+                if info['state'] == 'IN BKK':
+                    validruns.append(run)
+                elif (info['state'] == 'ENDED' and time() - epoch[1] > 3600):
+                    fresh_validruns.append(run)
+        if validruns:
+            return validruns
+        else:
+            return fresh_validruns
