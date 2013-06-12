@@ -36,23 +36,25 @@ def __fix_info__(func):
 
     """
 
-    def wrapper(*arg):
-        d = func(*arg)
+    def wrapper(*args):
+        d = func(*args)
         # force all keys to lower case for consistency
         for key in d:
             d[key.lower()] = d.pop(key)
-        ## FIXME: unknown number of cases unhandled
-        # handle special cases
-        if d['state'] == 2:
-            d['state'] == 'ENDED'
-        elif d['state'] == 6:
-            d['state'] == 'IN_BKK'
-        # strip milliseconds from time string
-        d['starttime'] = d['starttime'][:-4]
-        d['endtime'] = d['endtime'][:-4]
-        # replace separator between date and time
-        d['starttime'] = d['starttime'].replace('T', ' ')
-        d['endtime'] = d['endtime'].replace('T', ' ')
+        if args[1] == False:    # using rundb.RunDB
+            ## FIXME: unknown number of cases unhandled
+            # handle special cases
+            if d['state'] == 2:
+                d['state'] == 'ENDED'
+            elif d['state'] == 6:
+                d['state'] == 'IN_BKK'
+            # strip milliseconds from time string
+            d['starttime'] = d['starttime'][:-5]
+            d['endtime'] = d['endtime'][:-5]
+        else:                # using JSON
+            # replace separator between date and time
+            d['starttime'] = d['starttime'].replace('T', ' ')
+            d['endtime'] = d['endtime'].replace('T', ' ')
         return d
     return wrapper
 
