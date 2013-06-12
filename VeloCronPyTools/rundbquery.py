@@ -41,7 +41,7 @@ def __fix_info__(func):
         # force all keys to lower case for consistency
         for key in d:
             d[key.lower()] = d.pop(key)
-        if args[1] == False:    # using rundb.RunDB
+        if args[2] == False:    # using rundb.RunDB
             ## FIXME: unknown number of cases unhandled
             # handle special cases
             if d['state'] == 2:
@@ -62,7 +62,7 @@ def __fix_info__(func):
 
 
 @__fix_info__
-def RunInfo(run, json=False):
+def RunInfo(run, strict=True, json=False):
     """Return run information.  Use the JSON backend if `json` is True."""
 
     if json:
@@ -73,7 +73,10 @@ def RunInfo(run, json=False):
         from rundb import RunDB
         db = RunDB()
         info = db.getrun(run)[0]
-        if not isinstance(info, dict):
+        if (not isinstance(info, dict) or
+            # protect against end-of-fill calibration runs with missing
+            # time info when using rundb.RunDB
+            (strict and (info['startTime'] == '' or info['endTime'] == ''))):
             raise ValueError('Bad run number %s' % run)
     # fix tck type
     info['tck'] = int(info['tck'])
@@ -105,7 +108,7 @@ class RunDBQuery(object):
         validruns, fresh_validruns = [], []
         for run in self.runs:
             try:
-                info = RunInfo(run, self.__use_json__)
+                info = RunInfo(run, bool(time_threshold), self.__use_json__)
             except ValueError as err:
                 print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
                 continue
