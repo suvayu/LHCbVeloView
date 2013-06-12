@@ -54,7 +54,7 @@ class RunDBQuery(object):
     def get_valid_runs(self, time_threshold, timefmt='%Y-%m-%dT%H:%M:%S'):
         """Return valid runs which are longer than threshold duration."""
 
-        from timemodule import time, strptime, mktime
+        from time import time, strptime, mktime
         validruns, fresh_validruns = [], []
         for run in self.runs:
             try:
