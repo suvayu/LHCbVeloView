@@ -15,6 +15,43 @@
 # 2. alternate approach: use rundb web api (courtesy Gerhard)
 
 
+def __fix_info__(func):
+    """Run info dict returned by 2 methods are different.  Fix it.
+
+    | rundb.RunDB                             | JSON                               |   |
+    |-----------------------------------------+------------------------------------+---|
+    | 'conddbTag': 'cond-20120831'            | 'conddbTag': 'cond-20120831'       |   |
+    | 'dddbTag': 'dddb-20120831'              | 'dddbTag': 'dddb-20120831'         |   |
+    | 'destination': 'OFFLINE'                | 'destination': 'OFFLINE'           |   |
+    | 'endTime': '2013-02-13 10:07:32.0000'   | 'endtime': '2013-02-13T10:07:32'   | * |
+    | 'LHCState':   'PHYSICS'                 | 'LHCState': 'PHYSICS'              |   |
+    | 'runID': 137259                         | 'runid': 137259                    | * |
+    | 'runType': 'COLLISION13'                | 'runtype': 'COLLISION13'           | * |
+    | 'startTime': '2013-02-13 09:07:28.0000' | 'starttime': '2013-02-13T09:07:28' | * |
+    | 'state': 6                              | 'state': 'IN BKK'                  | * |
+    | 'triggerConfiguration': 'Physics'       | 'triggerConfiguration': 'Physics'  |   |
+    | 'veloPosition': 'Closed'                | 'veloPosition': 'Closed'           |   |
+
+    ENDED = 2, IN_BKK = 6
+
+    """
+
+    def wrapper(*arg):
+        d = func(*arg)
+        # force all keys to lower case for consistency
+        for key in d:
+            d[key.lower()] = d.pop(key)
+        ## FIXME: unknown number of cases unhandled
+        # handle special cases
+        if d['state'] == 2:
+            d['state'] == 'ENDED'
+        elif d['state'] == 6:
+            d['state'] == 'IN_BKK'
+        return d
+    return wrapper
+
+
+@__fix_info__
 def RunInfo(run, json=False):
     """Return run information.  Use the JSON backend if `json` is True."""
 
