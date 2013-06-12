@@ -98,7 +98,7 @@ class RunDBQuery(object):
             self.runs = [runs]
 
 
-    def get_valid_runs(self, time_threshold, timefmt='%Y-%m-%d %H:%M:%S'):
+    def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
         """Return valid runs which are longer than threshold duration."""
 
         from time import time, strptime, mktime
@@ -109,13 +109,16 @@ class RunDBQuery(object):
             except ValueError as err:
                 print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
                 continue
-            epoch = (mktime(strptime(info['starttime'], timefmt)),
-                     mktime(strptime(info['endtime'], timefmt)))
-            if epoch[1] - epoch[0] > time_threshold:
-                if info['state'] == 'IN BKK':
-                    validruns.append(run)
-                elif (info['state'] == 'ENDED' and time() - epoch[1] > 3600):
-                    fresh_validruns.append(run)
+            if time_threshold:
+                epoch = (mktime(strptime(info['starttime'], timefmt)),
+                         mktime(strptime(info['endtime'], timefmt)))
+                if epoch[1] - epoch[0] > time_threshold:
+                    if info['state'] == 'IN BKK':
+                        validruns.append(run)
+                    elif (info['state'] == 'ENDED' and time() - epoch[1] > 3600):
+                        fresh_validruns.append(run)
+            else:
+                validruns.append(run)
         if validruns:
             return validruns
         else:
