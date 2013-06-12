@@ -47,6 +47,12 @@ def __fix_info__(func):
             d['state'] == 'ENDED'
         elif d['state'] == 6:
             d['state'] == 'IN_BKK'
+        # strip milliseconds from time string
+        d['starttime'] = d['starttime'][:-4]
+        d['endtime'] = d['endtime'][:-4]
+        # replace separator between date and time
+        d['starttime'] = d['starttime'].replace('T', ' ')
+        d['endtime'] = d['endtime'].replace('T', ' ')
         return d
     return wrapper
 
@@ -88,7 +94,7 @@ class RunDBQuery(object):
             self.runs = [runs]
 
 
-    def get_valid_runs(self, time_threshold, timefmt='%Y-%m-%dT%H:%M:%S'):
+    def get_valid_runs(self, time_threshold, timefmt='%Y-%m-%d %H:%M:%S'):
         """Return valid runs which are longer than threshold duration."""
 
         from time import time, strptime, mktime
