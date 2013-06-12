@@ -39,7 +39,7 @@ class TestJSONQuery(unittest.TestCase):
         self.assertFalse(query.get_valid_runs(1800))
 
 
-@unittest.expectedFailure
+# @unittest.expectedFailure
 @unittest.skipIf(__hostname__.find('plus') < 0,
                  'rundb.RunDB is not supported outside plus* nodes')
 class TestQuery(unittest.TestCase):
