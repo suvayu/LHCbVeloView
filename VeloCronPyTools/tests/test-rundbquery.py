@@ -11,6 +11,10 @@ else:
     __path_to_script__ += ['..', '..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
+from socket import gethostname
+__hostname__ = gethostname()
+
+
 from VeloCronPyTools.rundbquery import (RunDBQuery)
 import unittest
 
@@ -32,6 +36,28 @@ class TestJSONQuery(unittest.TestCase):
 
     def test_bad_run_number(self):
         query = RunDBQuery(self.bad_runno, True)
+        self.assertFalse(query.get_valid_runs(1800))
+
+
+@unittest.skipIf(__hostname__.find('plus') < 0,
+                 'rundb.RunDB is not supported outside plus* nodes')
+class TestQuery(unittest.TestCase):
+
+    def setUp(self):
+        self.good_runno = 137259
+        self.good_runlist = range(137259, 137301)
+        self.bad_runno = 150000
+
+    def test_good_run_number(self):
+        query = RunDBQuery(self.good_runno, False)
+        self.assertTrue(query.get_valid_runs(1800))
+
+    def test_good_run_list(self):
+        query = RunDBQuery(self.good_runlist, False)
+        self.assertTrue(query.get_valid_runs(1800))
+
+    def test_bad_run_number(self):
+        query = RunDBQuery(self.bad_runno, False)
         self.assertFalse(query.get_valid_runs(1800))
 
 
