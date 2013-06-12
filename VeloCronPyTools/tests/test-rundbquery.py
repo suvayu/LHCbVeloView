@@ -25,41 +25,29 @@ class TestJSONQuery(unittest.TestCase):
         self.good_runno = 137259
         self.good_runlist = range(137259, 137301)
         self.bad_runno = 150000
+        self.json = True
 
     def test_good_run_number(self):
-        query = RunDBQuery(self.good_runno, True)
+        query = RunDBQuery(self.good_runno, self.json)
         self.assertTrue(query.get_valid_runs(1800))
 
     def test_good_run_list(self):
-        query = RunDBQuery(self.good_runlist, True)
+        query = RunDBQuery(self.good_runlist, self.json)
         self.assertTrue(query.get_valid_runs(1800))
 
     def test_bad_run_number(self):
-        query = RunDBQuery(self.bad_runno, True)
+        query = RunDBQuery(self.bad_runno, self.json)
         self.assertFalse(query.get_valid_runs(1800))
 
 
 # @unittest.expectedFailure
 @unittest.skipIf(__hostname__.find('plus') < 0,
                  'rundb.RunDB is not supported outside plus* nodes')
-class TestQuery(unittest.TestCase):
+class TestQuery(TestJSONQuery):
 
     def setUp(self):
-        self.good_runno = 137259
-        self.good_runlist = range(137259, 137301)
-        self.bad_runno = 150000
-
-    def test_good_run_number(self):
-        query = RunDBQuery(self.good_runno, False)
-        self.assertTrue(query.get_valid_runs(1800))
-
-    def test_good_run_list(self):
-        query = RunDBQuery(self.good_runlist, False)
-        self.assertTrue(query.get_valid_runs(1800))
-
-    def test_bad_run_number(self):
-        query = RunDBQuery(self.bad_runno, False)
-        self.assertFalse(query.get_valid_runs(1800))
+        super(TestQuery, self).setUp()
+        self.json = False
 
 
 if __name__ == '__main__':
