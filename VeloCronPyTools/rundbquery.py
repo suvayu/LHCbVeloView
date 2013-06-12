@@ -32,7 +32,7 @@ def __fix_info__(func):
     | 'triggerConfiguration': 'Physics'       | 'triggerConfiguration': 'Physics'  |   |
     | 'veloPosition': 'Closed'                | 'veloPosition': 'Closed'           |   |
 
-    ENDED = 2, IN_BKK = 6
+    state: ENDED = 2, CREATED = 5, IN_BKK = 6
 
     """
 
@@ -46,6 +46,8 @@ def __fix_info__(func):
             # handle special cases
             if d['state'] == 2:
                 d['state'] == 'ENDED'
+            elif d['state'] == 5:
+                d['state'] == 'CREATED'
             elif d['state'] == 6:
                 d['state'] == 'IN_BKK'
             # strip milliseconds from time string
