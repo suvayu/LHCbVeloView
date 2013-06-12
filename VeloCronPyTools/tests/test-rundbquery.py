@@ -51,5 +51,5 @@ class TestQuery(TestJSONQuery):
 
 
 if __name__ == '__main__':
-    print '='*5, '{0:^{width}}'.format('RunDBQuery with JSON backend', width=40), '='*5
+    print '='*5, '{0:^{width}}'.format('RunDBQuery, JSON & rundb.RunDB backend', width=40), '='*5
     unittest.main()
