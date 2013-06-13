@@ -79,7 +79,8 @@ def RunInfo(run, strict=True, json=False):
             # protect against end-of-fill calibration runs with missing
             # time info when using rundb.RunDB
             (strict and (info['startTime'] == '' or info['endTime'] == ''))):
-            raise ValueError('Bad run number %s' % run)
+            raise ValueError('Bad run number %s (strict check: %s)'
+                             % (run, strict))
     # fix tck type
     info['tck'] = int(info['tck'])
     return info
