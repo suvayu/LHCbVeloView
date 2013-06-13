@@ -80,12 +80,13 @@ class RunLock(object):
         """
 
         self.is_locked = False
-        if isinstance(runno, int):
+        runno = int(runno)      # ensure integer
+        if runno > 99999:       # 6-digit run numbers
             self.runno = runno
             self.stream = stream
             self.lockfile = os.path.join(os.getcwd(), "%d.%s.lock" % (runno, stream))
         else:
-            raise UndefinedRunLock('Bad run number: %s' % runno)
+            raise UndefinedRunLock('Oops! Bad run number: %s' % runno)
 
 
     def acquire(self):
