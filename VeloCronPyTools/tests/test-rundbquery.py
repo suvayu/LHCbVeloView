@@ -19,7 +19,7 @@ from VeloCronPyTools.rundbquery import (RunDBQuery)
 import unittest
 
 
-class TestJSONQuery(unittest.TestCase):
+class TestBaseQuery(unittest.TestCase):
 
     def setUp(self):
         self.good_runno = 137259
@@ -40,10 +40,17 @@ class TestJSONQuery(unittest.TestCase):
         self.assertFalse(query.get_valid_runs(1800))
 
 
+class TestJSONQuery(TestBaseQuery):
+
+    def setUp(self):
+        super(TestJSONQuery, self).setUp()
+        self.json = True
+
+
 # @unittest.expectedFailure
 @unittest.skipIf(__hostname__.find('plus') < 0,
                  'rundb.RunDB is not supported outside plus* nodes')
-class TestQuery(TestJSONQuery):
+class TestQuery(TestBaseQuery):
 
     def setUp(self):
         super(TestQuery, self).setUp()
@@ -51,5 +58,12 @@ class TestQuery(TestJSONQuery):
 
 
 if __name__ == '__main__':
-    print '='*5, '{0:^{width}}'.format('RunDBQuery, JSON & rundb.RunDB backend', width=40), '='*5
-    unittest.main()
+    print '='*5, '{0:^{width}}'.format('RunDBQuery, JSON backend', width=40), '='*5
+    json_test_suite = unittest.TestLoader().loadTestsFromTestCase(TestJSONQuery)
+    unittest.TextTestRunner().run(json_test_suite)
+
+    print '='*5, '{0:^{width}}'.format('RunDBQuery, rundb.RunDB backend', width=40), '='*5
+    norm_test_suite = unittest.TestLoader().loadTestsFromTestCase(TestQuery)
+    unittest.TextTestRunner().run(norm_test_suite)
+
+    # unittest.main()
