@@ -11,7 +11,7 @@ else:
     __path_to_script__ += ['..', '..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from VeloCronPyTools.runlock import (RunLock, UnknownRunLock, RunLockExists)
+from VeloCronPyTools.runlock import (RunLock, UndefinedRunLock, RunLockExists)
 import unittest
 
 
@@ -24,11 +24,11 @@ class TestExceptions(unittest.TestCase):
         self.bad_stream = 'FOO'
 
     def test_bad_run_number(self):
-        self.assertRaises(UnknownRunLock, RunLock, self.bad_runno,
+        self.assertRaises(UndefinedRunLock, RunLock, self.bad_runno,
                           self.good_stream)
 
     def test_unsupported_stream(self):
-        self.assertRaises(UnknownRunLock, RunLock, self.good_runno,
+        self.assertRaises(UndefinedRunLock, RunLock, self.good_runno,
                           self.bad_stream)
 
 

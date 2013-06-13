@@ -30,7 +30,7 @@ class RunLockExists(Exception):
     #     # self.node, self.job_pid = <read filename>
 
 
-class UnknownRunLock(Exception):
+class UndefinedRunLock(Exception):
     """Exception when attempt to create bad RunLock."""
     pass
 
@@ -74,7 +74,7 @@ class RunLock(object):
         """Initialise a run lock for `runno' and `stream'.
 
         A simple run number and stream validity check is performed.
-        Failing the test, an `UnknownRunLock` exception is raised.
+        Failing the test, an `UndefinedRunLock` exception is raised.
         `job' is ignored for now.
 
         """
@@ -87,9 +87,9 @@ class RunLock(object):
                 self.stream = stream
                 self.lockfile = os.path.join(os.getcwd(), "%d.%s.lock" % (runno, stream))
             else:
-                raise UnknownRunLock('Bad run number: %s' % runno)
+                raise UndefinedRunLock('Bad run number: %s' % runno)
         else:
-            raise UnknownRunLock('Unknown stream: %s.' % stream)
+            raise UndefinedRunLock('Unknown stream: %s.' % stream)
 
 
     def acquire(self):
