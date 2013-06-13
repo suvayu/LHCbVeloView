@@ -45,11 +45,11 @@ def __fix_info__(func):
             ## FIXME: unknown number of cases unhandled
             # handle special cases
             if d['state'] == 2:
-                d['state'] == 'ENDED'
+                d['state'] = 'ENDED'
             elif d['state'] == 5:
-                d['state'] == 'CREATED'
+                d['state'] = 'CREATED'
             elif d['state'] == 6:
-                d['state'] == 'IN_BKK'
+                d['state'] = 'IN_BKK'
             # strip milliseconds from time string
             d['starttime'] = d['starttime'][:-5]
             d['endtime'] = d['endtime'][:-5]
