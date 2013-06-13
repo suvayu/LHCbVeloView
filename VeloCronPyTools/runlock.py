@@ -14,7 +14,7 @@ Adapted from a file locking class by Evan Fosmark.
 """
 
 
-import os, errno, re
+import os, errno
 
 class RunLockExists(Exception):
     """Exception when a run lock already exists.
@@ -80,16 +80,12 @@ class RunLock(object):
         """
 
         self.is_locked = False
-        self.__stream_pattern__ = re.compile('NZS|ZS')
-        if self.__stream_pattern__.match(stream):
-            if isinstance(runno, int):
-                self.runno = runno
-                self.stream = stream
-                self.lockfile = os.path.join(os.getcwd(), "%d.%s.lock" % (runno, stream))
-            else:
-                raise UndefinedRunLock('Bad run number: %s' % runno)
+        if isinstance(runno, int):
+            self.runno = runno
+            self.stream = stream
+            self.lockfile = os.path.join(os.getcwd(), "%d.%s.lock" % (runno, stream))
         else:
-            raise UndefinedRunLock('Unknown stream: %s.' % stream)
+            raise UndefinedRunLock('Bad run number: %s' % runno)
 
 
     def acquire(self):
