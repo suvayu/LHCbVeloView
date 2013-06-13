@@ -59,6 +59,10 @@ def __fix_info__(func):
             # replace separator between date and time
             d['starttime'] = d['starttime'].replace('T', ' ')
             d['endtime'] = d['endtime'].replace('T', ' ')
+        ## FIXME: function signature still broken
+        # fix function name and documentation string
+        wrapper.__name__ = func.__name__
+        wrapper.__doc__ = func.__doc__
         return d
     return wrapper
 
