@@ -49,7 +49,7 @@ def __fix_info__(func):
             elif d['state'] == 5:
                 d['state'] = 'CREATED'
             elif d['state'] == 6:
-                d['state'] = 'IN_BKK'
+                d['state'] = 'IN BKK'
             elif d['state'] == 7:
                 d['state'] = ''
             # strip milliseconds from time string
