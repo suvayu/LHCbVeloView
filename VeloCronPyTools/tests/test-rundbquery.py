@@ -23,7 +23,7 @@ class TestJSONQuery(unittest.TestCase):
 
     def setUp(self):
         self.good_runno = 137259
-        self.good_runlist = range(137259, 137301)
+        self.good_runlist = range(137250, 137300)
         self.bad_runno = 150000
         self.json = True
 
