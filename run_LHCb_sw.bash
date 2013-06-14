@@ -18,4 +18,4 @@ echo "host1" $HOSTNAME
 export HOSTNAME;echo "import os;print os.environ['HOSTNAME']" | /sw/lib/lcg/external/Python/2.6.5/x86_64-slc5-gcc43-opt/bin/python
 echo "host2" $HOSTNAME
 
-exec python ./vetra_analysis.py
+exec python ./vetra_analysis.py "$@"
