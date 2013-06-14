@@ -33,18 +33,18 @@ parser.add_argument('-d', '--debug', dest='debug', action='store_true',
                     help='Turn debug options on.')
 
 _cliopts = parser.parse_args()
+
+
+## option setup
+debug = _cliopts.debug
 if debug:
     print 'Script options: %s' % _cliopts
-
 
 # import python modules
 import os, sys, re
 from glob import glob
 if debug:
     from traceback import print_exc
-
-## option setup
-debug = _cliopts.debug
 
 # stream to process
 pattern = re.compile('NZS|ZS')
@@ -65,7 +65,6 @@ else:
         print 'No run range or list was provided. ' \
             'List of runs will be determined automagically!'
 
-if not runs:
     ## old: last processed + 1k
     # get last processed run
     files = glob('/calib/velo/dqm/??????/VELODQM_*_'+stream+'.root') # 6 digit run numbers
