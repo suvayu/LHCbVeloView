@@ -139,5 +139,6 @@ for run in runs:
             print '%s: %s' % (exc[0].__name__, exc[1])
         continue
     except:
+        exc = sys.exc_info()
         print '%s: %s' % (exc[0].__name__, exc[1])
         raise
