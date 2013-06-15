@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# for debugging
+# set -o xtrace
+
+# setup
+declare script=$(readlink -e $BASH_SOURCE)
+declare srcdir="${script%/*}"
+
+
 # environment: LbLogin et al.
 # initialise environment
 source /sw/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v6r1p3/InstallArea/scripts/LbLogin.sh
@@ -18,4 +26,4 @@ echo "host1" $HOSTNAME
 export HOSTNAME;echo "import os;print os.environ['HOSTNAME']" | /sw/lib/lcg/external/Python/2.6.5/x86_64-slc5-gcc43-opt/bin/python
 echo "host2" $HOSTNAME
 
-exec python ./vetra_analysis.py "$@"
+exec python $srcdir/vetra_analysis.py "$@"
