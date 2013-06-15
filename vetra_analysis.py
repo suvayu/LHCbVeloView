@@ -29,6 +29,8 @@ parser.add_argument('-j', '--use-json', dest='json', action='store_true',
                     help='Use JSON backend to talk to the run database.')
 parser.add_argument('-o', '--job-options', dest='jobopts',
                     help='Override default Vetra job options (quoted).')
+parser.add_argument('-c', '--cron', action='store_true',
+                    help='Run from cron job.')
 parser.add_argument('-d', '--debug', dest='debug', action='store_true',
                     help='Turn debug options on.')
 
@@ -128,7 +130,8 @@ for run in runs:
             print '='*5, '{0:^{width}}'.format('Starting Vetra', width=40), '='*5
             retcode = call(cmd_w_args)
             print '='*5, '{0:^{width}}'.format('Job finished. return code: %d' % retcode, width=40), '='*5
-            if retcode == 0:
+            # quit after one job when run as a cron job
+            if _cliopts.cron:
                 print 'Bye bye'
                 break
     except (UndefinedRunLock, RunLockExists):

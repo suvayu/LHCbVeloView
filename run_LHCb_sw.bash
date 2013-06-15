@@ -24,4 +24,4 @@ ulimit -Sm 2000000
 ulimit -Sv 2000000
 echo "Running on:" $HOSTNAME
 
-exec python $srcdir/vetra_analysis.py "$@"
+exec python $srcdir/vetra_analysis.py -c "$@"
