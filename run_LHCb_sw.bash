@@ -22,8 +22,6 @@ echo "shifter vetra version" $SHIFTERVETRAVERSION
 source /sw/lib/lhcb/VETRA/VETRA_${SHIFTERVETRAVERSION}/Velo/VetraScripts/scripts/setup_shifters.sh
 ulimit -Sm 2000000
 ulimit -Sv 2000000
-echo "host1" $HOSTNAME
-export HOSTNAME;echo "import os;print os.environ['HOSTNAME']" | /sw/lib/lcg/external/Python/2.6.5/x86_64-slc5-gcc43-opt/bin/python
-echo "host2" $HOSTNAME
+echo "Running on:" $HOSTNAME
 
 exec python $srcdir/vetra_analysis.py "$@"
