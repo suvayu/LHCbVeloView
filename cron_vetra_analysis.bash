@@ -7,6 +7,10 @@
 declare script=$(readlink -e $BASH_SOURCE)
 declare srcdir="${script%/*}"
 
+# save job arguments
+declare jobargs="$@"
+shift $#
+
 
 # environment: LbLogin et al.
 # initialise environment
@@ -24,4 +28,4 @@ ulimit -Sm 2000000
 ulimit -Sv 2000000
 echo "Running on:" $HOSTNAME
 
-exec python $srcdir/vetra_analysis.py -c "$@"
+exec python $srcdir/vetra_analysis.py -c ${jobargs[@]}
