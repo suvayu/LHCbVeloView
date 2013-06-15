@@ -124,7 +124,8 @@ for run in runs:
             # FIXME: temporarily hard coded vetra script name
             vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_v13r2' \
                            '/Velo/VetraScripts/scripts/vetraOffline'
-            cmd_w_args = [vetraOffline] + jobopts.split(' ') + [str(run)]
+            cmd_w_args = ([vetraOffline] + jobopts.split(' ') +
+                          [str(run), str(_cliopts.nevents)])
             print 'Job command with options: %s' % cmd_w_args
 
             # start the job
