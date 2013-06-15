@@ -120,28 +120,33 @@ for run in runs:
     try:
         with RunLock(run, stream):
             print 'Processing run: %s, stream: %s' % (run, stream)
-            # start the job
             from subprocess import call, check_call
             # FIXME: temporarily hard coded vetra script name
             vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_v13r2' \
                            '/Velo/VetraScripts/scripts/vetraOffline'
             cmd_w_args = [vetraOffline] + jobopts.split(' ') + [str(run)]
             print 'Job command with options: %s' % cmd_w_args
-            print '='*5, '{0:^{width}}'.format('Starting Vetra', width=40), '='*5
+
+            # start the job
+            log_hdrs = '='*5 + '{0:^{width}}' + '='*5
+            print log_hdrs.format('Starting Vetra', width=40)
             retcode = call(cmd_w_args)
-            print '='*5, '{0:^{width}}'.format('Job finished. return code: %d' % retcode, width=40), '='*5
-            # quit after one job when run as a cron job
-            if _cliopts.cron:
+            if retcode != 0:
+                print 'Oops! It seems Vetra failed!'
+            print log_hdrs.format('Vetra returned: %d' % retcode, width=40)
+
+            if _cliopts.cron:   # quit after 1 job when run by cron
                 print 'Bye bye'
                 break
     except (UndefinedRunLock, RunLockExists):
+        exc = sys.exc_info()
+        print 'Oops! Problem acquiring run lock, moving on. ' \
+            '(%s: %s)' % (exc[0].__name__, exc[1])
         if debug:
             print_exc()
-        else:
-            exc = sys.exc_info()
-            print '%s: %s' % (exc[0].__name__, exc[1])
         continue
     except:
         exc = sys.exc_info()
-        print '%s: %s' % (exc[0].__name__, exc[1])
+        print 'Oops! Unexpected exception, may crash disgracefully. ' \
+            '(%s: %s)' % (exc[0].__name__, exc[1])
         raise
