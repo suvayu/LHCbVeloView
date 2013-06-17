@@ -58,11 +58,13 @@ class TestQuery(TestBaseQuery):
 
 
 if __name__ == '__main__':
-    print '='*5, '{0:^{width}}'.format('RunDBQuery, JSON backend', width=40), '='*5
+    hdr_fmt = '='*5 + '{0:^{width}}' + '='*5
+
+    print hdr_fmt.format('RunDBQuery, JSON backend', width=40)
     json_test_suite = unittest.TestLoader().loadTestsFromTestCase(TestJSONQuery)
     unittest.TextTestRunner().run(json_test_suite)
 
-    print '='*5, '{0:^{width}}'.format('RunDBQuery, rundb.RunDB backend', width=40), '='*5
+    print hdr_fmt.format('RunDBQuery, rundb.RunDB backend', width=40)
     norm_test_suite = unittest.TestLoader().loadTestsFromTestCase(TestQuery)
     unittest.TextTestRunner().run(norm_test_suite)
 

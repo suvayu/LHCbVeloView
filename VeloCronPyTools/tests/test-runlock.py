@@ -48,5 +48,6 @@ class TestExceptions(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print '='*5, '{0:^{width}}'.format('RunLock', width=40), '='*5
+    hdr_fmt = '='*5 + '{0:^{width}}' + '='*5
+    print hdr_fmt.format('RunLock', width=40)
     unittest.main()
