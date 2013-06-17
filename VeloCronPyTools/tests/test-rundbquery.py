@@ -48,7 +48,7 @@ class TestJSONQuery(TestBaseQuery):
 
 
 # @unittest.expectedFailure
-@unittest.skipIf(__hostname__.find('plus') < 0,
+@unittest.skipIf(__hostname__.find('plus') != 0,
                  'rundb.RunDB is not supported outside plus* nodes')
 class TestQuery(TestBaseQuery):
 
