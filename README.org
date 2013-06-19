@@ -4,12 +4,16 @@
 All scripts are in the top level directory.
 
 * Python
-All python classes and utilities are in ~VeloCronPyTools~.  Add the
-directory to =$PYTHONPATH= to use them in scripts.
+All python classes and utilities are in ~VeloCronPyTools~.  If you
+always call the script with the full path, you can just do =import
+VeloCronPyTools.<module>=.  This will not work however when you call
+it using a relative path or it is found in your =$PATH=.  Add the
+project directory to =$PYTHONPATH= to use them in such scripts.
 
 * Shell scripts
 All common functionality is factored out in "libraries" and are
-located in ~VeloCronShTools~.  Source and use them.
+located in ~VeloCronShTools~.  Source and use them.  Similar note as
+above applies for paths.
 
 * TODOs
 ** TODO A =$PYTHONPATH= setup routine
@@ -20,17 +24,3 @@ located in ~VeloCronShTools~.  Source and use them.
    :END:
 - [X] Analyse
 - [ ] Merge
-
-** WInP BKK query parser
-   :LOGBOOK:
-   - State "WInP"       from "TODO"       [2013-06-10 Mon 21:46]
-   :END:
-- [[file:VeloCronPyTools/tests/rdbt-output.txt][Sample output for single run]]
-- [[file:VeloCronPyTools/tests/rdbt-range-output.txt][Sample output for run range]]
-
-** TODO Environment wrapper
-- =ulimit=
-- LHCb environment
-- Look at =subprocess=
-
-** TODO Config file
