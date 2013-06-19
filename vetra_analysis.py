@@ -23,14 +23,17 @@ parser.add_argument('-s', '--stream', dest='stream', default='NZS',
                     help='Which stream to process, ZS/NZS (default).')
 parser.add_argument('-n', '--nevents', dest='nevents', type=int, default=70000,
                     help='Number of events to process (default 70000).')
-parser.add_argument('-t', '--threshold', dest='threshold',
+parser.add_argument('-t', '--time-threshold', dest='threshold',
                     type=int, help='Minimum run duration in seconds.')
+parser.add_argument('-jd', '--job-dir', dest='job_dir',
+                    default='/calib/velo/dqm', help='Job directory '
+                    '(default: /calib/velo/dqm).')
 parser.add_argument('-j', '--use-json', dest='json', action='store_true',
                     help='Use JSON backend to talk to the run database.')
 parser.add_argument('-o', '--job-options', dest='jobopts',
                     help='Override default Vetra job options (quoted).')
 parser.add_argument('-c', '--cron', action='store_true',
-                    help='Run from cron job.')
+                    help='Run from a cron job.')
 parser.add_argument('-d', '--debug', dest='debug', action='store_true',
                     help='Turn debug options on.')
 
@@ -131,6 +134,7 @@ for run in runs:
             # start the job
             log_hdrs = '='*5 + '{0:^{width}}' + '='*5
             print log_hdrs.format('Starting Vetra', width=40)
+            os.chdir(_cliopts.job_dir)
             retcode = call(cmd_w_args)
             if retcode != 0:
                 print 'Oops! It seems Vetra failed!'
