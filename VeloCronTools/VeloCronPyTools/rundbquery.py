@@ -11,69 +11,38 @@
 ## <https://twiki.cern.ch/twiki/bin/view/LHCb/RunDb>
 ## <https://lbtwiki.cern.ch/bin/view/Online/RunDataBase>
 # 1. rundb.RunDB(): works only at the pit
+
+
+## Run states (copied from RunDatabase.RunDatabase_Defines)
+# The default run lifecycle is:
+#    Not existing -> CREATED -> ACTIVE -> (DEFERRED Optional) -> ENDED -> BKK_ADDED
 #
-# 2. alternate approach: use rundb web api (courtesy Gerhard)
+RUN_ACTIVE          = 1
+RUN_ENDED           = 2
+RUN_MIGRATING       = 3
+RUN_WAITDELETE      = 4
+RUN_CREATED         = 5
+RUN_IN_BKK          = 6
+RUN_DEFERRED        = 7
 
 
-def RunInfo(run, strict=True, json=False):
-    """Return run information.  Use the JSON backend if `json` is True."""
+def RunInfo(run, strict=True):
+    """Return run information."""
 
-    if json:
-        import urllib, json
-        info = json.loads(urllib.urlopen('http://lbrundb.cern.ch/api/run/'
-                                         + str(run)).read())
-    else:
-        from rundb import RunDB
-        db = RunDB()
-        info = db.getrun(run)[0]
-        if (not isinstance(info, dict) or
-            # protect against end-of-fill calibration runs with missing
-            # time info when using rundb.RunDB
-            (strict and (info['startTime'] == '' or info['endTime'] == ''))):
-            raise ValueError('Bad run number %s (strict check: %s)'
-                             % (run, strict))
+    from rundb import RunDB
+    db = RunDB()
+    info = db.getrun(run)[0]
+    if (not isinstance(info, dict) or
+        # protect against end-of-fill calibration runs with missing
+        # time info when using rundb.RunDB
+        (strict and (info['startTime'] == '' or info['endTime'] == ''))):
+        raise ValueError('Bad run number %s (strict check: %s)'
+                         % (run, strict))
     # fix tck type
     info['tck'] = int(info['tck'])
-
-    # Run info dict returned by 2 methods are different.  Fix it.
-    #
-    # | rundb.RunDB                             | JSON                               |   |
-    # |-----------------------------------------+------------------------------------+---|
-    # | 'conddbTag': 'cond-20120831'            | 'conddbTag': 'cond-20120831'       |   |
-    # | 'dddbTag': 'dddb-20120831'              | 'dddbTag': 'dddb-20120831'         |   |
-    # | 'destination': 'OFFLINE'                | 'destination': 'OFFLINE'           |   |
-    # | 'endTime': '2013-02-13 10:07:32.0000'   | 'endtime': '2013-02-13T10:07:32'   | * |
-    # | 'LHCState':   'PHYSICS'                 | 'LHCState': 'PHYSICS'              |   |
-    # | 'runID': 137259                         | 'runid': 137259                    | * |
-    # | 'runType': 'COLLISION13'                | 'runtype': 'COLLISION13'           | * |
-    # | 'startTime': '2013-02-13 09:07:28.0000' | 'starttime': '2013-02-13T09:07:28' | * |
-    # | 'state': 6                              | 'state': 'IN BKK'                  | * |
-    # | 'triggerConfiguration': 'Physics'       | 'triggerConfiguration': 'Physics'  |   |
-    # | 'veloPosition': 'Closed'                | 'veloPosition': 'Closed'           |   |
-    #
-    # state: ENDED = 2, CREATED = 5, IN_BKK = 6, <empty> = 7
-
-    # force all keys to lower case for consistency
-    for key in info:
-        info[key.lower()] = info.pop(key)
-    if not json:       # using rundb.RunDB
-        ## FIXME: unknown number of cases unhandled
-        # handle special cases
-        if info['state'] == 2:
-            info['state'] = 'ENDED'
-        elif info['state'] == 5:
-            info['state'] = 'CREATED'
-        elif info['state'] == 6:
-            info['state'] = 'IN BKK'
-        elif info['state'] == 7:
-            info['state'] = ''
-        # strip milliseconds from time string
-        info['starttime'] = info['starttime'][:-5]
-        info['endtime'] = info['endtime'][:-5]
-    else:                # using JSON
-        # replace separator between date and time
-        info['starttime'] = info['starttime'].replace('T', ' ')
-        info['endtime'] = info['endtime'].replace('T', ' ')
+    # strip milliseconds from time string
+    info['startTime'] = info['startTime'][:-5]
+    info['endTime'] = info['endTime'][:-5]
 
     return info
 
@@ -81,14 +50,11 @@ def RunInfo(run, strict=True, json=False):
 class RunDBQuery(object):
     """Query the run database and determine valid runs from provided list."""
 
-    def __init__(self, runs, json=False):
+    def __init__(self, runs):
         """`runs` can be a single run or a list of runs.
-
-        `json` determines the backend.
 
         """
 
-        self.__use_json__ = json
         self.__trimmed__ = False
         try:
             self.runs = list(runs)
@@ -103,17 +69,18 @@ class RunDBQuery(object):
         validruns, fresh_validruns = [], []
         for run in self.runs:
             try:
-                info = RunInfo(run, bool(time_threshold), self.__use_json__)
+                info = RunInfo(run, bool(time_threshold))
             except ValueError as err:
                 print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
                 continue
             if time_threshold:
-                epoch = (mktime(strptime(info['starttime'], timefmt)),
-                         mktime(strptime(info['endtime'], timefmt)))
+                epoch = (mktime(strptime(info['startTime'], timefmt)),
+                         mktime(strptime(info['endTime'], timefmt)))
                 if epoch[1] - epoch[0] > time_threshold:
-                    if info['state'] == 'IN BKK':
+                    if info['state'] == RUN_IN_BKK:
                         validruns.append(run)
-                    elif (info['state'] == 'ENDED' and time() - epoch[1] > 3600):
+                    elif (info['state'] == RUN_ENDED and
+                          time() - epoch[1] > 3600):
                         fresh_validruns.append(run)
             else:
                 validruns.append(run)
