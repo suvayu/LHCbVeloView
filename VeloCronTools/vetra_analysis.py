@@ -28,8 +28,6 @@ parser.add_argument('-t', '--time-threshold', dest='threshold',
 parser.add_argument('-jd', '--job-dir', dest='job_dir',
                     default='/calib/velo/dqm', help='Job directory '
                     '(default: /calib/velo/dqm).')
-parser.add_argument('-j', '--use-json', dest='json', action='store_true',
-                    help='Use JSON backend to talk to the run database.')
 parser.add_argument('-o', '--job-options', dest='jobopts',
                     help='Override default Vetra job options (quoted).')
 parser.add_argument('-c', '--cron', action='store_true',
@@ -101,7 +99,7 @@ if debug:
     print 'Run list before trimming: %s' % runs
 
 # query the database and get validated list of runs
-query = RunDBQuery(runs, _cliopts.json)
+query = RunDBQuery(runs)
 runs = query.get_valid_runs(_cliopts.threshold)
 
 if debug:
