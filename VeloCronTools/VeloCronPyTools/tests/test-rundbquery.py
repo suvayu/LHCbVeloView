@@ -19,53 +19,29 @@ from VeloCronPyTools.rundbquery import (RunDBQuery)
 import unittest
 
 
-class TestBaseQuery(unittest.TestCase):
+@unittest.skipIf(__hostname__.find('plus') != 0,
+                 'rundb.RunDB is not supported outside plus* nodes')
+class TestQuery(unittest.TestCase):
 
     def setUp(self):
         self.good_runno = 137259
         self.good_runlist = range(137250, 137300)
         self.bad_runno = 150000
-        self.json = True
 
     def test_good_run_number(self):
-        query = RunDBQuery(self.good_runno, self.json)
+        query = RunDBQuery(self.good_runno)
         self.assertTrue(query.get_valid_runs(1800))
 
     def test_good_run_list(self):
-        query = RunDBQuery(self.good_runlist, self.json)
+        query = RunDBQuery(self.good_runlist)
         self.assertTrue(query.get_valid_runs(1800))
 
     def test_bad_run_number(self):
-        query = RunDBQuery(self.bad_runno, self.json)
+        query = RunDBQuery(self.bad_runno)
         self.assertFalse(query.get_valid_runs(1800))
-
-
-class TestJSONQuery(TestBaseQuery):
-
-    def setUp(self):
-        super(TestJSONQuery, self).setUp()
-        self.json = True
-
-
-# @unittest.expectedFailure
-@unittest.skipIf(__hostname__.find('plus') != 0,
-                 'rundb.RunDB is not supported outside plus* nodes')
-class TestQuery(TestBaseQuery):
-
-    def setUp(self):
-        super(TestQuery, self).setUp()
-        self.json = False
 
 
 if __name__ == '__main__':
     hdr_fmt = '='*5 + '{0:^{width}}' + '='*5
-
-    print hdr_fmt.format('RunDBQuery, JSON backend', width=40)
-    json_test_suite = unittest.TestLoader().loadTestsFromTestCase(TestJSONQuery)
-    unittest.TextTestRunner().run(json_test_suite)
-
     print hdr_fmt.format('RunDBQuery, rundb.RunDB backend', width=40)
-    norm_test_suite = unittest.TestLoader().loadTestsFromTestCase(TestQuery)
-    unittest.TextTestRunner().run(norm_test_suite)
-
-    # unittest.main()
+    unittest.main()
