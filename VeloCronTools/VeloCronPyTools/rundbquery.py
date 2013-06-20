@@ -15,59 +15,6 @@
 # 2. alternate approach: use rundb web api (courtesy Gerhard)
 
 
-def __fix_info__(func):
-    """Run info dict returned by 2 methods are different.  Fix it.
-
-    | rundb.RunDB                             | JSON                               |   |
-    |-----------------------------------------+------------------------------------+---|
-    | 'conddbTag': 'cond-20120831'            | 'conddbTag': 'cond-20120831'       |   |
-    | 'dddbTag': 'dddb-20120831'              | 'dddbTag': 'dddb-20120831'         |   |
-    | 'destination': 'OFFLINE'                | 'destination': 'OFFLINE'           |   |
-    | 'endTime': '2013-02-13 10:07:32.0000'   | 'endtime': '2013-02-13T10:07:32'   | * |
-    | 'LHCState':   'PHYSICS'                 | 'LHCState': 'PHYSICS'              |   |
-    | 'runID': 137259                         | 'runid': 137259                    | * |
-    | 'runType': 'COLLISION13'                | 'runtype': 'COLLISION13'           | * |
-    | 'startTime': '2013-02-13 09:07:28.0000' | 'starttime': '2013-02-13T09:07:28' | * |
-    | 'state': 6                              | 'state': 'IN BKK'                  | * |
-    | 'triggerConfiguration': 'Physics'       | 'triggerConfiguration': 'Physics'  |   |
-    | 'veloPosition': 'Closed'                | 'veloPosition': 'Closed'           |   |
-
-    state: ENDED = 2, CREATED = 5, IN_BKK = 6, <empty> = 7
-
-    """
-
-    def wrapper(*args):
-        d = func(*args)
-        # force all keys to lower case for consistency
-        for key in d:
-            d[key.lower()] = d.pop(key)
-        if args[2] == False:    # using rundb.RunDB
-            ## FIXME: unknown number of cases unhandled
-            # handle special cases
-            if d['state'] == 2:
-                d['state'] = 'ENDED'
-            elif d['state'] == 5:
-                d['state'] = 'CREATED'
-            elif d['state'] == 6:
-                d['state'] = 'IN BKK'
-            elif d['state'] == 7:
-                d['state'] = ''
-            # strip milliseconds from time string
-            d['starttime'] = d['starttime'][:-5]
-            d['endtime'] = d['endtime'][:-5]
-        else:                # using JSON
-            # replace separator between date and time
-            d['starttime'] = d['starttime'].replace('T', ' ')
-            d['endtime'] = d['endtime'].replace('T', ' ')
-        ## FIXME: function signature still broken
-        # fix function name and documentation string
-        wrapper.__name__ = func.__name__
-        wrapper.__doc__ = func.__doc__
-        return d
-    return wrapper
-
-
-@__fix_info__
 def RunInfo(run, strict=True, json=False):
     """Return run information.  Use the JSON backend if `json` is True."""
 
@@ -87,6 +34,47 @@ def RunInfo(run, strict=True, json=False):
                              % (run, strict))
     # fix tck type
     info['tck'] = int(info['tck'])
+
+    # Run info dict returned by 2 methods are different.  Fix it.
+    #
+    # | rundb.RunDB                             | JSON                               |   |
+    # |-----------------------------------------+------------------------------------+---|
+    # | 'conddbTag': 'cond-20120831'            | 'conddbTag': 'cond-20120831'       |   |
+    # | 'dddbTag': 'dddb-20120831'              | 'dddbTag': 'dddb-20120831'         |   |
+    # | 'destination': 'OFFLINE'                | 'destination': 'OFFLINE'           |   |
+    # | 'endTime': '2013-02-13 10:07:32.0000'   | 'endtime': '2013-02-13T10:07:32'   | * |
+    # | 'LHCState':   'PHYSICS'                 | 'LHCState': 'PHYSICS'              |   |
+    # | 'runID': 137259                         | 'runid': 137259                    | * |
+    # | 'runType': 'COLLISION13'                | 'runtype': 'COLLISION13'           | * |
+    # | 'startTime': '2013-02-13 09:07:28.0000' | 'starttime': '2013-02-13T09:07:28' | * |
+    # | 'state': 6                              | 'state': 'IN BKK'                  | * |
+    # | 'triggerConfiguration': 'Physics'       | 'triggerConfiguration': 'Physics'  |   |
+    # | 'veloPosition': 'Closed'                | 'veloPosition': 'Closed'           |   |
+    #
+    # state: ENDED = 2, CREATED = 5, IN_BKK = 6, <empty> = 7
+
+    # force all keys to lower case for consistency
+    for key in info:
+        info[key.lower()] = info.pop(key)
+    if not json:       # using rundb.RunDB
+        ## FIXME: unknown number of cases unhandled
+        # handle special cases
+        if info['state'] == 2:
+            info['state'] = 'ENDED'
+        elif info['state'] == 5:
+            info['state'] = 'CREATED'
+        elif info['state'] == 6:
+            info['state'] = 'IN BKK'
+        elif info['state'] == 7:
+            info['state'] = ''
+        # strip milliseconds from time string
+        info['starttime'] = info['starttime'][:-5]
+        info['endtime'] = info['endtime'][:-5]
+    else:                # using JSON
+        # replace separator between date and time
+        info['starttime'] = info['starttime'].replace('T', ' ')
+        info['endtime'] = info['endtime'].replace('T', ' ')
+
     return info
 
 
