@@ -7,44 +7,30 @@
 """
 
 
-## Accessing the run database
-## <https://twiki.cern.ch/twiki/bin/view/LHCb/RunDb>
-## <https://lbtwiki.cern.ch/bin/view/Online/RunDataBase>
-# 1. rundb.RunDB(): works only at the pit
+# for printing exceptions
+from traceback import print_exc
 
+## Note: works only at the pit
+# Oracle database
+from DbModel import createEngine_Oracle
 
-## Run states (copied from RunDatabase.RunDatabase_Defines)
+# Interface to database
+from RunDatabase import RunDbServer
+
+## Run states
+from RunDatabase_Defines import (RUN_ACTIVE, RUN_ENDED, RUN_MIGRATING,
+                                 RUN_WAITDELETE, RUN_CREATED,
+                                 RUN_IN_BKK, RUN_DEFERRED)
 # The default run lifecycle is:
 #    Not existing -> CREATED -> ACTIVE -> (DEFERRED Optional) -> ENDED -> BKK_ADDED
 #
-RUN_ACTIVE          = 1
-RUN_ENDED           = 2
-RUN_MIGRATING       = 3
-RUN_WAITDELETE      = 4
-RUN_CREATED         = 5
-RUN_IN_BKK          = 6
-RUN_DEFERRED        = 7
-
-
-def RunInfo(run, strict=True):
-    """Return run information."""
-
-    from rundb import RunDB
-    db = RunDB()
-    info = db.getrun(run)[0]
-    if (not isinstance(info, dict) or
-        # protect against end-of-fill calibration runs with missing
-        # time info when using rundb.RunDB
-        (strict and (info['startTime'] == '' or info['endTime'] == ''))):
-        raise ValueError('Bad run number %s (strict check: %s)'
-                         % (run, strict))
-    # fix tck type
-    info['tck'] = int(info['tck'])
-    # strip milliseconds from time string
-    info['startTime'] = info['startTime'][:-5]
-    info['endTime'] = info['endTime'][:-5]
-
-    return info
+# RUN_ACTIVE          = 1
+# RUN_ENDED           = 2
+# RUN_MIGRATING       = 3
+# RUN_WAITDELETE      = 4
+# RUN_CREATED         = 5
+# RUN_IN_BKK          = 6
+# RUN_DEFERRED        = 7
 
 
 class RunDBQuery(object):
@@ -60,6 +46,38 @@ class RunDBQuery(object):
             self.runs = list(runs)
         except TypeError:
             self.runs = [runs]
+        try:
+            self.__rundb__ = RunDbServer(engine=createEngine_Oracle())
+        except Exception:
+            print 'Oops! Could not connect to rundb.'
+            print_exc()
+
+
+    def get_run_info(self, run, strict=True):
+        """Return run information."""
+
+        infofields = ['runID', 'startTime', 'endTime', 'state']
+        status, infolist = self.__rundb__.getRuns(fields = infofields, runID = run)
+        if not status:
+            print 'Failed to get run info, run: %s (strict check: %s)' \
+                % (run, strict)
+
+        # convert list to dictionary
+        info = {}
+        for idx, field in enumerate(infofields):
+            info[field] = infolist[0][idx]
+
+        # protect against end-of-fill calibration runs with
+        # missing time info
+        if (strict and (info['startTime'] == '' or info['endTime'] == '')):
+            raise ValueError('Bad run number %s (strict check: %s)' %
+                             (run, strict))
+
+        # # strip milliseconds from time string
+        # info['startTime'] = info['startTime'][:-5]
+        # info['endTime'] = info['endTime'][:-5]
+
+        return info
 
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
@@ -69,7 +87,7 @@ class RunDBQuery(object):
         validruns, fresh_validruns = [], []
         for run in self.runs:
             try:
-                info = RunInfo(run, bool(time_threshold))
+                info = self.get_run_info(run, time_threshold)
             except ValueError as err:
                 print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
                 continue
