@@ -1,6 +1,15 @@
 # coding=utf-8
 """This module provides a book keeping output parser.
 
+To use this implementation, you need to match your python version with
+the python version used while compiling cx_Oracle.so.  At the pit, the
+Oracle library was compiled with the system default, 2.4.3.  Whereas
+LHCb software uses 2.7.3!
+
+Environment setup:
+
+  $ source /sw/oracle/set_oraenv.sh --arch 64
+
 @author:  Suvayu Ali
 @date:    2013-06-10
 
