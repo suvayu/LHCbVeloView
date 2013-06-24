@@ -118,20 +118,20 @@ else:
               '/FilterBeamBeam_Heartbeat.py'
 
 for run in runs:
-    try:
-        with RunLock(run, stream):
-            print 'Processing run: %s, stream: %s' % (run, stream)
-            from subprocess import call, check_call
-            # FIXME: temporarily hard coded vetra script name
-            vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_v13r2' \
-                           '/Velo/VetraScripts/scripts/vetraOffline'
-            cmd_w_args = ([vetraOffline] + jobopts.split(' ') +
-                          [str(run), str(_cliopts.nevents)])
-            print 'Job command with options: %s' % cmd_w_args
+    with RunLock(run, stream):
+        print 'Processing run: %s, stream: %s' % (run, stream)
+        from subprocess import call, check_call
+        # FIXME: temporarily hard coded vetra script name
+        vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_v13r2' \
+                       '/Velo/VetraScripts/scripts/vetraOffline'
+        cmd_w_args = ([vetraOffline] + jobopts.split(' ') +
+                      [str(run), str(_cliopts.nevents)])
+        print 'Job command with options: %s' % cmd_w_args
 
-            # start the job
-            log_hdrs = '='*5 + '{0:^{width}}' + '='*5
-            print log_hdrs.format('Starting Vetra', width=40)
+        # start the job
+        log_hdrs = '='*5 + '{0:^{width}}' + '='*5
+        print log_hdrs.format('Starting Vetra', width=40)
+        try:
             os.chdir(_cliopts.job_dir)
             retcode = call(cmd_w_args)
             if retcode != 0:
@@ -141,15 +141,8 @@ for run in runs:
             if _cliopts.cron:   # quit after 1 job when run by cron
                 print 'Bye bye'
                 break
-    except RunLockExists:
-        exc = sys.exc_info()
-        print 'Oops! Problem acquiring run lock, moving on. ' \
-            '(%s: %s)' % (exc[0].__name__, exc[1])
-        if debug:
-            print_exc()
-        continue
-    except:
-        exc = sys.exc_info()
-        print 'Oops! Unexpected exception, may crash disgracefully. ' \
-            '(%s: %s)' % (exc[0].__name__, exc[1])
-        raise
+        except:
+            exc = sys.exc_info()
+            print 'Oops! Unexpected exception, may crash disgracefully. ' \
+                '(%s: %s)' % (exc[0].__name__, exc[1])
+            raise
