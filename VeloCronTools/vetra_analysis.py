@@ -141,7 +141,7 @@ for run in runs:
             if _cliopts.cron:   # quit after 1 job when run by cron
                 print 'Bye bye'
                 break
-    except (UndefinedRunLock, RunLockExists):
+    except RunLockExists:
         exc = sys.exc_info()
         print 'Oops! Problem acquiring run lock, moving on. ' \
             '(%s: %s)' % (exc[0].__name__, exc[1])
