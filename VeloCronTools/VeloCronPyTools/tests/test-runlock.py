@@ -11,7 +11,7 @@ else:
     __path_to_script__ += ['..', '..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from VeloCronPyTools.runlock import (RunLock, UndefinedRunLock, RunLockExists)
+from VeloCronPyTools.runlock import (RunLock, RunLockExists)
 import unittest
 
 
@@ -20,11 +20,6 @@ class TestExceptions(unittest.TestCase):
     def setUp(self):
         self.stream = 'FOO'
         self.good_runno = 137259
-        self.bad_runno = 2.0
-
-    def test_bad_run_number(self):
-        self.assertRaises(UndefinedRunLock, RunLock, self.bad_runno,
-                          self.stream)
 
     def test_existing_lock_files(self):
         def __existing_lock_files__():
