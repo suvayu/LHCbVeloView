@@ -1,44 +1,66 @@
-"""This module defines Velo state for DQ analysis.
+"""This module defines a Velo state for Data Quality Monitoring.
 
-It also introduces the concept of expected state for the Velo.
-Finally it implements a class to set and propagate DQ flags through
-automatic analysis based on the `Velo expected state'.
+It also introduces the notion of an expected state based on the Velo
+state.  It implements a data quality tree (DQTree) and provides an
+interface to assign and propagate data quality scores/flags based on
+the expectation from the Velo state.
 
 @author Suvayu Ali
 @email  Suvayu dot Ali at cern dot ch
-@date   2013-03-15 Fri
+@date   2013-06-27 Thu
 
 """
 
 
-class state(object):
-    """This class defines Velo state.
+class DQTree(dict):
+    """This is a glorified dictionary.
 
-    The Velo has components, each component has properties and an
-    overall DQ state.  Each property has a value and a DQ state.  Each
-    node is represented by a list of heterogeneous objects; one of the
-    elements is a DQ flag, the other can be anything including a list
-    of other (contained) nodes.
+    It serves as the underlying data structure used by VeloState.  The
+    idea is to represent all monitored quantities as leaves.  The
+    leaves are grouped by `points of failure` or `symptoms` into a
+    node to form a data quality tree.
 
-    velostate = [list(components), <overall dqflag>]
+    Each leave has:
+    1) a name, and
+    2) a 2-tuple: (monitored quantity, function)
 
-    component = [list(properties), <overall dqflag>]
+    Each node has:
+    1) a name,
+    2) a 2-tuple: (list of leaves, function)
 
-    property = list or tuple (<property state>, <property DQ flag>)
+    The function in both cases assigns/calculates the DQ score/flag
+    for the leaf/node.
 
-    property can be tuple for expected state (want it to immutable)
-    and a list when representing current state (want it to be mutable)
+    """
+
+    def add_leaf_or_node(self, name, qty, score_fn, isnode=False):
+        """Add a leaf or node.
+
+        Basic type check is done before filling.
+
+        """
+
+        if isnode and not hasattr(qty, '__iter__'):
+            raise TypeError('Expecting an iterable as `qty`, found %s instead.'
+                            % type(qty))
+        if hasattr(score_fn, '__call__'):
+            self.__setitem__(name, (qty, score_fn))
+        else:
+            raise TypeError('Expecting a callable as `score_fn`,'
+                            ' found %s instead.' % type(score_fn))
+
+
+    def get_leaves_or_nodes(self, regex):
+        """Return leaves or nodes matching name regex."""
+
+        pass
+
+
+class VeloState(object):
+    """This class interprets external inputs into a Velo state.
 
     """
 
     def __init__(self):
-        self.__components__ = [[], True]
-        self.__velo__ = [self.__components__, True]
-
-    def add_component(self, component):
-        self.__components__[0] += component
-        # # What to do with DQ flag?
-        # self.__components__[1]
-
-    def get_component(self):
+        self.__dqtree__ = DQTree()
         pass
