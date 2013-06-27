@@ -1,5 +1,6 @@
-.PHONY:	test
+PYTHON = $(shell /usr/bin/which python)
 
-test:	tests/test-VeloState.py
-	@echo Running tests
-	python -m velostate $^
+.PHONY:	tests
+
+tests:	$(filter-out %__init__.py,$(wildcard ./tests/*.py))
+	@for test in $^; do $(PYTHON) $$test ${ARGS}; done
