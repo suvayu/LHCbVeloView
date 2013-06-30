@@ -28,15 +28,15 @@ class TestDQTree(unittest.TestCase):
         self.good_callable = lambda : 'callable'
 
     def test_bad_compare_fn(self):
-        self.assertRaises(TypeError, self.dqtree.add_leaf_or_node,
-                          'bad', 0, self.bad_callable)
+        self.assertRaises(TypeError, self.dqtree.add_node, 'bad', 0,
+                          self.bad_callable)
 
     def test_good_compare_fn(self):
-        self.dqtree.add_leaf_or_node('good', 0, self.good_callable)
+        self.dqtree.add_node('good', 0, self.good_callable)
         self.assertEqual(self.dqtree, DQTree(good=(0, self.good_callable)))
 
     def test_score_fn_call(self):
-        self.dqtree.add_leaf_or_node('GOO', 42, self.good_callable)
+        self.dqtree.add_node('GOO', 42, self.good_callable)
         self.assertEqual(self.dqtree.call_score_fn('GOO'), 'callable')
 
 

@@ -48,7 +48,7 @@ class DQTree(dict):
 
     """
 
-    def add_leaf_or_node(self, name, qty, score_fn, isnode=False):
+    def add_node(self, name, qty, score_fn, isnode=False):
         """Add a leaf or node.
 
         Basic type check is done before filling.
