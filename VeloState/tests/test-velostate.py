@@ -35,6 +35,10 @@ class TestDQTree(unittest.TestCase):
         self.dqtree.add_leaf_or_node('good', 0, self.good_callable)
         self.assertEqual(self.dqtree, DQTree(good=(0, self.good_callable)))
 
+    def test_score_fn_call(self):
+        self.dqtree.add_leaf_or_node('GOO', 42, self.good_callable)
+        self.assertEqual(self.dqtree.call_score_fn('GOO'), 'callable')
+
 
 if __name__ == '__main__':
     hdr_fmt = '='*5 + '{0:^{width}}' + '='*5

@@ -64,6 +64,15 @@ class DQTree(dict):
             raise TypeError('Expecting a callable as `score_fn`,'
                             ' found %s instead.' % type(score_fn))
 
+    def call_score_fn(self, leaf, *sf_args, **sf_kw_args):
+        """Call `score_fn' associated with `leaf' with given arguments.
+
+        Leaf can also be a node.  The return value of `score_fn' is
+        forwarded.
+
+        """
+
+        return self[leaf][1](*sf_args, **sf_kw_args)
 
     def get_leaves_or_nodes(self, regex):
         """Return leaves or nodes matching name regex."""
