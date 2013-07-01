@@ -80,10 +80,41 @@ class DQTree(dict):
         pass
 
 
+from algorithms import (Threshold)
+
 class VeloState(object):
     """This class interprets external inputs into a Velo state.
 
     """
 
     def __init__(self):
-        self.__dqtree__ = DQTree()
+        self.__state__ = {}     # expected state
+
+    def add_node_state(self, name, args):
+        """Add expected state for a leaf or node."""
+        ## FIXME: not yet decided how to store the expected state.
+        # Idea: Simple classes for each DQ algorithm; e.g. a Threshold
+        # object will tell VeloState if the monitored quantity should
+        # be higher or lower than a value.  Flag as "green" (True)
+        # when condition is met, "red" (False) otherwise.
+        self.__state__[name] = args
+
+    def set_DQ_tree(self, dqtree):
+        """Set DQTree to compare with."""
+        if isinstance(dqtree, DQTree):
+            self.__dqtree__ = dqtree
+            self.__leaves_or_nodes__ = dqtree.keys() # for easy lookup
+        else:
+            raise TypeError('Expecting a DQTree instance, found %s instead.'
+                            % type(dqtree))
+
+    def get_score(self, name):
+        """Calculate and return the DQ score/flag for a leaf or node."""
+
+        # FIXME: dumb comparison, hand coded.  Define an interface for
+        # the algorithm that allows generic calls to get the score
+        if isinstance(self.__state__[name], Threshold):
+            return self.__dqtree__.call_score_fn(name,
+                                                 self.__state__[name].value)
+        else:
+            NotImplemented
