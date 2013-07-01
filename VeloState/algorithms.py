@@ -16,5 +16,11 @@ class Threshold:
     """A threshold with the notion of floor or ceiling."""
 
     def __init__(self, value, floor=True):
-        self.value = value
+        self.value = float(value)
         self.floor = floor
+
+    def __call__(self, mon):
+        if self.floor:
+            return self.value < mon
+        else:
+            return mon < self.value

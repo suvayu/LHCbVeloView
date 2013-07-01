@@ -29,11 +29,17 @@ class TestThreshold(unittest.TestCase):
     def test_value(self):
         self.assertEqual(self.floor_threshold.value, 42)
 
-    def test_floor(self):
-        self.assertTrue(self.floor_threshold.floor)
+    def test_floor_pass(self):
+        self.assertTrue(self.floor_threshold(56))
 
-    def test_ceiling(self):
-        self.assertFalse(self.ceiling_threshold.floor)
+    def test_floor_fail(self):
+        self.assertFalse(self.floor_threshold(39))
+
+    def test_ceiling_pass(self):
+        self.assertFalse(self.ceiling_threshold(56))
+
+    def test_ceiling_fail(self):
+        self.assertTrue(self.ceiling_threshold(39))
 
 
 if __name__ == '__main__':

@@ -114,7 +114,6 @@ class VeloState(object):
         # FIXME: dumb comparison, hand coded.  Define an interface for
         # the algorithm that allows generic calls to get the score
         if isinstance(self.__state__[name], Threshold):
-            return self.__dqtree__.call_score_fn(name,
-                                                 self.__state__[name].value)
+            return self.__dqtree__.call_score_fn(name)
         else:
             NotImplemented

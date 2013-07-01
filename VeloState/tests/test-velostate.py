@@ -50,19 +50,18 @@ class TestVeloState(unittest.TestCase):
         # super(TestVeloState, self).setUp()
         self.state = VeloState()
         # x is the monitored quantity (i.e. dqtree[key][0])
-        self.gt_fn = lambda x, y : x > y
-        self.lt_fn = lambda x, y : x < y
-        self.eq_fn = lambda x, y : x == y
+        self.threshold_floor = Threshold(42, True)
+        self.threshold_ceiling = Threshold(42, False)
 
     def test_DQ_flag_pass(self):
-        self.dqtree.add_node('FOO', 4.2, self.gt_fn)
-        self.state.add_node_state('FOO', Threshold(1.0, True))
+        self.dqtree.add_node('FOO', 42.1, self.threshold_floor)
+        self.state.add_node_state('FOO', self.threshold_floor)
         self.state.set_DQ_tree(self.dqtree)
-        self.assertEqual(self.state.get_score('FOO'), 4.2 > 1.0)
+        self.assertEqual(self.state.get_score('FOO'), 42.1 > 42.0)
 
     def test_DQ_flag_fail(self):
-        self.dqtree.add_node('FOO', 4.2, self.gt_fn)
-        self.state.add_node_state('FOO', Threshold(42, True))
+        self.dqtree.add_node('FOO', 4.2, self.threshold_floor)
+        self.state.add_node_state('FOO', self.threshold_floor)
         self.state.set_DQ_tree(self.dqtree)
         self.assertEqual(self.state.get_score('FOO'), 4.2 > 42)
 
