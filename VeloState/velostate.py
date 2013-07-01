@@ -72,7 +72,7 @@ class DQTree(dict):
 
         """
 
-        return self[leaf][1](*sf_args, **sf_kw_args)
+        return self[leaf][1](self[leaf][0], *sf_args, **sf_kw_args)
 
     def get_leaves_or_nodes(self, regex):
         """Return leaves or nodes matching name regex."""

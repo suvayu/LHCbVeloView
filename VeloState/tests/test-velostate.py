@@ -25,7 +25,7 @@ class TestDQTree(unittest.TestCase):
     def setUp(self):
         self.dqtree = DQTree()
         self.bad_callable = 'not a callable'
-        self.good_callable = lambda : 'callable'
+        self.good_callable = lambda x : 'callable'
 
     def test_bad_compare_fn(self):
         self.assertRaises(TypeError, self.dqtree.add_node, 'bad', 0,
