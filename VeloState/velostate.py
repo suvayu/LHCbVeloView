@@ -61,7 +61,7 @@ class DQTree(dict):
         pass
 
 
-from algorithms import (Threshold)
+from algorithms import (BaseAlgorithm)
 
 class VeloState(object):
     """This class interprets external inputs into a Velo state.
@@ -94,7 +94,7 @@ class VeloState(object):
 
         # FIXME: dumb comparison, hand coded.  Define an interface for
         # the algorithm that allows generic calls to get the score
-        if isinstance(self.__state__[name], Threshold):
+        if isinstance(self.__state__[name], BaseAlgorithm):
             return self.__state__[name](self.__dqtree__[name])
         else:
             return NotImplemented

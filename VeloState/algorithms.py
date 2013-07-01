@@ -24,7 +24,24 @@ class DummyAlgorithm:
         return mon
 
 
-class Threshold:
+class BaseAlgorithm(object):
+    """All algorithms are required to inherit from this base class.
+
+    All algorithms are callable, hence any subclass is expected to
+    implement it's own `__call__' method.  It will receive one (?)
+    argument, the monitored quantity.  The algorithm should know how
+    to process that.
+
+    """
+
+    def __init__(self):
+        pass
+
+    def __call__(self, mon):
+        raise NotImplementedError('Abstract method, reimplement __call__.')
+
+
+class Threshold(BaseAlgorithm):
     """A threshold with the notion of floor or ceiling."""
 
     def __init__(self, value, floor=True):
