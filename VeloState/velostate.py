@@ -97,4 +97,4 @@ class VeloState(object):
         if isinstance(self.__state__[name], Threshold):
             return self.__state__[name](self.__dqtree__[name])
         else:
-            NotImplemented
+            return NotImplemented
