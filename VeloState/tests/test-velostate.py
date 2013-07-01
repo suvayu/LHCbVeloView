@@ -16,8 +16,10 @@ else:
     __path_to_script__ += ['..', '..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from VeloState.velostate import (DQTree, VeloState)
+
 import unittest
+from VeloState.velostate import (DQTree, VeloState)
+from VeloState.algorithms import (Threshold)
 
 
 class TestDQTree(unittest.TestCase):
@@ -29,8 +31,6 @@ class TestDQTree(unittest.TestCase):
         self.dqtree.add_node('good', 42)
         self.assertEqual(self.dqtree, DQTree(good=42))
 
-
-from VeloState.algorithms import (Threshold)
 
 class TestVeloState(unittest.TestCase):
 # class TestVeloState(TestDQTree):
