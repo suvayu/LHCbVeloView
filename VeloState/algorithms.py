@@ -2,12 +2,14 @@
 """This module implements DQ algorithms.
 
 These algorithms can be used for calculate DQ score/flags for nodes in
-a DQ tree.
+a DQ tree.  For a leaf, the calculation is a matter of simply
+determining the state of the leaf.  For a node, however, the
+calculation involves combining all the daughter score/flags into an
+overall score.
 
 @author Suvayu Ali
 @email  Suvayu dot Ali at cern dot ch
 @date   2013-07-01 Sun
-
 
 """
 

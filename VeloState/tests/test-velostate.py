@@ -24,20 +24,10 @@ class TestDQTree(unittest.TestCase):
 
     def setUp(self):
         self.dqtree = DQTree()
-        self.bad_callable = 'not a callable'
-        self.good_callable = lambda x : 'callable'
 
-    def test_bad_compare_fn(self):
-        self.assertRaises(TypeError, self.dqtree.add_node, 'bad', 0,
-                          self.bad_callable)
-
-    def test_good_compare_fn(self):
-        self.dqtree.add_node('good', 0, self.good_callable)
-        self.assertEqual(self.dqtree, DQTree(good=(0, self.good_callable)))
-
-    def test_score_fn_call(self):
-        self.dqtree.add_node('GOO', 42, self.good_callable)
-        self.assertEqual(self.dqtree.call_score_fn('GOO'), 'callable')
+    def test_add_node(self):
+        self.dqtree.add_node('good', 42)
+        self.assertEqual(self.dqtree, DQTree(good=42))
 
 
 from VeloState.algorithms import (Threshold)
@@ -54,13 +44,13 @@ class TestVeloState(unittest.TestCase):
         self.threshold_ceiling = Threshold(42, False)
 
     def test_DQ_flag_pass(self):
-        self.dqtree.add_node('FOO', 42.1, self.threshold_floor)
+        self.dqtree.add_node('FOO', 42.1)
         self.state.add_node_state('FOO', self.threshold_floor)
         self.state.set_DQ_tree(self.dqtree)
         self.assertEqual(self.state.get_score('FOO'), 42.1 > 42.0)
 
     def test_DQ_flag_fail(self):
-        self.dqtree.add_node('FOO', 4.2, self.threshold_floor)
+        self.dqtree.add_node('FOO', 4.2)
         self.state.add_node_state('FOO', self.threshold_floor)
         self.state.set_DQ_tree(self.dqtree)
         self.assertEqual(self.state.get_score('FOO'), 4.2 > 42)

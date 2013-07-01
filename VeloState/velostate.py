@@ -29,17 +29,11 @@ class DQTree(dict):
 
     Each leaf has:
     1) a name, and
-    2) a 2-tuple: (monitored quantity, function)
+    2) a monitored quantity
 
     Each node has:
     1) a name,
-    2) a 2-tuple: (list of leaf/node names, function)
-
-    The function in both case calculates and assigns the DQ score/flag
-    for the leaf/node.  For a leaf, the calculation is a matter of
-    simply determining the state of the leaf.  For a node, however,
-    the calculation involves combining all the daughter score/flags
-    into an overall score.
+    2) a list of leaf/node names
 
     The DQ tree can be initialised like any regular dictionary.
     However a few methods are provided can add further leaves/nodes
@@ -48,7 +42,7 @@ class DQTree(dict):
 
     """
 
-    def add_node(self, name, qty, score_fn, isnode=False):
+    def add_node(self, name, qty, isnode=False):
         """Add a leaf or node.
 
         Basic type check is done before filling.
@@ -58,21 +52,8 @@ class DQTree(dict):
         if isnode and not hasattr(qty, '__iter__'):
             raise TypeError('Expecting an iterable as `qty`, found %s instead.'
                             % type(qty))
-        if hasattr(score_fn, '__call__'):
-            self.__setitem__(name, (qty, score_fn))
-        else:
-            raise TypeError('Expecting a callable as `score_fn`,'
-                            ' found %s instead.' % type(score_fn))
-
-    def call_score_fn(self, leaf, *sf_args, **sf_kw_args):
-        """Call `score_fn' associated with `leaf' with given arguments.
-
-        Leaf can also be a node.  The return value of `score_fn' is
-        forwarded.
-
-        """
-
-        return self[leaf][1](self[leaf][0], *sf_args, **sf_kw_args)
+        self.__setitem__(name, qty)
+        # self[name] = qty
 
     def get_leaves_or_nodes(self, regex):
         """Return leaves or nodes matching name regex."""
@@ -90,14 +71,14 @@ class VeloState(object):
     def __init__(self):
         self.__state__ = {}     # expected state
 
-    def add_node_state(self, name, args):
+    def add_node_state(self, name, algorithm):
         """Add expected state for a leaf or node."""
         ## FIXME: not yet decided how to store the expected state.
         # Idea: Simple classes for each DQ algorithm; e.g. a Threshold
         # object will tell VeloState if the monitored quantity should
         # be higher or lower than a value.  Flag as "green" (True)
         # when condition is met, "red" (False) otherwise.
-        self.__state__[name] = args
+        self.__state__[name] = algorithm
 
     def set_DQ_tree(self, dqtree):
         """Set DQTree to compare with."""
@@ -114,6 +95,6 @@ class VeloState(object):
         # FIXME: dumb comparison, hand coded.  Define an interface for
         # the algorithm that allows generic calls to get the score
         if isinstance(self.__state__[name], Threshold):
-            return self.__dqtree__.call_score_fn(name)
+            return self.__state__[name](self.__dqtree__[name])
         else:
             NotImplemented
