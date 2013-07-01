@@ -14,6 +14,16 @@ overall score.
 """
 
 
+class DummyAlgorithm:
+    """A dummy algorithm."""
+
+    def __init__(self):
+        pass
+
+    def __call__(self, mon):
+        return mon
+
+
 class Threshold:
     """A threshold with the notion of floor or ceiling."""
 

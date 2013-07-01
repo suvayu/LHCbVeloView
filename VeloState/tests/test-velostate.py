@@ -19,7 +19,7 @@ else:
 
 import unittest
 from VeloState.velostate import (DQTree, VeloState)
-from VeloState.algorithms import (Threshold)
+from VeloState.algorithms import (DummyAlgorithm, Threshold)
 
 
 class TestDQTree(unittest.TestCase):
@@ -33,27 +33,25 @@ class TestDQTree(unittest.TestCase):
 
 
 class TestVeloState(unittest.TestCase):
-# class TestVeloState(TestDQTree):
 
     def setUp(self):
-        self.dqtree = DQTree()
-        # super(TestVeloState, self).setUp()
+        self.dqtree = DQTree(FOO=42)
         self.state = VeloState()
-        # x is the monitored quantity (i.e. dqtree[key][0])
-        self.threshold_floor = Threshold(42, True)
-        self.threshold_ceiling = Threshold(42, False)
+        self.state.set_DQ_tree(self.dqtree)
+        self.threshold_floor = Threshold(39, True)
+        self.threshold_ceiling = Threshold(39, False)
 
     def test_DQ_flag_pass(self):
-        self.dqtree.add_node('FOO', 42.1)
         self.state.add_node_state('FOO', self.threshold_floor)
-        self.state.set_DQ_tree(self.dqtree)
-        self.assertEqual(self.state.get_score('FOO'), 42.1 > 42.0)
+        self.assertTrue(self.state.get_score('FOO'))
 
     def test_DQ_flag_fail(self):
-        self.dqtree.add_node('FOO', 4.2)
-        self.state.add_node_state('FOO', self.threshold_floor)
-        self.state.set_DQ_tree(self.dqtree)
-        self.assertEqual(self.state.get_score('FOO'), 4.2 > 42)
+        self.state.add_node_state('FOO', self.threshold_ceiling)
+        self.assertFalse(self.state.get_score('FOO'))
+
+    def test_not_implemented(self):
+        self.state.add_node_state('FOO', DummyAlgorithm())
+        self.assertEqual(self.state.get_score('FOO'), NotImplemented)
 
 
 if __name__ == '__main__':
