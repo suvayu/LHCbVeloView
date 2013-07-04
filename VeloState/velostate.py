@@ -55,11 +55,6 @@ class DQTree(dict):
         self.__setitem__(name, qty)
         # self[name] = qty
 
-    def get_leaves_or_nodes(self, regex):
-        """Return leaves or nodes matching name regex."""
-
-        pass
-
 
 from algorithms import (BaseAlgorithm)
 
