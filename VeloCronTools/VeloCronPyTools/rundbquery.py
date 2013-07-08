@@ -10,33 +10,11 @@
 # for printing exceptions
 from traceback import print_exc
 
-## Note: works only at the pit
-# Oracle database
-from DbModel import createEngine_Oracle
-
-# Interface to database
-from RunDatabase import RunDbServer
-
-## Run states
-from RunDatabase_Defines import (RUN_ACTIVE, RUN_ENDED, RUN_MIGRATING,
-                                 RUN_WAITDELETE, RUN_CREATED,
-                                 RUN_IN_BKK, RUN_DEFERRED)
-# The default run lifecycle is:
-#    Not existing -> CREATED -> ACTIVE -> (DEFERRED Optional) -> ENDED -> BKK_ADDED
-#
-# RUN_ACTIVE          = 1
-# RUN_ENDED           = 2
-# RUN_MIGRATING       = 3
-# RUN_WAITDELETE      = 4
-# RUN_CREATED         = 5
-# RUN_IN_BKK          = 6
-# RUN_DEFERRED        = 7
-
 
 class RunDBQuery(object):
     """Query the run database and determine valid runs from provided list."""
 
-    def __init__(self, runs):
+    def __init__(self, runs, cmd):
         """`runs` can be a single run or a list of runs.
 
         """
@@ -47,35 +25,44 @@ class RunDBQuery(object):
         except TypeError:
             self.runs = [runs]
         try:
-            self.__rundb__ = RunDbServer(engine=createEngine_Oracle())
-        except Exception:
-            print 'Oops! Could not connect to rundb.'
+            from subprocess import (check_output, STDOUT)
+            self.__output__ = check_output(cmd, stderr=STDOUT).splitlines()
+        except CalledProcessError:
+            print 'Oops! Bad rdbt command.'
             print_exc()
-
+        self._info_regexps_ = {
+            'run' : 'run ([0-9]+)',
+            'startTime' : 'startTime:\s+([^\t]+)',
+            'endTime' : '.+endTime:\s+([^\t]+)',
+            'state' : 'state:\s+([^\t]+)'
+        }
 
     def get_run_info(self, run, strict=True):
         """Return run information."""
 
-        infofields = ['runID', 'startTime', 'endTime', 'state']
-        status, infolist = self.__rundb__.getRuns(fields = infofields, runID = run)
-        if not status:
-            print 'Failed to get run info, run: %s (strict check: %s)' \
-                % (run, strict)
-
-        # convert list to dictionary
+        import re
         info = {}
-        for idx, field in enumerate(infofields):
-            info[field] = infolist[0][idx]
+        regexps = self._info_regexps_.copy()
+        for line in self.__output__:
+            for field in regexps:
+                pat = re.compile(regexps[field])
+                match = pat.match(line)
+                if match:
+                    regexps_tmp = regexps.copy()
+                    regexps_tmp.pop(field)
+                    info[field] = match.groups()[0]
+            if match:
+                regexps = regexps_tmp
+        if not info:
+            print 'Failed to parse info, run: %s (strict check: %s)' \
+                % (run, strict)
 
         # protect against end-of-fill calibration runs with
         # missing time info
-        if (strict and (info['startTime'] == '' or info['endTime'] == '')):
+        if (strict and (info['startTime'] == 'None' or
+                        info['endTime'] == 'None')):
             raise ValueError('Bad run number %s (strict check: %s)' %
                              (run, strict))
-
-        # # strip milliseconds from time string
-        # info['startTime'] = info['startTime'][:-5]
-        # info['endTime'] = info['endTime'][:-5]
 
         return info
 
@@ -95,9 +82,9 @@ class RunDBQuery(object):
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
                          mktime(strptime(info['endTime'], timefmt)))
                 if epoch[1] - epoch[0] > time_threshold:
-                    if info['state'] == RUN_IN_BKK:
+                    if info['state'] == 'IN BKK':
                         validruns.append(run)
-                    elif (info['state'] == RUN_ENDED and
+                    elif (info['state'] == 'ENDED' and
                           time() - epoch[1] > 3600):
                         fresh_validruns.append(run)
             else:
