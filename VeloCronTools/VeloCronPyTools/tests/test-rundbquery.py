@@ -28,21 +28,25 @@ class TestQuery(unittest.TestCase):
         self.good_runno = 137259
         self.good_runlist = range(137250, 137300)
         self.bad_runno = 150000
-        if __hostname__.find('plus') == 0:
-            self.cmd = ['rdbt', '-n', '137259']
-        else:
-            self.cmd = ['cat', __test_dir__ + '/rdbt_single_run.txt']
+        self.cmd = ['grep', __test_dir__ + '/rdbt_run_range.txt', '-B2', '-A6', '-e']
+
+    def hack_query_cmd(self, query):
+        if __hostname__.find('plus') != 0:
+            query.__cmd__ = self.cmd
 
     def test_good_run_number(self):
-        query = RunDBQuery(self.good_runno, self.cmd)
+        query = RunDBQuery(self.good_runno)
+        self.hack_query_cmd(query)
         self.assertTrue(query.get_valid_runs(1800))
 
     def test_good_run_list(self):
-        query = RunDBQuery(self.good_runlist, self.cmd)
+        query = RunDBQuery(self.good_runlist)
+        self.hack_query_cmd(query)
         self.assertTrue(query.get_valid_runs(1800))
 
     def test_bad_run_number(self):
-        query = RunDBQuery(self.bad_runno, self.cmd)
+        query = RunDBQuery(self.bad_runno)
+        self.hack_query_cmd(query)
         self.assertFalse(query.get_valid_runs(1800))
 
 
