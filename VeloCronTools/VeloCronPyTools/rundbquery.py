@@ -12,24 +12,23 @@ from traceback import print_exc
 
 
 class RunDBQuery(object):
-    """Query the run database and determine valid runs from provided list."""
+    """Query the run database and determine valid runs from given list.
 
-    def __init__(self, runs, cmd):
+    The rdbt cli tool is used to perform the query.  Note that the
+    tool is called once per entry in the run list.
+
+    """
+
+    def __init__(self, runs):
         """`runs` can be a single run or a list of runs.
 
         """
 
-        self.__trimmed__ = False
         try:
             self.runs = list(runs)
         except TypeError:
             self.runs = [runs]
-        try:
-            from subprocess import (check_output, STDOUT)
-            self.__output__ = check_output(cmd, stderr=STDOUT).splitlines()
-        except CalledProcessError:
-            print 'Oops! Bad rdbt command.'
-            print_exc()
+        self.__cmd__ = ['rdbt', '-n']
         self._info_regexps_ = {
             'run' : 'run ([0-9]+)',
             'startTime' : 'startTime:\s+([^\t]+)',
@@ -37,25 +36,44 @@ class RunDBQuery(object):
             'state' : 'state:\s+([^\t]+)'
         }
 
+
     def get_run_info(self, run, strict=True):
-        """Return run information."""
+        """Return run information.
+
+        Returns None when rdbt command fails.  Returns an empty
+        dictionary when parsing of the rdbt output fails.  Returns a
+        dictionary with run info with the fileds: run, startTime,
+        endTime, and state.
+
+        """
 
         import re
+        from subprocess import (check_output, STDOUT,
+                                CalledProcessError)
+        try:
+            output = check_output(self.__cmd__ + [str(run)],
+                                  stderr=STDOUT).splitlines()[1:]
+        except CalledProcessError:
+            # print 'Oops! Bad rdbt command.'
+            # print_exc()
+            return
+
         info = {}
         regexps = self._info_regexps_.copy()
-        for line in self.__output__:
+        for line in output:
+            regexps_tmp = regexps.copy()
             for field in regexps:
                 pat = re.compile(regexps[field])
                 match = pat.match(line)
                 if match:
-                    regexps_tmp = regexps.copy()
                     regexps_tmp.pop(field)
                     info[field] = match.groups()[0]
-            if match:
+            if match:           # a field can be matched only once
                 regexps = regexps_tmp
         if not info:
             print 'Failed to parse info, run: %s (strict check: %s)' \
                 % (run, strict)
+            return info
 
         # protect against end-of-fill calibration runs with
         # missing time info
@@ -68,15 +86,22 @@ class RunDBQuery(object):
 
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
-        """Return valid runs which are longer than threshold duration."""
+        """Return valid runs which are longer than threshold duration.
+
+        If no threshold is passed, list of valid runs include all runs
+        started at least an hour ago from now.
+
+        """
 
         from time import time, strptime, mktime
         validruns, fresh_validruns = [], []
         for run in self.runs:
             try:
                 info = self.get_run_info(run, time_threshold)
+                if not info:
+                    continue
             except ValueError as err:
-                print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
+                # print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
                 continue
             if time_threshold:
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
