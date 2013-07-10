@@ -17,12 +17,17 @@ class RunDBQuery(object):
     The rdbt cli tool is used to perform the query.  Note that the
     tool is called once per entry in the run list.
 
+    _info_regexps_ is a dictionary which holds the regular expressions
+    used to parse the different fields.  It can be overridden to add
+    support for additional fields.
+
+    __cmd__ is the rdbt shell command used to talk to the run
+    database.  You can override this, although it is not recommended.
+
     """
 
     def __init__(self, runs):
-        """`runs` can be a single run or a list of runs.
-
-        """
+        """`runs` can be a single run or a list of runs."""
 
         try:
             self.runs = list(runs)
