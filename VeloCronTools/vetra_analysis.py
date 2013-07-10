@@ -93,7 +93,7 @@ else:
 
 
 ## trim list of runs by run duration from run database.
-from VeloCronPyTools.rundbquery import RunDBQuery, RunInfo
+from VeloCronPyTools.rundbquery import RunDBQuery
 
 if debug:
     print 'Run list before trimming: %s' % runs
