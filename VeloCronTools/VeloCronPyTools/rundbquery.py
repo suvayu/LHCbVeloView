@@ -1,5 +1,5 @@
 # coding=utf-8
-"""This module provides a book keeping output parser.
+"""This module provides a book run database tool (rdbt) parser.
 
 @author:  Suvayu Ali
 @date:    2013-06-10
@@ -17,7 +17,7 @@ class RunDBQuery(object):
     The rdbt cli tool is used to perform the query.  Note that the
     tool is called once per entry in the run list.
 
-    _info_regexps_ is a dictionary which holds the regular expressions
+    _regexps_ is a dictionary which holds the regular expressions
     used to parse the different fields.  It can be overridden to add
     support for additional fields.
 
@@ -29,63 +29,82 @@ class RunDBQuery(object):
     def __init__(self, runs):
         """`runs` can be a single run or a list of runs."""
 
+        self.debug = False
         try:
             self.runs = list(runs)
         except TypeError:
             self.runs = [runs]
-        self.__cmd__ = ['rdbt', '-n']
-        self._info_regexps_ = {
-            'run' : 'run ([0-9]+)',
-            'startTime' : 'startTime:\s+([^\t]+)',
-            'endTime' : '.+endTime:\s+([^\t]+)',
-            'state' : 'state:\s+([^\t]+)'
-        }
+        if len(self.runs) > 2:
+            raise TypeError('More than 2 numbers in run range: %s' % len(runs))
+        if len(self.runs) == 2 and self.runs[1] < self.runs[0]:
+            raise ValueError('Wrong run range order: %d !> %d' %
+                             (runs[1], runs[0]))
 
-
-    def get_run_info(self, run, strict=True):
-        """Return run information.
-
-        Returns None when rdbt command fails.  Returns an empty
-        dictionary when parsing of the rdbt output fails.  Returns a
-        dictionary with run info with the fileds: run, startTime,
-        endTime, and state.
-
-        """
-
-        import re
         from subprocess import (check_output, STDOUT,
                                 CalledProcessError)
         try:
-            output = check_output(self.__cmd__ + [str(run)],
-                                  stderr=STDOUT).splitlines()[1:]
+            cmd = ['rdbt', '-n'] + [str(run) for run in self.runs]
+            self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
         except CalledProcessError:
-            # print 'Oops! Bad rdbt command.'
-            # print_exc()
+            print 'Oops! Bad rdbt command.'
+            raise
+
+        import re
+        self._regexps_ = {
+            'marker' : re.compile('^=+$'),
+            'run' : re.compile('^run ([0-9]+)'),
+            'destination' : re.compile('destination:\s+([^\t]+)'),
+            'state' : re.compile('state:\s+([^\t]+)'),
+            'startTime' : re.compile('startTime:\s+([^\t]+)'),
+            'endTime' : re.compile('.+endTime:\s+([^\t]+)')
+        }
+
+
+    def parse(self):
+        """Parse rdbt output and get run information.
+
+        Saves an empty dictionary when parsing fails.  On success,
+        saves a dictionary with the fields: startTime, endTime, and
+        state for each run.  Hack _regexps_ to include more fields.
+
+        """
+
+        self.run_info = {}
+        info = {}               # for first line (needed when no output)
+        for line in range(0, len(self.output)):
+            # each run info block starts with marker.  The length of a
+            # block can vary, can't rely on that.
+            for field in self._regexps_:
+                match = self._regexps_[field].match(self.output[line])
+                if match:
+                    if field == 'marker': # always the first to match
+                        info = {}
+                    else:
+                        info[field] = match.groups()[0]
+                if len(info) == len(self._regexps_)-1: # -1 because of marker
+                    self.run_info[int(info['run'])] = info
+
+
+    def get_run_info(self, run):
+        """Retrive run info with necessary protections.
+
+        Returns None when run does not exist, an empty dictionary when
+        parsing failed.
+
+        """
+
+        try:
+            info = self.run_info[run]
+        except KeyError:
+            if self.debug:
+                print 'Non-existent run %s.' % run
+                print_exc()
             return
 
-        info = {}
-        regexps = self._info_regexps_.copy()
-        for line in output:
-            regexps_tmp = regexps.copy()
-            for field in regexps:
-                pat = re.compile(regexps[field])
-                match = pat.match(line)
-                if match:
-                    regexps_tmp.pop(field)
-                    info[field] = match.groups()[0]
-            if match:           # a field can be matched only once
-                regexps = regexps_tmp
         if not info:
-            print 'Failed to parse info, run: %s (strict check: %s)' \
-                % (run, strict)
-            return info
-
-        # protect against end-of-fill calibration runs with
-        # missing time info
-        if (strict and (info['startTime'] == 'None' or
-                        info['endTime'] == 'None')):
-            raise ValueError('Bad run number %s (strict check: %s)' %
-                             (run, strict))
+            if self.debug:
+                print 'Empty info (run %s), probably parsing failed.' \
+                    % run
 
         return info
 
@@ -99,27 +118,46 @@ class RunDBQuery(object):
         """
 
         from time import time, strptime, mktime
-        validruns, fresh_validruns = [], []
-        for run in self.runs:
-            try:
-                info = self.get_run_info(run, time_threshold)
-                if not info:
-                    continue
-            except ValueError as err:
-                # print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
+        runs_in_bkk, fresh_runs = [], []
+
+        for run in range(self.runs[0], self.runs[-1]+1):
+            info = self.get_run_info(run)
+            if not info:
                 continue
+
+            # runs in book keeping, destination offline
+            if (info['state'] == 'IN BKK' and
+                info['destination'] == 'OFFLINE'):
+                runs_in_bkk.append(run)
+
+            # fresh runs (fallback)
+            if (info['state'] == 'ENDED' and
+                info['destination'] == 'OFFLINE'):
+                fresh_runs.append(run)
+
+        if runs_in_bkk:         # new runs in book keeping
+            runlist = runs_in_bkk
+        else:
+            runlist = fresh_runs
+
+        # FIXME: unaudited
+        for idx, run in enumerate(runlist):
             if time_threshold:
+                info = self.get_run_info(run)
+                # protect against end-of-fill calibration runs with
+                # missing time info
+                if (info['startTime'] == 'None' or
+                    info['endTime'] == 'None'):
+                    if self.debug:
+                        print 'Skipping run: %s' % run
+                    continue
+
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
                          mktime(strptime(info['endTime'], timefmt)))
-                if epoch[1] - epoch[0] > time_threshold:
-                    if info['state'] == 'IN BKK':
-                        validruns.append(run)
-                    elif (info['state'] == 'ENDED' and
-                          time() - epoch[1] > 3600):
-                        fresh_validruns.append(run)
-            else:
-                validruns.append(run)
-        if validruns:
-            return validruns
-        else:
-            return fresh_validruns
+                if epoch[1] - epoch[0] < time_threshold: # too short
+                    runlist.pop(idx)
+                if not runs_in_bkk: # no new runs in book keeping
+                    if time() - epoch[1] < 3600: # run too recent
+                        runlist.pop(idx)
+
+        return runlist
