@@ -29,20 +29,26 @@ class TestQuery(unittest.TestCase):
         self.good_runrange = (137250, 137300)
         self.bad_runno = 150000
 
-    def test_good_run_number(self):
+    def test_good_run_get_run_list(self):
         query = RunDBQuery(self.good_runno)
+        query.parse()
         self.assertTrue(query.get_valid_runs(1800))
 
-    def test_good_run_range(self):
+    def test_good_range_get_run_list(self):
         query = RunDBQuery(self.good_runrange)
+        query.parse()
         self.assertTrue(query.get_valid_runs(1800))
 
-    def test_range_exception(self):
+    def test_nonexistent_run_get_run_list(self):
+        query = RunDBQuery(self.bad_runno)
+        query.parse()
+        self.assertFalse(query.get_valid_runs(1800))
+
+    def test_incorrect_range(self):
         self.assertRaises(TypeError, RunDBQuery, (1, 2, 3))
 
-    def test_bad_run_number(self):
-        query = RunDBQuery(self.bad_runno)
-        self.assertFalse(query.get_valid_runs(1800))
+    def test_range_wrong_order(self):
+        self.assertRaises(ValueError, RunDBQuery, (3, 2))
 
 
 if __name__ == '__main__':
