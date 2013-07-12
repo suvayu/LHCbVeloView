@@ -1,0 +1,11 @@
+Dryrun: False
+========================================================================================================
+run 137259
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 09:07:28		endTime:	2013-02-13 10:07:32
+startLumi:	0.0				endLumi:	350597.4128
+beamEnergy:	1380.0
+There exist 70 files for run 137259
+Events           : 5554800

@@ -1,0 +1,210 @@
+Dryrun: False
+========================================================================================================
+run 137250
+destination:	CASTOR				runType:	EOF_CALIB13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 07:23:09		endTime:	2013-02-13 07:24:59
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	4010.0
+There exist 6 files for run 137250
+Events           : 2560
+========================================================================================================
+run 137251
+destination:	CASTOR				runType:	EOF_CALIB13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 07:25:00		endTime:	2013-02-13 07:37:21
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	3990.0
+There exist 22 files for run 137251
+Events           : 25360
+========================================================================================================
+run 137252
+destination:	LOCAL				runType:	EOF_CALIB13
+state:		ENDED				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 07:37:22		endTime:	2013-02-13 08:37:32
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	60.0
+There exist 98 files for run 137252
+Events           : 93969
+========================================================================================================
+run 137253
+destination:	LOCAL				runType:	EOF_CALIB13
+state:		ENDED				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 08:37:33		endTime:	2013-02-13 08:40:33
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	450.0
+There exist 8 files for run 137253
+Events           : 3677
+========================================================================================================
+run 137254
+destination:	LOCAL				runType:	COLLISION13
+state:		ENDED				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 08:44:15		endTime:	2013-02-13 08:53:45
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	450.0
+There exist 13 files for run 137254
+Events           : 1768398
+========================================================================================================
+run 137255
+destination:	LOCAL				runType:	COLLISION13
+state:		ENDED				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 08:53:45		endTime:	2013-02-13 08:57:47
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	1380.0
+There exist 12 files for run 137255
+Events           : 1396243
+========================================================================================================
+run 137256
+destination:	LOCAL				runType:	COLLISION13
+state:		ENDED				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 08:57:48		endTime:	2013-02-13 09:01:04
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	1380.0
+There exist 11 files for run 137256
+Events           : 692229
+========================================================================================================
+run 137257
+destination:	LOCAL				runType:	COLLISION13
+state:		ENDED				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 09:01:07		endTime:	2013-02-13 09:07:06
+startLumi:	0.0				endLumi:	16.1585318895
+beamEnergy:	1380.0
+There exist 23 files for run 137257
+Events           : 1870728
+========================================================================================================
+run 137258
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 09:07:09		endTime:	2013-02-13 09:07:27
+startLumi:	0.0				endLumi:	1194.81611213
+beamEnergy:	1380.0
+There exist 11 files for run 137258
+Events           : 69019
+========================================================================================================
+run 137259
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 09:07:28		endTime:	2013-02-13 10:07:32
+startLumi:	0.0				endLumi:	350597.4128
+beamEnergy:	1380.0
+There exist 70 files for run 137259
+Events           : 5554800
+========================================================================================================
+run 137260
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 10:07:33		endTime:	2013-02-13 11:07:42
+startLumi:	0.0				endLumi:	283629.271254
+beamEnergy:	1380.0
+There exist 70 files for run 137260
+Events           : 5305524
+========================================================================================================
+run 137261
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 11:07:43		endTime:	2013-02-13 12:07:52
+startLumi:	0.0				endLumi:	235025.028604
+beamEnergy:	1380.0
+There exist 62 files for run 137261
+Events           : 5114887
+========================================================================================================
+run 137262
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 12:07:53		endTime:	2013-02-13 13:08:02
+startLumi:	0.0				endLumi:	205090.822982
+beamEnergy:	1380.0
+There exist 62 files for run 137262
+Events           : 4988855
+========================================================================================================
+run 137263
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 13:08:03		endTime:	2013-02-13 14:08:12
+startLumi:	0.0				endLumi:	181681.411841
+beamEnergy:	1380.0
+There exist 62 files for run 137263
+Events           : 4890721
+========================================================================================================
+run 137264
+destination:	OFFLINE				runType:	COLLISION13
+state:		IN BKK				fillID:		3560
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 14:08:13		endTime:	2013-02-13 14:12:16
+startLumi:	0.0				endLumi:	1582.05578636
+beamEnergy:	1380.0
+There exist 11 files for run 137264
+Events           : 59403
+========================================================================================================
+run 137265
+destination:	CASTOR				runType:	EOF_CALIB13
+state:		IN BKK				fillID:		3561
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 14:25:57		endTime:	2013-02-13 14:50:04
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	1400.0
+There exist 41 files for run 137265
+Events           : 50130
+========================================================================================================
+run 137266
+destination:	LOCAL				runType:	EOF_CALIB13
+state:		ENDED				fillID:		3561
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 14:50:36		endTime:	2013-02-13 14:55:12
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	4000.0
+There exist 11 files for run 137266
+Events           : 8671
+========================================================================================================
+run 137267
+destination:	LOCAL				runType:	EOF_CALIB13
+state:		CREATED				fillID:		3561
+partitionName:	LHCb				partitionID	32767
+startTime:	None		endTime:	None
+startLumi:	None				endLumi:	None
+beamEnergy:	60.0
+There exist no files for run with runID 137267
+========================================================================================================
+run 137268
+destination:	LOCAL				runType:	EOF_CALIB13
+state:		ENDED				fillID:		3561
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 15:29:57		endTime:	2013-02-13 16:30:03
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	450.0
+There exist 98 files for run 137268
+Events           : 121451
+========================================================================================================
+run 137269
+destination:	LOCAL				runType:	EOF_CALIB13
+state:		ENDED				fillID:		3561
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 16:30:03		endTime:	2013-02-13 17:30:13
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	450.0
+There exist 99 files for run 137269
+Events           : 121166
+========================================================================================================
+run 137270
+destination:	LOCAL				runType:	EOF_CALIB13
+state:		ENDED				fillID:		3562
+partitionName:	LHCb				partitionID	32767
+startTime:	2013-02-13 17:30:13		endTime:	2013-02-13 17:31:15
+startLumi:	0.0				endLumi:	0.0
+beamEnergy:	450.0
+There exist 5 files for run 137270
+Events           : 861

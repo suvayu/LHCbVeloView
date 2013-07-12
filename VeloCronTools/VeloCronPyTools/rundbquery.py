@@ -1,5 +1,5 @@
 # coding=utf-8
-"""This module provides a book keeping output parser.
+"""This module provides a book run database tool (rdbt) parser.
 
 @author:  Suvayu Ali
 @date:    2013-06-10
@@ -10,99 +10,154 @@
 # for printing exceptions
 from traceback import print_exc
 
-## Note: works only at the pit
-# Oracle database
-from DbModel import createEngine_Oracle
-
-# Interface to database
-from RunDatabase import RunDbServer
-
-## Run states
-from RunDatabase_Defines import (RUN_ACTIVE, RUN_ENDED, RUN_MIGRATING,
-                                 RUN_WAITDELETE, RUN_CREATED,
-                                 RUN_IN_BKK, RUN_DEFERRED)
-# The default run lifecycle is:
-#    Not existing -> CREATED -> ACTIVE -> (DEFERRED Optional) -> ENDED -> BKK_ADDED
-#
-# RUN_ACTIVE          = 1
-# RUN_ENDED           = 2
-# RUN_MIGRATING       = 3
-# RUN_WAITDELETE      = 4
-# RUN_CREATED         = 5
-# RUN_IN_BKK          = 6
-# RUN_DEFERRED        = 7
-
 
 class RunDBQuery(object):
-    """Query the run database and determine valid runs from provided list."""
+    """Query the run database and determine valid runs from given list.
+
+    The rdbt cli tool is used to perform the query.  Note that the
+    tool is called once per entry in the run list.
+
+    _regexps_ is a dictionary which holds the regular expressions
+    used to parse the different fields.  It can be overridden to add
+    support for additional fields.
+
+    __cmd__ is the rdbt shell command used to talk to the run
+    database.  You can override this, although it is not recommended.
+
+    """
 
     def __init__(self, runs):
-        """`runs` can be a single run or a list of runs.
+        """`runs` can be a single run or a list of runs."""
 
-        """
-
-        self.__trimmed__ = False
+        self.debug = False
         try:
             self.runs = list(runs)
         except TypeError:
             self.runs = [runs]
+        if len(self.runs) > 2:
+            raise TypeError('More than 2 numbers in run range: %s' % len(runs))
+        if len(self.runs) == 2 and self.runs[1] < self.runs[0]:
+            raise ValueError('Wrong run range order: %d !> %d' %
+                             (runs[1], runs[0]))
+
+        from subprocess import (check_output, STDOUT,
+                                CalledProcessError)
         try:
-            self.__rundb__ = RunDbServer(engine=createEngine_Oracle())
-        except Exception:
-            print 'Oops! Could not connect to rundb.'
-            print_exc()
+            cmd = ['rdbt', '-n'] + [str(run) for run in self.runs]
+            self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
+        except CalledProcessError:
+            print 'Oops! Bad rdbt command.'
+            raise
+
+        import re
+        self._regexps_ = {
+            'marker' : re.compile('^=+$'),
+            'run' : re.compile('^run ([0-9]+)'),
+            'destination' : re.compile('destination:\s+([^\t]+)'),
+            'state' : re.compile('state:\s+([^\t]+)'),
+            'startTime' : re.compile('startTime:\s+([^\t]+)'),
+            'endTime' : re.compile('.+endTime:\s+([^\t]+)')
+        }
 
 
-    def get_run_info(self, run, strict=True):
-        """Return run information."""
+    def parse(self):
+        """Parse rdbt output and get run information.
 
-        infofields = ['runID', 'startTime', 'endTime', 'state']
-        status, infolist = self.__rundb__.getRuns(fields = infofields, runID = run)
-        if not status:
-            print 'Failed to get run info, run: %s (strict check: %s)' \
-                % (run, strict)
+        Saves an empty dictionary when parsing fails.  On success,
+        saves a dictionary with the fields: startTime, endTime, and
+        state for each run.  Hack _regexps_ to include more fields.
 
-        # convert list to dictionary
-        info = {}
-        for idx, field in enumerate(infofields):
-            info[field] = infolist[0][idx]
+        """
 
-        # protect against end-of-fill calibration runs with
-        # missing time info
-        if (strict and (info['startTime'] == '' or info['endTime'] == '')):
-            raise ValueError('Bad run number %s (strict check: %s)' %
-                             (run, strict))
+        self.run_info = {}
+        info = {}               # for first line (needed when no output)
+        for line in range(0, len(self.output)):
+            # each run info block starts with marker.  The length of a
+            # block can vary, can't rely on that.
+            for field in self._regexps_:
+                match = self._regexps_[field].match(self.output[line])
+                if match:
+                    if field == 'marker': # always the first to match
+                        info = {}
+                    else:
+                        info[field] = match.groups()[0]
+                if len(info) == len(self._regexps_)-1: # -1 because of marker
+                    self.run_info[int(info['run'])] = info
 
-        # # strip milliseconds from time string
-        # info['startTime'] = info['startTime'][:-5]
-        # info['endTime'] = info['endTime'][:-5]
+
+    def get_run_info(self, run):
+        """Retrive run info with necessary protections.
+
+        Returns None when run does not exist, an empty dictionary when
+        parsing failed.
+
+        """
+
+        try:
+            info = self.run_info[run]
+        except KeyError:
+            if self.debug:
+                print 'Non-existent run %s.' % run
+                print_exc()
+            return
+
+        if not info:
+            if self.debug:
+                print 'Empty info (run %s), probably parsing failed.' \
+                    % run
 
         return info
 
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
-        """Return valid runs which are longer than threshold duration."""
+        """Return valid runs which are longer than threshold duration.
+
+        If no threshold is passed, list of valid runs include all runs
+        started at least an hour ago from now.
+
+        """
 
         from time import time, strptime, mktime
-        validruns, fresh_validruns = [], []
-        for run in self.runs:
-            try:
-                info = self.get_run_info(run, time_threshold)
-            except ValueError as err:
-                print 'ValueError: %s.  Run %s may be invalid.' % (err, run)
+        runs_in_bkk, fresh_runs = [], []
+
+        for run in range(self.runs[0], self.runs[-1]+1):
+            info = self.get_run_info(run)
+            if not info:
                 continue
+
+            # runs in book keeping, destination offline
+            if (info['state'] == 'IN BKK' and
+                info['destination'] == 'OFFLINE'):
+                runs_in_bkk.append(run)
+
+            # fresh runs (fallback)
+            if (info['state'] == 'ENDED' and
+                info['destination'] == 'OFFLINE'):
+                fresh_runs.append(run)
+
+        if runs_in_bkk:         # new runs in book keeping
+            runlist = runs_in_bkk
+        else:
+            runlist = fresh_runs
+
+        # FIXME: unaudited
+        for idx, run in enumerate(runlist):
             if time_threshold:
+                info = self.get_run_info(run)
+                # protect against end-of-fill calibration runs with
+                # missing time info
+                if (info['startTime'] == 'None' or
+                    info['endTime'] == 'None'):
+                    if self.debug:
+                        print 'Skipping run: %s' % run
+                    continue
+
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
                          mktime(strptime(info['endTime'], timefmt)))
-                if epoch[1] - epoch[0] > time_threshold:
-                    if info['state'] == RUN_IN_BKK:
-                        validruns.append(run)
-                    elif (info['state'] == RUN_ENDED and
-                          time() - epoch[1] > 3600):
-                        fresh_validruns.append(run)
-            else:
-                validruns.append(run)
-        if validruns:
-            return validruns
-        else:
-            return fresh_validruns
+                if epoch[1] - epoch[0] < time_threshold: # too short
+                    runlist.pop(idx)
+                if not runs_in_bkk: # no new runs in book keeping
+                    if time() - epoch[1] < 3600: # run too recent
+                        runlist.pop(idx)
+
+        return runlist
