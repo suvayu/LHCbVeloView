@@ -108,8 +108,7 @@ if debug:
 
 
 ## acquire lock and run job
-from VeloCronPyTools.runlock import (RunLock, UndefinedRunLock,
-                                     RunLockExists)
+from VeloCronPyTools.runlock import (RunLock, RunLockExists)
 
 if _cliopts.jobopts:
     jobopts = _cliopts.jobopts
