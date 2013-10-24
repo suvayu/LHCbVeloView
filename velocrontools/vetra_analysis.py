@@ -47,7 +47,7 @@ if debug:
 import os, sys, re
 from glob import glob
 if debug:
-    from traceback import print_exc
+    pass
 
 # stream to process
 pattern = re.compile('NZS|ZS')
@@ -93,7 +93,7 @@ else:
 
 
 ## trim list of runs by run duration from run database.
-from VeloCronPyTools.rundbquery import RunDBQuery
+from velocrontools.velocronpytools.rundbquery import RunDBQuery
 
 if debug:
     print 'Run list before trimming: %s' % runs
@@ -108,7 +108,7 @@ if debug:
 
 
 ## acquire lock and run job
-from VeloCronPyTools.runlock import (RunLock, RunLockExists)
+from velocrontools.velocronpytools.runlock import (RunLock )
 
 if _cliopts.jobopts:
     jobopts = _cliopts.jobopts
@@ -120,7 +120,7 @@ else:
 for run in runs:
     with RunLock(run, stream):
         print 'Processing run: %s, stream: %s' % (run, stream)
-        from subprocess import call, check_call
+        from subprocess import call
         # FIXME: temporarily hard coded vetra script name
         vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_v13r2' \
                        '/Velo/VetraScripts/scripts/vetraOffline'

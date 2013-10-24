@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys
+import os
 
 # fiddle with sys.path so that package is importable
 if __file__.startswith('/'):
@@ -11,7 +12,7 @@ else:
     __path_to_script__ += ['..', '..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from VeloCronPyTools.runlock import (RunLock, RunLockExists)
+from velocrontools.velocronpytools.runlock import (RunLock, RunLockExists)
 import unittest
 
 

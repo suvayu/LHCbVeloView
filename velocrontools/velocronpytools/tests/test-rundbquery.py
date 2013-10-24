@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys
+import os
 
 # fiddle with sys.path so that package is importable
 if __file__.startswith('/'):
@@ -19,7 +20,7 @@ from socket import gethostname
 __hostname__ = gethostname()
 
 
-from VeloCronPyTools.rundbquery import (RunDBQuery)
+from velocrontools.velocronpytools.rundbquery import (RunDBQuery)
 import unittest
 
 class TestQuery(unittest.TestCase):
