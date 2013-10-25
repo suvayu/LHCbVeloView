@@ -1,7 +1,6 @@
 """This module is responsible for score manipulations"""
 
-from veloview.core.errors.exceptions import AddingScoreException, ScoreAssignmentException, WeightAssignmentException, \
-    WeightedScoreException, MultiplyingScoreException
+from veloview.core.errors.exceptions import AddingScoreException, ScoreAssignmentException, WeightedScoreException
 from veloview.core.tools.utils import enum
 
 
@@ -34,14 +33,34 @@ class Score(object):
             raise AddingScoreException
 
     def __mul__(self, other):
-        if isinstance(other, Weight):
-            temp_val = int(self.value * other.value)
-            if self.check_if_in_range(temp_val):
-                return Score(temp_val)
-            else:
-                raise WeightedScoreException
+        temp_val = int(self.value * other)
+        if self.check_if_in_range(temp_val):
+            return Score(temp_val)
         else:
-            raise MultiplyingScoreException
+            raise WeightedScoreException
+
+    def __imul__(self, other):
+        temp_val = int(self.value * other)
+        if self.check_if_in_range(temp_val):
+            self.value = temp_val
+            return self
+        else:
+            raise WeightedScoreException
+
+    def __div__(self, other):
+        temp_val = int(self.value / other)
+        if self.check_if_in_range(temp_val):
+            return Score(temp_val)
+        else:
+            raise WeightedScoreException
+
+    def __idiv__(self, other):
+        temp_val = int(self.value / other)
+        if self.check_if_in_range(temp_val):
+            self.value = temp_val
+            return self
+        else:
+            raise WeightedScoreException
 
     def __cmp__(self, other):
         return cmp(self.value, other.value)
@@ -55,24 +74,6 @@ class Score(object):
     @staticmethod
     def check_if_in_range(value):
         return 0 <= value <= 100
-
-
-class Weight(object):
-    """A class representing a weight (value between 0 and 1)"""
-
-    def __init__(self, val):
-        if isinstance(val, float):
-            if 0.0 < val <= 1.0:
-                self.value = val
-                return
-
-        raise WeightAssignmentException
-
-    def __repr__(self):
-        return "{}/1.0".format(self.value)
-
-    def __str__(self):
-        return repr(self)
 
 
 # definition of the error levels for the project

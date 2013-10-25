@@ -11,26 +11,16 @@ class AddingScoreException(Exception):
         return "Added scores sum to more than 100%"
 
 
-class MultiplyingScoreException(Exception):
-    def __str__(self):
-        return "Scores can be multiplied only by weights"
-
-
 class WeightedScoreException(Exception):
     def __str__(self):
         return "A score combined with its weight must be a value between 0 and 100"
 
 
-class WeightAssignmentException(Exception):
-    def __str__(self):
-        return "A weight must be a float value between 0 and 1"
-
-
-class WeightedContainerWeightAssignmentException(Exception):
-    def __str__(self):
-        return "The combiner object needs a weight object as its weight"
-
-
 class RootGraphicListArgumentException(Exception):
     def __str__(self):
         return "Error and warning parameters need to be lists"
+
+
+class WeightContainerLackingWeightException(Exception):
+    def __str__(self):
+        return "Weight needs to be assigned to the container before calculating its score"

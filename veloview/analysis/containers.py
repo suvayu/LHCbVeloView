@@ -1,35 +1,25 @@
 """This module will define containers used for the project. They will store histograms and their corresponding scores."""
-from veloview.analysis.score_manipulation import Score, Weight
-from veloview.core.errors.exceptions import WeightedContainerWeightAssignmentException, RootGraphicListArgumentException, ScoreAssignmentException
+from veloview.analysis.score_manipulation import Score
+from veloview.core.errors.exceptions import RootGraphicListArgumentException, ScoreAssignmentException, WeightContainerLackingWeightException
 
 
-class ContainerWithWeight(object):
-    def __init__(self, weight):
+class NamedContainerWithWeight(object):
+    def __init__(self, name):
+        self.name = name
         self.weight = None
-        self.assign_weight(weight)
 
     def assign_weight(self, weight):
-        if self.check_weight(weight):
-            self.weight = weight
-        else:
-            raise WeightedContainerWeightAssignmentException
-
-    @staticmethod
-    def check_weight(weight):
-        if isinstance(weight, Weight):
-            return True
-        else:
-            return False
+        self.weight = weight
 
 
-class Combiner(ContainerWithWeight):
+class Combiner(NamedContainerWithWeight):
     """Responsible for storing rootgraphic objects and other combainers"""
 
-    def __init__(self, weight, *args):
+    def __init__(self, name, *args):
         """Parameters:
             weight      :   Weight object
             *args       :   objects to add to the combiner container (RootGraphics, Combainers)"""
-        super(Combiner, self).__init__(weight)
+        super(Combiner, self).__init__(name)
         self.score = None
         self.warnings = []
         self.errors = []
@@ -37,37 +27,46 @@ class Combiner(ContainerWithWeight):
         self.append(*args)
 
     def append(self, *args):
-        """Appends new elements and recalculates combainer's properties"""
+        """Appends new elements"""
         for arg in args:
             self.elements.append(arg)
             self.warnings.extend(arg.warnings)
             self.errors.extend(arg.errors)
-        self.calc_score()
 
     def calc_score(self):
-        """Calculates combiner's score after adding new elements"""
-        self.score = Score(0)
-        for elem in self.elements:
-            self.score += elem.score * elem.weight
+        """Calculates combiner's score"""
+        if self.weight:
+            self.score = Score(0)
+            summed_weights = self.calc_summed_weights()
+            for elem in self.elements:
+                self.score += elem.score * elem.weight / summed_weights
+        else:
+            raise WeightContainerLackingWeightException
 
-    def get_nr_of_warning(self):
+    def calc_summed_weights(self):
+        summed_weights = 0
+        for elem in self.elements:
+            summed_weights += elem.weight
+        return summed_weights
+
+    def get_nr_of_warnings(self):
         return len(self.warnings) + len(self.errors)
 
     def get_nr_of_errors(self):
         return len(self.errors)
 
 
-class RootGraphic(ContainerWithWeight):
+class RootGraphic(NamedContainerWithWeight):
     """Class storing a root objects with its additional information (score, warnings, errors)"""
 
-    def __init__(self, root_obj, score, weight, warnings, errors):
+    def __init__(self, name, root_obj, score, warnings, errors):
         """Parameters:
             root_obj    :   root object(histogram, graph)
             score       :   Score object
             weight      :   Weight object
             warnings    :   a list with string warnings
             errors      :   a list with string errors"""
-        super(RootGraphic, self).__init__(weight)
+        super(RootGraphic, self).__init__(name)
         self.graph = root_obj
         self.score = score
         if self.check_if_arg_is_a_list(warnings) and self.check_if_arg_is_a_list(errors):
@@ -77,7 +76,7 @@ class RootGraphic(ContainerWithWeight):
             raise RootGraphicListArgumentException
 
     @staticmethod
-    def check_if_arg_is_a_list(arg):  # TODO It would be useful to create type validation template
+    def check_if_arg_is_a_list(arg):  # TODO It would be useful to create a type validation template
         if isinstance(arg, list):
             return True
         else:
