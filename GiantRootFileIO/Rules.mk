@@ -48,6 +48,19 @@
 # 	initial support for Mac OS/X
 # v0.12 2013-05-06 Manuel Schiller <manuel.schiller@nikhef.nl>
 #	fix issue with very old binutils on SLC5 installations
+# v0.13	2013-05-17 Manuel Schiller <manuel.schiller@nikhef.nl
+# 	fix build when doing a standalone build in a partially set up LHCb
+# 	software environment
+# v0.14 2013-07-02 Manuel Schiller <manuel.schiller@nikhef.nl>
+# 	fix by Paul Seyfert to correctly handle multiple subdirectories
+# 	fix automatic dependency tracking for Fortran files
+# v0.15 2013-07-02 Manuel Schiller <manuel.schiller@nikhef.nl>
+#	fix optimisation flags used for the GNU compilers on non x86(_64)
+#	platforms
+# v0.16 2013-08-21 Manuel Schiller <manuel.schiller@nikhef.nl>
+# 	fix small bug in rule for automatic dependencies
+# v0.17	2013-10-23 Manuel Schiller <manuel.schiller@nikhef.nl>
+# 	get the rootcint rules to work with ROOT 6 (i.e. 5.99/...)
 #######################################################################
 
 #######################################################################
@@ -236,51 +249,55 @@
 # these can all be set from the command line, if needed, and overriding
 # on a per-target basis is also possible (see above)
 #######################################################################
+ifeq ($(TOOLCHAINSETUPDONE),)
+TOOLCHAINSETUPDONE = yes
 # use ROOT config to get reasonable defaults for current environment
 # (we use it to detect the toolchain used to build ROOT)
-ROOTCONFIG ?= root-config
+ROOTCONFIG = root-config
 
 # other tools used in the build process
-AWK ?= awk
-SED ?= sed
-ECHO ?= /bin/echo
-CP ?= cp
-MV ?= mv
-RM ?= rm
-MKDIR ?= mkdir
-RMDIR ?= rmdir
-TEST ?= test
-TRUE ?= true
-FALSE ?= false
-TOUCH ?= touch
-UNAME ?= uname
-HEAD ?= head
-TAIL ?= tail
-GREP ?= grep
-CAT ?= cat
-TR ?= tr
+AWK = awk
+SED = sed
+ECHO = /bin/echo
+CP = cp
+MV = mv
+RM = rm
+MKDIR = mkdir
+RMDIR = rmdir
+TEST = test
+TRUE = true
+FALSE = false
+TOUCH = touch
+UNAME = uname
+HEAD = head
+TAIL = tail
+GREP = grep
+CAT = cat
+TR = tr
 
 # get compiler version(s) used to compile ROOT
-CC ?= $(shell $(ROOTCONFIG) --cc | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
-CXX ?= $(shell $(ROOTCONFIG) --cxx | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
-LD ?= $(shell $(ROOTCONFIG) --ld)
-CPP ?= $(CC) -E
+CC = $(shell $(ROOTCONFIG) --cc | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
+CXX = $(shell $(ROOTCONFIG) --cxx | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
+LD = $(shell $(ROOTCONFIG) --ld)
+CPP = $(CC) -E
 ROOTCONFIG_HASF77 := \
     $(strip $(shell $(ROOTCONFIG) --help | tr ' ' '\n' | grep -- '--f77'))
+ROOT_VERSION_CODE := $(shell $(AWK) '/define ROOT_VERSION_CODE/ { print $$3; }' < $(shell $(ROOTCONFIG) --incdir)/RVersion.h)
+ROOTCONFIG_ROOT56 := $(shell $(TEST) $(ROOT_VERSION_CODE) -ge 353024 && $(ECHO) ROOT6 || $(ECHO) ROOT5)
 ifneq ($(ROOTCONFIG_HASF77),)
 ifneq ($(FC),/usr/bin/f77)
 # if FC points to /usr/bin/f77 (which is usually f2c in disguise), we
 # just take whatever ROOT used, because f2c s*cks...
 FC = $(shell $(ROOTCONFIG) --f77 | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
 else
-FC ?= $(shell $(ROOTCONFIG) --f77 | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
+FC = $(shell $(ROOTCONFIG) --f77 | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
 endif
 endif
 # locate genreflex, rootcint, gccxml for dictionaries
-GENREFLEX ?= $(shell $(ROOTCONFIG) --bindir)/genreflex
-ROOTCINT ?= $(shell $(ROOTCONFIG) --bindir)/rootcint
-GCCXML ?= $(shell which gccxml)
-GCCXMLDIR ?= $(shell dirname $(GCCXML))
+GENREFLEX = $(shell $(ROOTCONFIG) --bindir)/genreflex
+ROOTCINT = $(shell $(ROOTCONFIG) --bindir)/rootcint
+GCCXML = $(shell which gccxml)
+GCCXMLDIR = $(shell dirname $(GCCXML))
 ifneq ($(GENREFLEX),)
 GENREFLEX = $(shell which genreflex)
 endif
@@ -288,10 +305,10 @@ ifneq ($(ROOTCINT),)
 ROOTCINT = $(shell which rootcint)
 endif
 # static libraries
-AR ?= ar
-RANLIB ?= ranlib
+AR = ar
+RANLIB = ranlib
 # to remove debugging symbols
-STRIP ?= strip
+STRIP = strip
 
 # in case this did not work, we fall back to cc, c++, ld, cpp, f77
 CC ?= cc
@@ -301,15 +318,18 @@ CPP ?= cpp
 FC ?= f77
 
 # assemble ROOT libraries
-ROOTLIBDIR ?= $(shell $(ROOTCONFIG) --libdir)
+ROOTLIBDIR = $(shell $(ROOTCONFIG) --libdir)
 # default set of ROOT libraries
-ROOTLIBS ?= $(shell $(ROOTCONFIG) --libs)
+ROOTLIBS = $(shell $(ROOTCONFIG) --libs)
 # default ROOT compiler flags
-ROOTINCLUDES ?= -I$(shell $(ROOTCONFIG) --incdir)
-ROOTCFLAGS ?= $(shell $(ROOTCONFIG) --auxcflags)
+ROOTINCLUDES = -I$(shell $(ROOTCONFIG) --incdir)
+ROOTCFLAGS = $(shell $(ROOTCONFIG) --auxcflags)
 # some versions of ROOT have libGenVector, others libMathCore
-LIBGENVECTOR ?= $(shell $(TEST) -e $(ROOTLIBDIR)/libGenVector.so && \
+LIBGENVECTOR = $(shell $(TEST) -e $(ROOTLIBDIR)/libGenVector.so && \
 		$(ECHO) '-lGenVector' || $(ECHO) '-lMathCore')
+else
+# nothing to do if toolchain is set up
+endif
 
 #######################################################################
 # freeze toolchain variables
@@ -327,6 +347,7 @@ LIBGENVECTOR ?= $(shell $(TEST) -e $(ROOTLIBDIR)/libGenVector.so && \
 # make up CFLAGS on a per target basis and have the CFLAGS used to
 # compile the target use our overrides
 #######################################################################
+TOOLCHAINSETUPDONE := $(TOOLCHAINSETUPDONE)
 ROOT_CONFIG := $(ROOTCONFIG)
 CPP := $(CPP)
 CC := $(CC)
@@ -426,11 +447,11 @@ PIPEFLAG.Intel ?= -pipe
 PIPEFLAG.Clang ?= -pipe
 PIPEFLAG.GNU ?= -pipe
 # turn on warnings
-WARNFLAGS.GNU ?= -Wall -Wextra -fmessage-length=78
+WARNFLAGS.GNU ?= -Wall -Wextra -Wshadow -fmessage-length=78
 WARNFLAGS.Clang ?= -Wall -Wextra -fmessage-length=78
-WARNFLAGS.Intel ?= -Wall -Wextra -fmessage-length=78
+WARNFLAGS.Intel ?= -Wall -Wextra -Wshadow -fmessage-length=78
 WARNFLAGS.Open64 ?= -Wall -Wextra -fmessage-length=78
-WARNFLAGS.PathScale ?= -Wall
+WARNFLAGS.PathScale ?= -Wall -Wshadow
 WARNFLAGS.SunPro ?= +w +w2
 WARNFLAGS.Unknown ?=
 # standard optimization flags
@@ -486,10 +507,11 @@ PICFLAGS.SunPro ?= -KPIC
 # we do ugly things such as not setting errno
 TUNEFLAGS.Unknown ?=
 TUNEFLAGS.GNU ?= -ffast-math -fno-math-errno \
-    $(shell $(CXX) --version 2>&1 | $(AWK) '// { for (i = 1; \
+    $(shell ($(UNAME) -m; $(CXX) --version) 2>&1 | \
+    $(AWK) '/^x86/ {ok = 1; } // { for (i = 1; \
     i <= NF; ++i) if ($$i ~ /[0-9]*\.[0-9]*\.[0-9]*$$/) { \
     if ($$i < "4.") tunefl = "-mtune=opteron"; else tunefl = \
-    "-mtune=native"; }; } END { print tunefl; }') \
+    "-mtune=native"; }; } END { if (ok) print tunefl; }') \
     $(shell $(ECHO) $(CPUFLAGS) | \
     $(SED) -e 's/ mmx / -mmmx /g' -e 's/ sse/ -msse/g' \
     -e 's/ ssse/ -mssse/g' -e 's/ avx/ -mavx/g' \
@@ -585,7 +607,7 @@ endif
 # large portion of these variables
 #######################################################################
 # toolchain (compiler, linker)
-export CPP CC CXX FC LD AR RANLIB
+export TOOLCHAINSETUPDONE CPP CC CXX FC LD AR RANLIB
 export GCCXML GCCXMLDIR ROOTCINT GENREFLEX
 # compiler/linker flags - we do not export those to retain the ability to
 # override them on a per target basis
@@ -612,7 +634,8 @@ export PICFLAGS.Unknown PICFLAGS.GNU PICFLAGS.Clang PICFLAGS.Open64 \
 export TUNEFLAGS.Unknown TUNEFLAGS.GNU TUNEFLAGS.Clang TUNEFLAGS.Open64 \
     TUNEFLAGS.PathScale TUNEFLAGS.Intel TUNEFLAGS.SunPro
 # ROOT libs, compiler flags etc
-export ROOTCONFIG ROOTLIBS ROOTLIBDIR ROOTINCLUDES ROOTCFLAGS LIBGENVECTOR
+export ROOTCONFIG ROOTLIBS ROOTLIBDIR ROOTINCLUDES ROOTCFLAGS LIBGENVECTOR \
+    ROOT_VERSION_CODE ROOTCONFIG_ROOT56
 # *nix like tools for text processing, copying/moving files etc.
 export AWK SED CPP CP MV MKDIR RMDIR TEST ECHO TRUE FALSE TOUCH UNAME \
     HEAD TAIL GREP
@@ -645,10 +668,13 @@ ccsrc.cxx = $(filter %.cxx,$(ccsrc))
 ccsrc.c++ = $(filter %.c++,$(ccsrc))
 # Fortran sources (not all variations)
 f77src += $(wildcard *.[fF])
+f77fsrc += $(filter %.f,$(f77src))
+f77Fsrc += $(filter %.F,$(f77src))
 # dependency files (.deps/*.d and .deps/*.dd) for make
 alldeps += $(csrc:%.c=.deps/%.d) $(ccsrc.C:%.C=.deps/%.dd) \
     $(ccsrc.cc:%.cc=.deps/%.dd) $(ccsrc.cpp:%.cpp=.deps/%.dd) \
-    $(ccsrc.cxx:%.cxx=.deps/%.dd) $(ccsrc.c++:%.c++=.deps/%.dd)
+    $(ccsrc.cxx:%.cxx=.deps/%.dd) $(ccsrc.c++:%.c++=.deps/%.dd) \
+    $(f77fsrc:%.f=.deps/%.df) $(f77Fsrc:%.F=.deps/%.df)
 # source files without dictionaries
 allsrc += $(filter-out $(alldicts),$(sort $(csrc) $(ccsrc) $(f77src)))
 
@@ -723,8 +749,8 @@ endef
 # targets which work by descending into subdirectories
 SUBDIRRULES = all dep clean distclean strip
 # synthesize rules to descend into subdirectories for these targets
-$(foreach subdirrule,$(SUBDIRRULES),$(eval \
-    $(call SUBDIRRULE_TEMPLATE,$(subdirrule),$(SUBDIRS))))
+$(foreach subdirrule,$(SUBDIRRULES),$(foreach subdir,$(SUBDIRS),$(eval \
+    $(call SUBDIRRULE_TEMPLATE,$(subdirrule),$(subdir)))))
 else
 subdirs-all::
 subdirs-dep::
@@ -766,7 +792,7 @@ COMPILE.cxx = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 COMPILE.f   = $(FC) $(FFLAGS) $(CPPFLAGS) -c $< -o $@
 COMPILEMSG.c   = "\\x1b[32m[CC]\\x1b[m\\t\\t$@"
 COMPILEMSG.cxx = "\\x1b[32m[CXX]\\x1b[m\\t\\t$@"
-COMPILEMSG.f   = "\\x1b[32m[FC]\\x1b[m\\t\t$@"
+COMPILEMSG.f   = "\\x1b[32m[FC]\\x1b[m\\t\\t$@"
 # generate pattern rules to compile source files
 $(foreach extension,$(EXTENSIONS_C),$(foreach objsuffix,$(OBJSUFFIXES),\
     $(eval $(call PATTERNRULE_TEMPLATE,%.$(objsuffix),%.$(extension),COMPILEMSG.c,COMPILE.c))))
@@ -805,7 +831,7 @@ $(foreach objsuffix,$(OBJSUFFIXES),$(eval \
 # link executable(s)
 LINK = $(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 LINK.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
-LINK.cxx = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+LINK.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 LINK.f = $(FC) $(FFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 LINKMSG      = "\\x1b[35m[LINK]\\x1b[m\\t\\t$@"
 LINKSHLIBMSG = "\\x1b[35m[SHLIB]\\x1b[m\\t\\t$@"
@@ -823,7 +849,7 @@ $(foreach extension,$(EXTENSIONS_C),$(eval \
     $(call PATTERNRULE_TEMPLATE,%,%.$(extension),LINKMSG,LINK.c)))
 # compiling and linking from C++ sources
 $(foreach extension,$(EXTENSIONS_CXX),$(eval \
-    $(call PATTERNRULE_TEMPLATE,%,%.$(extension),LINKMSG,LINK.cxx)))
+    $(call PATTERNRULE_TEMPLATE,%,%.$(extension),LINKMSG,LINK.cc)))
 # compiling and linking from FORTRAN sources
 $(foreach extension,$(EXTENSIONS_F),$(eval \
     $(call PATTERNRULE_TEMPLATE,%,%.$(extension),LINKMSG,LINK.f)))
@@ -835,9 +861,14 @@ ROOTCINT_PP = $(AWK) \
 	      '/^.*<.*>.*::(fgIsA = 0(; *\/\/.*|;)|Class_Name\(\)|ImplFileName\(\)|ImplFileLine\(\)|Dictionary\(\)|Class\(\)|Streamer\(.*\)|ShowMembers\(.*\))$$/ \
 	      { if (!($$0 ~ /^template *<>/)) $$0 = "template <> " $$0; } \
 	      // { print; }'
+ifeq ($(ROOTCONFIG_ROOT56),ROOT6)
+DOROOTCINT = $(ROOTCINT) -f $@ -c -p \
+	 $(filter-out %LinkDef.h,$^) $(filter %LinkDef.h,$^)
+else
 DOROOTCINT = $(ROOTCINT) -f $@.tmp -c -p \
 	 $(filter-out %LinkDef.h,$^) $(filter %LinkDef.h,$^)  && \
 	 $(ROOTCINT_PP) < $@.tmp > $@ ; $(RM) -f $@.tmp
+endif
 ROOTCINTMSG = "\\x1b[31m[ROOTCINT]\\x1b[m\\t$@"
 $(foreach extension,$(EXTENSIONS_CXX),$(eval $(call \
     PATTERNRULE_TEMPLATE,%Dict.$(extension) %Dict.$(extension).h,,ROOTCINTMSG,DOROOTCINT)))
@@ -875,13 +906,14 @@ $(foreach extension,$(OBJSUFFIXES),$(eval $(call \
 MKDEPEND_RFLXMANGLING := \
     's,\.deps/\([^ .]\+\)Rflx\.dd : \1Rflx.\(C\|cc\|cpp\|cxx\|c++\), : \1Rflx.\2\n\1Rflx.\2 .deps/\1Rflx.dd :,g'
 MKDEPEND = $(CPP) $(CPPDEPFLAGS) $(CPPFLAGS) $< | \
-	   $(SED) -e 's,\($*\)\.o[ :]*,\1.o $@ : ,g' \
+	   $(SED) -e 's,\($*\)\.o[ :]*,\1.o \1.os $@ : ,g' \
 	   	-e $(MKDEPEND_RFLXMANGLING) > $@ || \
 	   $(RM) -f $@
 MKDEPENDMSG = "\\x1b[36m[MKDEPEND]\\x1b[m\\t$<"
 # make sure we use the "right" preprocessor
 .deps/%.d: CPP = $(CC) -E
 .deps/%.dd: CPP = $(CXX) -E
+.deps/%.df: CPP = $(FC)
 # include ROOT includes for C++ files by default
 %.dd: CPPFLAGS += $(ROOTINCLUDES)
 # synthesize rules
@@ -889,6 +921,8 @@ $(foreach extension,$(EXTENSIONS_C),\
     $(eval $(call PATTERNRULE_TEMPLATE,.deps/%.d,%.$(extension),MKDEPENDMSG,MKDEPEND)))
 $(foreach extension,$(EXTENSIONS_CXX),\
     $(eval $(call PATTERNRULE_TEMPLATE,.deps/%.dd,%.$(extension),MKDEPENDMSG,MKDEPEND)))
+$(foreach extension,$(EXTENSIONS_F),\
+    $(eval $(call PATTERNRULE_TEMPLATE,.deps/%.df,%.$(extension),MKDEPENDMSG,MKDEPEND)))
 
 # include the dependency information
 -include $(alldeps)
