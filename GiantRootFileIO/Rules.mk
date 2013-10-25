@@ -61,6 +61,8 @@
 # 	fix small bug in rule for automatic dependencies
 # v0.17	2013-10-23 Manuel Schiller <manuel.schiller@nikhef.nl>
 # 	get the rootcint rules to work with ROOT 6 (i.e. 5.99/...)
+# v0.18 2013-10-25 Manuel Schiller <manuel.schiller@nikhef.nl>
+# 	add some FreeBSD/NetBSD compatibility code
 #######################################################################
 
 #######################################################################
@@ -253,7 +255,7 @@ ifeq ($(TOOLCHAINSETUPDONE),)
 TOOLCHAINSETUPDONE = yes
 # use ROOT config to get reasonable defaults for current environment
 # (we use it to detect the toolchain used to build ROOT)
-ROOTCONFIG = root-config
+ROOTCONFIG = $(strip $(shell which root-config 2>/dev/zero))
 
 # other tools used in the build process
 AWK = awk
@@ -276,6 +278,7 @@ CAT = cat
 TR = tr
 
 # get compiler version(s) used to compile ROOT
+ifneq ($(ROOTCONFIG),)
 CC = $(shell $(ROOTCONFIG) --cc | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
 CXX = $(shell $(ROOTCONFIG) --cxx | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
 LD = $(shell $(ROOTCONFIG) --ld)
@@ -304,6 +307,7 @@ endif
 ifneq ($(ROOTCINT),)
 ROOTCINT = $(shell which rootcint)
 endif
+endif
 # static libraries
 AR = ar
 RANLIB = ranlib
@@ -317,6 +321,7 @@ LD ?= ld
 CPP ?= cpp
 FC ?= f77
 
+ifneq ($(ROOTCONFIG),)
 # assemble ROOT libraries
 ROOTLIBDIR = $(shell $(ROOTCONFIG) --libdir)
 # default set of ROOT libraries
@@ -327,6 +332,7 @@ ROOTCFLAGS = $(shell $(ROOTCONFIG) --auxcflags)
 # some versions of ROOT have libGenVector, others libMathCore
 LIBGENVECTOR = $(shell $(TEST) -e $(ROOTLIBDIR)/libGenVector.so && \
 		$(ECHO) '-lGenVector' || $(ECHO) '-lMathCore')
+endif
 else
 # nothing to do if toolchain is set up
 endif
@@ -419,6 +425,7 @@ endif
 endif
 # on Linux, we know how to optimize at link time, and we have a nice
 # and well-behaved /bin/echo
+ECHOMSGSFX :=
 ifeq ($(UNAME_SYS),Linux)
 TMPLINKOPT := -Wl,-O3
 ECHO := /bin/echo
@@ -432,6 +439,19 @@ endif
 ifeq ($(UNAME_SYS),Darwin)
 ECHO := echo
 ECHOMSG := $(ECHO)
+CPUFLAGS := ""
+endif
+# same on FreeBSD/NetBSD
+ifeq ($(UNAME_SYS),FreeBSD)
+ECHO := echo
+ECHOMSG := printf
+ECHOMSGSFX := "\\n"
+CPUFLAGS := ""
+endif
+ifeq ($(UNAME_SYS),NetBSD)
+ECHO := echo
+ECHOMSG := printf
+ECHOMSGSFX := "\\n"
 CPUFLAGS := ""
 endif
 
@@ -705,8 +725,8 @@ local-all:: local-dep $(TARGETS)
 local-dep:: .deps/dummy.txt $(alldeps)
 $(alldeps): .deps/dummy.txt
 .deps/dummy.txt:
-	$(TEST) -d .deps || ($(ECHOMSG) "\x1b[32m[RMDIR]\x1b[m\t\t"`pwd`/.deps; $(RM) -fr .deps)
-	@ $(ECHOMSG) "\x1b[32m[MKDIR]\x1b[m\t\t"`pwd`/.deps
+	$(TEST) -d .deps || ($(ECHOMSG) "\033[32m[RMDIR]\033[m\t\t"`pwd`/.deps"$(ECHOMSGSFX)"; $(RM) -fr .deps)
+	@ $(ECHOMSG) "\033[32m[MKDIR]\033[m\t\t"`pwd`/.deps"$(ECHOMSGSFX)"
 	$(MKDIR) -p .deps
 	$(TOUCH) .deps/dummy.txt
 
@@ -715,20 +735,20 @@ local-strip::
 
 ifeq ($(strip $(filter %.so,$(TARGETS))),)
 local-clean::
-	@ $(ECHOMSG) "\x1b[32m[CLEAN]\x1b[m"
+	@ $(ECHOMSG) "\033[32m[CLEAN]\033[m$(ECHOMSGSFX)"
 	$(RM) -f *.o *~
 else
 local-clean::
-	@ $(ECHOMSG) "\x1b[32m[CLEAN]\x1b[m"
+	@ $(ECHOMSG) "\033[32m[CLEAN]\033[m$(ECHOMSGSFX)"
 	$(RM) -f *.o *.os *~
 endif
 
 local-distclean:: .deps local-clean do-local-distclean .deps
 do-local-distclean::
-	@ $(ECHOMSG) "\x1b[32m[DISTCLEAN]\x1b[m"
+	@ $(ECHOMSG) "\033[32m[DISTCLEAN]\033[m$(ECHOMSGSFX)"
 	$(RM) -f $(TARGETS) $(alldicts) $(alldicts:%=%.h)
 	$(RM) -f .deps/*.d .deps/*.dd .deps/*.d.[0-9]* .deps/*.dd.[0-9]* .deps/dummy.txt
-	@ $(ECHOMSG) "\x1b[32m[RMDIR]\x1b[m\t\t"`pwd`/.deps;
+	@ $(ECHOMSG) "\033[32m[RMDIR]\033[m\t\t"`pwd`/.deps"$(ECHOMSGSFX)";
 	$(RM) -fr .deps
 	$(TEST) -d html -a -f Doxyfile && $(RM) -fr html || true
 
@@ -737,14 +757,14 @@ doxy:: $(allsrc) Doxyfile
 
 ifneq ($(strip $(SUBDIRS)),)
 # template rule for recursing into subdirectories for some rules
-MAKEMSG := "\\x1b[34m[MAKE]\\x1b[m\\t\\t"
+MAKEMSG := "\\033[34m[MAKE]\\033[m\\t\\t"
 define SUBDIRRULE_TEMPLATE
 .PHONY: $(2:%=%-$(1))
 subdirs-$(1):: $(2:%=%-$(1))
 $(2:%=%-$(1))::
-	@ $$(ECHOMSG) $$(MAKEMSG)"\x1b[1;34mEntering "`pwd`/$(2)"\x1b[m"
+	@ $$(ECHOMSG) $$(MAKEMSG)"\033[1;34mEntering "`pwd`/$(2)"\033[m$(ECHOMSGSFX)"
 	$$(MAKE) -C $(2) $(1)
-	@ $$(ECHOMSG) $$(MAKEMSG)"\x1b[1;34mLeaving "`pwd`/$(2)"\x1b[m"
+	@ $$(ECHOMSG) $$(MAKEMSG)"\033[1;34mLeaving "`pwd`/$(2)"\033[m$(ECHOMSGSFX)"
 endef
 # targets which work by descending into subdirectories
 SUBDIRRULES = all dep clean distclean strip
@@ -772,7 +792,7 @@ endif
 # PATTERNRULE_TEMPLATE targetext srcext MESSAGEVAR COMPILEVARNAME
 define PATTERNRULE_TEMPLATE
 $(1): $(2)
-	@ $$(ECHOMSG) "$$($(3))"
+	@ $$(ECHOMSG) "$$($(3))$$(ECHOMSGSFX)"
 	$$($(4))
 endef
 # prototype of pattern rule without action
@@ -790,9 +810,9 @@ EXTENSIONS_F   := f F
 COMPILE.c   = $(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 COMPILE.cxx = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 COMPILE.f   = $(FC) $(FFLAGS) $(CPPFLAGS) -c $< -o $@
-COMPILEMSG.c   = "\\x1b[32m[CC]\\x1b[m\\t\\t$@"
-COMPILEMSG.cxx = "\\x1b[32m[CXX]\\x1b[m\\t\\t$@"
-COMPILEMSG.f   = "\\x1b[32m[FC]\\x1b[m\\t\\t$@"
+COMPILEMSG.c   = "\\033[32m[CC]\\033[m\\t\\t$@"
+COMPILEMSG.cxx = "\\033[32m[CXX]\\033[m\\t\\t$@"
+COMPILEMSG.f   = "\\033[32m[FC]\\033[m\\t\\t$@"
 # generate pattern rules to compile source files
 $(foreach extension,$(EXTENSIONS_C),$(foreach objsuffix,$(OBJSUFFIXES),\
     $(eval $(call PATTERNRULE_TEMPLATE,%.$(objsuffix),%.$(extension),COMPILEMSG.c,COMPILE.c))))
@@ -815,7 +835,7 @@ $(ccsrc.c++:%.c++=%.o) $(ccsrc.c++:%.c++=%.os): CPPFLAGS += $(ROOTINCLUDES)
 %.o: PICFLAGS.$(FC_FLAVOUR)=
 
 # building archives
-ARMSG = "\\x1b[33m[AR]\\x1b[m\\t\\t$@\($^\)"
+ARMSG = "\\033[33m[AR]\\033[m\\t\\t$@\($^\)"
 DOARCHIVE = $(AR) rcS $@ $^
 # synthesize rule to put object files into an archive
 $(foreach objsuffix,$(OBJSUFFIXES),$(eval \
@@ -823,9 +843,9 @@ $(foreach objsuffix,$(OBJSUFFIXES),$(eval \
 # at the end of the process, make sure all object files have been picked up
 # and update the archive's symobol index with ranlib
 %.a:
-	@ $(ECHOMSG) "$(ARMSG)"
+	@ $(ECHOMSG) "$(ARMSG)$(ECHOMSGSFX)"
 	$(AR) rucS $@ $^
-	@ $(ECHOMSG) "\x1b[33m[RANLIB]\x1b[m\t$@"
+	@ $(ECHOMSG) "\033[33m[RANLIB]\033[m\t$@$(ECHOMSGSFX)"
 	$(RANLIB) $@
 
 # link executable(s)
@@ -833,8 +853,8 @@ LINK = $(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 LINK.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 LINK.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 LINK.f = $(FC) $(FFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
-LINKMSG      = "\\x1b[35m[LINK]\\x1b[m\\t\\t$@"
-LINKSHLIBMSG = "\\x1b[35m[SHLIB]\\x1b[m\\t\\t$@"
+LINKMSG      = "\\033[35m[LINK]\\033[m\\t\\t$@"
+LINKSHLIBMSG = "\\033[35m[SHLIB]\\033[m\\t\\t$@"
 # linking a bunch of object files together
 $(eval $(call PATTERNRULE_TEMPLATE,%,%.o,LINKMSG,LINK))
 # patch for building shared libraries from .os files
@@ -869,7 +889,7 @@ DOROOTCINT = $(ROOTCINT) -f $@.tmp -c -p \
 	 $(filter-out %LinkDef.h,$^) $(filter %LinkDef.h,$^)  && \
 	 $(ROOTCINT_PP) < $@.tmp > $@ ; $(RM) -f $@.tmp
 endif
-ROOTCINTMSG = "\\x1b[31m[ROOTCINT]\\x1b[m\\t$@"
+ROOTCINTMSG = "\\033[31m[ROOTCINT]\\033[m\\t$@"
 $(foreach extension,$(EXTENSIONS_CXX),$(eval $(call \
     PATTERNRULE_TEMPLATE,%Dict.$(extension) %Dict.$(extension).h,,ROOTCINTMSG,DOROOTCINT)))
 # link dictionaries without debugging info
@@ -881,7 +901,7 @@ $(foreach extension,$(OBJSUFFIXES),$(eval $(call \
 # genreflex dictionaries
 #
 # how to generate REFLEX dictionaries
-GENREFLEXMSG = "\\x1b[31m[GENREFLEX]\\x1b[m\\t$@"
+GENREFLEXMSG = "\\033[31m[GENREFLEX]\\033[m\\t$@"
 DOGENREFLEX = $(GENREFLEX) $(patsubst %.xml, %.h,$(filter %.xml,$^)) \
 	      -s $(filter %.xml,$^) -o $@ \
 	      --gccxmlpath=$(GCCXMLDIR) --quiet $(CPPFLAGS)
@@ -909,7 +929,7 @@ MKDEPEND = $(CPP) $(CPPDEPFLAGS) $(CPPFLAGS) $< | \
 	   $(SED) -e 's,\($*\)\.o[ :]*,\1.o \1.os $@ : ,g' \
 	   	-e $(MKDEPEND_RFLXMANGLING) > $@ || \
 	   $(RM) -f $@
-MKDEPENDMSG = "\\x1b[36m[MKDEPEND]\\x1b[m\\t$<"
+MKDEPENDMSG = "\\033[36m[MKDEPEND]\\033[m\\t$<"
 # make sure we use the "right" preprocessor
 .deps/%.d: CPP = $(CC) -E
 .deps/%.dd: CPP = $(CXX) -E
