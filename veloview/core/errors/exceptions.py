@@ -26,6 +26,11 @@ class WeightAssignmentException(Exception):
         return "A weight must be a float value between 0 and 1"
 
 
-class CombinerWeightAssignmentException(Exception):
+class WeightedContainerWeightAssignmentException(Exception):
     def __str__(self):
         return "The combiner object needs a weight object as its weight"
+
+
+class RootGraphicListArgumentException(Exception):
+    def __str__(self):
+        return "Error and warning parameters need to be lists"
