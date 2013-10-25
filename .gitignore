@@ -4,3 +4,11 @@
 *.os
 *.so
 *.pyc
+*.a
+*.pyo
+.*.swp
+*Dict.cxx
+*Rflx.cxx
+*.root
+*.log
+.deps
