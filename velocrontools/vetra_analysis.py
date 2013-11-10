@@ -46,8 +46,6 @@ if debug:
 # import python modules
 import os, sys, re
 from glob import glob
-if debug:
-    pass
 
 # stream to process
 pattern = re.compile('NZS|ZS')
