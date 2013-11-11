@@ -118,7 +118,7 @@ class RunLock(object):
 
 
     def __exit__(self, type, value, traceback):
-        """Activated at the end of the with statement to releases the lock."""
+        """Activated at the end of the with statement to release the lock."""
         if isinstance(value, RunLockExists):
             print 'Looks like run lock exists, moving on.'
             print_exc()
