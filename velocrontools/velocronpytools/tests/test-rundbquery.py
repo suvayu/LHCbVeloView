@@ -23,12 +23,14 @@ __hostname__ = gethostname()
 from velocronpytools.rundbquery import (RunDBQuery)
 import unittest
 
+@unittest.skipIf(__hostname__.find('plus'),
+                 'can be tested only on plus* nodes.')
 class TestQuery(unittest.TestCase):
 
     def setUp(self):
         self.good_runno = 137259
         self.good_runrange = (137250, 137300)
-        self.bad_runno = 150000
+        self.bad_runno = 999999
 
     def test_good_run_get_run_list(self):
         query = RunDBQuery(self.good_runno)
