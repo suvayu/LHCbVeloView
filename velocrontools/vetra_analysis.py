@@ -106,7 +106,7 @@ if debug:
 
 
 ## acquire lock and run job
-from velocrontools.velocronpytools.runlock import (RunLock )
+from velocronpytools.runlock import (RunLock)
 
 if _cliopts.jobopts:
     jobopts = _cliopts.jobopts

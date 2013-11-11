@@ -1,7 +1,7 @@
 PYTHON = $(shell /usr/bin/which python)
 
 # directories
-PYTOOLS = VeloCronPyTools
+PYTOOLS = velocronpytools
 SHTOOLS = VeloCronShTools
 
 .PHONY:	tests py-tests sh-tests

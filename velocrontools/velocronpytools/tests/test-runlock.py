@@ -12,7 +12,7 @@ else:
     __path_to_script__ += ['..', '..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from velocrontools.velocronpytools.runlock import (RunLock, RunLockExists)
+from velocronpytools.runlock import (RunLock, RunLockExists)
 import unittest
 
 

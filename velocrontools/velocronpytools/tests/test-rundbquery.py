@@ -20,7 +20,7 @@ from socket import gethostname
 __hostname__ = gethostname()
 
 
-from velocrontools.velocronpytools.rundbquery import (RunDBQuery)
+from velocronpytools.rundbquery import (RunDBQuery)
 import unittest
 
 class TestQuery(unittest.TestCase):
