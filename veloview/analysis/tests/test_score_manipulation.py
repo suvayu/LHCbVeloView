@@ -4,12 +4,12 @@ from nose.tools import raises
 from veloview.analysis.score_manipulation import Score
 from veloview.core.errors.exceptions import ScoreAssignmentException, AddingScoreException
 
-score_for_check = 93
-score_for_check1 = 25
-score_for_check2 = 70
+score_for_check = 93.0
+score_for_check1 = 25.0
+score_for_check2 = 70.0
 weight_for_check = 0.3
 weight_for_check1 = 1.0
-score_for_check_exc = 101
+score_for_check_exc = 101.0
 
 
 def test_score_init():
@@ -40,7 +40,7 @@ def test_score_iadd():
 
 
 def test_score_mul():
-    score_for_comparison = Score(int(score_for_check * weight_for_check))
+    score_for_comparison = Score(score_for_check * weight_for_check)
     score1 = Score(score_for_check)
     weight1 = weight_for_check
     score1 = score1 * weight1
@@ -49,7 +49,7 @@ def test_score_mul():
 
 
 def test_score_imul():
-    score_for_comparison = Score(int(score_for_check * weight_for_check))
+    score_for_comparison = Score(score_for_check * weight_for_check)
     score1 = Score(score_for_check)
     weight1 = weight_for_check
     score1 *= weight1
@@ -58,7 +58,7 @@ def test_score_imul():
 
 
 def test_score_div():
-    score_for_comparison = Score(int(score_for_check / weight_for_check1))
+    score_for_comparison = Score(score_for_check / weight_for_check1)
     score1 = Score(score_for_check)
     weight1 = weight_for_check1
     score1 = score1 / weight1
@@ -67,7 +67,7 @@ def test_score_div():
 
 
 def test_score_idiv():
-    score_for_comparison = Score(int(score_for_check / weight_for_check1))
+    score_for_comparison = Score(score_for_check / weight_for_check1)
     score1 = Score(score_for_check)
     weight1 = weight_for_check1
     score1 /= weight1
