@@ -1,7 +1,7 @@
 """This is an example of a combiner description dictionary (expected state dictionary)"""
 
 STANDARD_BRANCH_DICT = {"weight": 1.0, "minWW": 5, "minWE": 10, "minEW": 1, "minEE": 2}
-STANDARD_LEAF_DICT = {"weight": 1.0, "maxError": 0.5, "maxWarning": 0.8, "path": ""}
+STANDARD_LEAF_DICT = {"weight": 1.0, "maxError": 50, "maxWarning": 80, "path": ""}
 TELL1_NUMBERS = range(42) + range(64, 106)
 
 

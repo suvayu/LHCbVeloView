@@ -115,7 +115,7 @@ class Combiner(object):
     def evaluate(self):
         """Evaluates leaves and branches"""
         if self.results:
-            return self.results
+            return
 
         elif self.children:
             for child in self.children:
