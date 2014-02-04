@@ -30,6 +30,7 @@ class MainFrame(ROOT.TGMainFrame):
         self.MapWindow()
 
     def __del__(self):
+        self.data_file.Close()
         self.Cleanup()
 
     def create_buttons(self):
