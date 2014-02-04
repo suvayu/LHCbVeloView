@@ -51,6 +51,7 @@ class MainFrame(ROOT.TGMainFrame):
                 if properties[button_label].strip() == str(label).strip():
                     hist = self.data_file.Get(properties[histpath_label])
                     self.canvas.cd(properties[canvas_part])
+                    print "Histogram has been succesfully found, drawing..."
                     hist.Draw()
                     ROOT.gPad.Update()
                     return
