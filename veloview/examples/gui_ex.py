@@ -16,7 +16,7 @@ class MainFrame(ROOT.TGMainFrame):
         self.AddFrame(self.embeded_canvas, ROOT.TGLayoutHints())
 
         self.buttons_frame = ROOT.TGHorizontalFrame(self, 400, 40)
-        self.create_buttons(self.buttons_frame, self.dispatcher)
+        self.create_buttons()
 
         self.exitbutton = ROOT.TGTextButton(self.buttons_frame, '&Exit')
         self.exitbutton.SetCommand('TPython::Exec( "raise SystemExit" )')
@@ -32,15 +32,14 @@ class MainFrame(ROOT.TGMainFrame):
     def __del__(self):
         self.Cleanup()
 
-    @staticmethod
-    def create_buttons(buttons_frame, dispatcher):
+    def create_buttons(self):
         for properties in GUI_CONF_DICT.itervalues():
             if button_label in properties:
                 print "Found a button: {}".format(properties[button_label])
                 print "Creating a button for: {}".format(properties[histpath_label])
-                temp_button = ROOT.TGTextButton(buttons_frame, "&{}".format(properties[button_label]))
-                temp_button.Connect('Clicked()', "TPyDispatcher", dispatcher, 'Dispatch()')
-                buttons_frame.AddFrame(temp_button, ROOT.TGLayoutHints())
+                temp_button = ROOT.TGTextButton(self.buttons_frame, "&{}".format(properties[button_label]))
+                temp_button.Connect('Clicked()', "TPyDispatcher", self.dispatcher, 'Dispatch()')
+                self.buttons_frame.AddFrame(temp_button, ROOT.TGLayoutHints())
 
     def clever_dispatching(self):
         btn = ROOT.BindObject(ROOT.gTQSender, ROOT.TGTextButton)
