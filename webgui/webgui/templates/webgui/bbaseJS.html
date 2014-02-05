@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding "UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns="style" xml:lang="en" lang="en">
+
+<style type="text/css">
+
+    body {color: #68c4ff; background: #003D66; padding: 0 5em; margin: 0;}
+    h2{font-size: 16pt; color: #fff;border-bottom:1px double #fff}
+    h3{color: #68c4ff; border-top: 1px dotted #fff; margin-top: 2em; font-size: 24pt;}
+    #menu a{text-decoration: none;
+        background: #eee;
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        border-right: 2px solid #fff;
+        padding-right: 3px;
+        padding-left: 3px;
+        color: #777;
+        font-size: 0.9em;}
+    #Tabs ul{padding: 0;margin: 0;margin-left: 10px;list-style-type: none;}
+    #Tabs ul li{display: inline-block; clear: none; float: left; height: 35px}
+    #Tabs ul li a{
+        position: relative;
+        margin-top: 16px;
+        display: block;
+        margin-left: 6px;
+        line-height: 24px;
+        padding-left: 10px;
+        background: #f6f6f6;
+        z-index: 9999;
+        border: 1px solid #ccc;
+        border-bottom: 0;
+
+        /*The following four lines are to make the top left and right corners of each tab rounded. */
+        -moz-border-radius-topleft: 4px;
+        border-top-left-radius: 4px;
+        -moz-border-radius-topright: 4px;
+        border-top-right-radius: 4px;
+        /*end of rounded borders*/
+
+        width: 130px;
+        color: #000000;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    #Tabs ul li a:hover{
+        text-decoration: underline; /*Effect when mouse is over the tab text*/
+    }
+
+    #Tabs #content_area{
+        padding: 0 15px;
+        clear:both;
+        overflow: hidden;
+        position: relative;
+        top: 8px;
+    }
+
+</style>
+
+<head><title>{% block title %}GUI{% endblock %}</title></head>
+
+<body>
+<div id="menu">
+    {% block nav-global %}
+
+        <!--Menu -->
+        <h3>Web VELO Monitoring</h3>
+        {% if user.is_staff %}
+            <a href="{% url 'admin:index' %}">Admin</a>
+        {% endif %}
+    {% endblock %}
+</div>
+<div id ="Tabs">
+    <ul>
+        <li id="li_tab1" onclick="tab('tab1')"><a>VELO View</a></li>
+        <li id="li_tab2" onclick="tab('tab2')"><a>Sensor View</a></li>
+        <li id="li_tab3" onclick="tab('tab3')"><a>Run View</a></li>
+        <li id="li_tab4" onclick="tab('tab4')"><a>TELL 1 View</a></li>
+        <li id="li_tab5" onclick="tab('tab5')"><a>Special Analyses</a></li>
+    </ul>
+    <div id="content_area">
+        <div id="tab1">
+            {% block tab %}{% endblock %}
+        </div>
+        <div id="tab2" style="display:none;"><!-- We set tab2's display as none because we don't wan to
+                show this tab while tab1 is active.-->
+            {% block sensor %}{% endblock %}
+        </div>
+        <div id="tab3" style="display: none">
+            <p>Nothing here yet</p>
+        </div>
+        <div id="tab4" style="display: none">
+            <p>Here will be text</p>
+        </div>
+        <div id="tab5" style="display: none">
+            <p>ROOT files</p>
+        </div>
+    </div><!--End of content_area div -->
+</div><!--End of Tabs div-->
+</body>
+</html>
+
+<script type = "text/javascript">
+    function tab(tab){
+        document.getElementById('tab1').style.display = 'none';
+        document.getElementById('tab2').style.display = 'none';
+        document.getElementById('tab3').style.display = 'none';
+        document.getElementById('tab4').style.display = 'none';
+        document.getElementById('tab5').style.display = 'none';
+        document.getElementById('li_tab1').setAttribute("class","");
+        document.getElementById('li_tab2').setAttribute("class","");
+        document.getElementById('li_tab3').setAttribute("class","");
+        document.getElementById('li_tab4').setAttribute("class","");
+        document.getElementById('li_tab5').setAttribute("class","");
+        document.getElementById(tab).style.display = 'block';
+        document.getElementById('li_'+tab).setAttribute("class","active");
+    }
+</script>

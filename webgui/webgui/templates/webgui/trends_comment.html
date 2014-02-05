@@ -1,0 +1,44 @@
+{% extends "webgui/VeloView.html" %}
+
+{% block trends %}
+{% include "webgui/vv_navigation.html" with active_sidetab='sidetab2' %}
+      <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+      <link rel="stylesheet" type="text/css" href="/static/style/JSRootInterface.css" />
+      <script type="text/javascript" src="/static/scripts/JSRootInterface.js"></script>
+
+      <div id='main' class='column'>
+      <h1><font face='Verdana' size='4'>Read a ROOT file with Javascript</font></h1>
+      <p><b>Select a ROOT file to read, or enter a url (*): </b><br/>
+      <form name="ex">
+         <div style='margin-left:10px;'>
+            <input type="text" name="state" value="" size="30" id="urlToLoad"/><br/>
+            <select name="s" size="1"
+               onchange="document.ex.state.value = document.ex.s.options[document.ex.s.selectedIndex].value;document.ex.s.selectedIndex=0;document.ex.s.value=''">
+               <option value = " " selected = "selected">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+               <option value = "/static/files/ct.root">ct.root</option>
+               <option value = "/static/files/exclusion.root">exclusion.root</option>
+               <option value = "/static/files/fillrandom.root">fillrandom.root</option>
+               <option value = "/static/files/glbox.root">glbox.root</option>
+               <option value = "/static/files/graph.root">graph.root</option>
+               <option value = "/static/files/hsimple.root">hsimple.root</option>
+               <option value = "/static/files/legends.root">legends.root</option>
+               <option value = "/static/files/rf107.root">rf107.root</option>
+               <option value = "/static/files/stacks.root">stacks.root</option>
+               <option value = "/static/files/zdemo.root">zdemo.root</option>
+               <option value = "/static/files/pyROOT_test.root">pyROOT_test.root</option>
+	   </select>
+         </div>
+         <input style='padding:2px; margin-left:10px; margin-top:5px;'
+               onclick='ReadFile()' type='button' title='Read the Selected File' value='Load'/>
+         <input style='padding:2px; margin-left:10px;'
+               onclick='ResetUI()' type='button' title='Clear All' value='Reset'/>
+      </form>
+
+      <br/>
+      <div id='status'></div>
+      </div>
+
+      <div id='reportHolder' class='column'>
+         <div id='report'> </div>
+      </div>
+{% endblock %}
