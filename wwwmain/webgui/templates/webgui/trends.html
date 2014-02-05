@@ -1,0 +1,22 @@
+{% extends "webgui/VeloView.html" %}
+
+{% block trends %}
+{% include "webgui/vv_navigation.html" with active_sidetab='sidetab2' %}
+      <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+      <link rel="stylesheet" type="text/css" href="/static/style/JSRootInterface.css" />
+      <script type="text/javascript" src="/static/scripts/JSRootInterface.js"></script>
+     
+      <input type="text" name="state" value="/static/files/h4.root" size="30" id="urlToLoad"/><br/>
+      <script>reportThree = true;</script>
+      <script>ReadFile();</script>
+  <!--    <script>showObject('h2',1);</script> -->
+
+      <div id='status'></div>  
+
+      <div id='reportHolder' class='column'>
+               <table id=reportable>
+                    <tr id='report'></tr>
+                    <tr id='reportThree'></tr> 
+               </table>
+      </div>
+{% endblock %}

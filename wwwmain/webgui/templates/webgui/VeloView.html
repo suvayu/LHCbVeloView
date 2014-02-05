@@ -1,0 +1,12 @@
+{% extends "webgui/bbase.html" %}
+
+{% block menutitle %}VELO View{% endblock %}
+
+{% block veloview %}
+    {% include "webgui/main_navigation.html" with active_tab="tab1"%}
+
+    {% block overview %}{% endblock %}
+    {% block trends %}{% endblock %}
+    {% block detailedtrends %}{% endblock %}
+
+{% endblock %}

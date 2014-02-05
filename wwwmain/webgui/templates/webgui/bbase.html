@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding "UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns="style" xml:lang="en" lang="en">
+
+<style type="text/css">
+
+    body {color: #68c4ff; background: #565656; padding: 5px; margin: 0; height: 1000px; width: 1600px}
+    h3{color: #68c4ff; border-top: 1px dotted #fff; margin-top: 5px; font-size: 3em;}
+    h2{color: #68c4ff; border-top: 1px dotted #fff; font-size: 1em;}
+   
+    #menu a{text-decoration: none;
+        background: #eee;
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        border-right: 2px solid #fff;
+        padding-right: 3px;
+        padding-left: 3px;
+        color: #777;
+        font-size: 0.9em;}
+
+    #block_content{
+    	border: 1px solid #D8D8D8;
+        background: #6E6E6E;
+	padding: 0 15px;
+        clear:both;
+        position: absolute;
+    }
+
+</style>
+
+<head><title>{% block utitle %}VELO Web GUI application{% endblock %}</title></head>
+
+<body>
+    <div id="menu">
+        {% block nav-global %}
+
+            <!--Menu -->
+            <!--   <div id ="titles"> -->
+            <h3>{% block menutitle %}VELO Web GUI application{% endblock %}</h3>
+            <!-- {% block title %}{% endblock %}</h3> -->
+	    {% if user.is_staff %}
+             <a href="{% url 'admin:index' %}">Admin</a>
+            {% endif %}
+        {% endblock %}
+    </div>
+    <div id="block_content">
+        {% block veloview %}{% endblock %}
+        {% block sensorview %}{% endblock %}
+        {% block runview  %}{% endblock %}
+        {% block tellview %}{% endblock %}
+        {% block specialanalyses %}{% endblock %}
+    </div>
+</body>
+</html>

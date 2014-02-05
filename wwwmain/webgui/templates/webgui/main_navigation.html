@@ -1,0 +1,50 @@
+<style type="text/css">
+
+    #tab-menu{ /* this is the css class for the content displayed in each tab*/
+        clear:none;
+        z-index: 5;
+        height: 50px;
+    }
+    #tab-menu ul {padding: 0;margin: 0;margin-left: 200px;list-style-type: none;}
+    #tab-menu ul li {
+        display: inline-block;
+        clear: none;
+        float: left;
+        font-size: 1.5em;
+        color: #68c4ff;
+        font-style: normal;
+        font-family: Arial;
+
+        background: #eee;
+        border-left: 2px solid #ccc;
+        border-top: 2px solid #ccc;
+        border-bottom: 2px solid #ccc;
+        border-right: 2px solid #fff;
+        padding-right: 20px;
+        padding-left: 20px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+
+        /* The following four lines are to make the top left and top right corners of each tab rounded. */
+        -moz-border-radius-topleft: 20px;
+        border-top-left-radius: 20px;
+        -moz-border-radius-topright: 20px;
+        border-top-right-radius: 20px;
+
+    }
+    #tab-menu ul li a{
+        text-decoration: none;
+        color: #565656;}
+    #tab-menu ul li a:hover, a:active{background: #a2a2a2}
+
+</style>
+
+<div id="tab-menu">
+    <ul >
+        <li class="{% if active_tab != 'tab1' %}" active {% endif %}><a href="{% url 'webgui:Overview' %}">VELO View</a></li>
+        <li class="{% if active_tab != 'tab2' %}" active {% endif %}><a href="{% url 'webgui:SensorView' %}">Sensor View</a></li>
+        <li class="{% if active_tab != 'tab3' %}" active {% endif %}><a href="{% url 'webgui:RunView' %}">Run View</a></li>
+        <li class="{% if active_tab != 'tab4' %}" active {% endif %}><a href="{% url 'webgui:TellView' %}">TELL1 View</a></li>
+        <li class="{% if active_tab != 'tab5' %}" active {% endif %}><a href="{% url 'webgui:IVscans' %}">Special Analyses</a></li>
+    </ul>
+</div>
