@@ -6,7 +6,7 @@ class ComparisonFunction(object):
     """This is an interface for all comparison functions. It mimics a normal function and returns data from the compare
      method written specifficaly for every comparison function."""
 
-    def compare(self, data_hist, ref_hist):
+    def compare(self, data_hist, ref_hist, param):
         """This method needs to be implemented for every single function and will need to return (score, lvl)"""
         raise NotImplementedError("This is an abstract function that needs to be implemented for each comparison function")
 
