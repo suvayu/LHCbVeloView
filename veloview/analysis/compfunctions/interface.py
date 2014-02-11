@@ -2,6 +2,19 @@
 from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
 
 
+def check_hists(comparefn):
+    """Decorator for comparison functions"""
+
+    def wrapper(*args, **kwargs):
+        if args[0] and args[1]:
+            return comparefn(*args, **kwargs)
+        else:
+            return self.create_error_dict()
+        wrapper.__name__ = comparefn.__name__
+        wrapper.__doc__ = comparefn.__doc__
+    return wrapper
+
+
 class ComparisonFunction(object):
     """This is an interface for all comparison functions. It mimics a normal function and returns data from the compare
      method written specifficaly for every comparison function."""
