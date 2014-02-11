@@ -40,11 +40,13 @@ def minmax(hist):
 
 def frac_above_threshold(hist, threshold):
     """Return fraction above threshold."""
-    pass
+    tbin = hist.FindBin(threshold)
+    return hist.Integral(tbin, hist.GetNbinsX())/hist.Integral()
 
 def frac_below_threshold(hist, threshold):
     """Return fraction below threshold."""
-    pass
+    tbin = hist.FindBin(threshold)
+    return hist.Integral(1, tbin)/hist.Integral()
 
 
 ## Tree utils
