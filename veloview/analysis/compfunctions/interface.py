@@ -1,17 +1,16 @@
 """Interface for the comparison functions"""
 from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
+from functools import wraps
 
 
 def check_hists(comparefn):
     """Decorator for comparison functions"""
-
+    @wraps(comparefn)
     def wrapper(*args, **kwargs):
         if args[0] and args[1]:
             return comparefn(*args, **kwargs)
         else:
             return self.create_error_dict()
-        wrapper.__name__ = comparefn.__name__
-        wrapper.__doc__ = comparefn.__doc__
     return wrapper
 
 
