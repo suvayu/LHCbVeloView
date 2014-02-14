@@ -10,3 +10,6 @@ tests:	$(TESTS)
 
 $(TESTS:tests/%.py=%):%:	tests/%.py
 	$^ $(OPTS)
+
+$(TESTS:tests/%.py=debug-%):debug-%:	tests/%.py
+	python -m pdb $^
