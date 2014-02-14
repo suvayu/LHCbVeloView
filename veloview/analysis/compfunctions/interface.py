@@ -10,7 +10,7 @@ def check_hists(comparefn):
         if args[0] and args[1]:
             return comparefn(*args, **kwargs)
         else:
-            return self.create_error_dict()
+            return ComparisonFunction().create_error_dict()
     return wrapper
 
 
