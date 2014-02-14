@@ -83,9 +83,26 @@ class TestThresholds(unittest.TestCase):
         self.assertTrue(dqscore['score'] < Score(30))
         self.assertEqual(dqscore['lvl'], ERROR_LEVELS.ERROR)
 
-    @unittest.skip('Test not implemented')
-    def test_zero_centred(self):
-        pass
+    def test_zero_centred_ok(self):
+        fn = get_fns('TMath::Gaus', (0, 1), (-10, 10))
+        self.hdata.FillRandom(fn[0], 20000)
+        self.href.FillRandom(fn[0], 10000)
+        cmpfn = ZeroCentredBandRef()
+        dqscore = cmpfn.compare(self.hdata, self.href, 5)
+        self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
+        dqscore = cmpfn.compare(self.hdata, self.href, None)
+        self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
+
+    def test_zero_centred_error(self):
+        fn0 = get_fns('TMath::Gaus', (0, 2), (-10, 10))
+        fn1 = get_fns('TMath::Gaus', (0, 1), (-10, 10))
+        self.hdata.FillRandom(fn0[0], 20000)
+        self.href.FillRandom(fn1[0], 10000)
+        cmpfn = ZeroCentredBandRef()
+        dqscore = cmpfn.compare(self.hdata, self.href, 3)
+        self.assertEqual(dqscore['lvl'], ERROR_LEVELS.ERROR)
+        dqscore = cmpfn.compare(self.hdata, self.href, None)
+        self.assertEqual(dqscore['lvl'], ERROR_LEVELS.ERROR)
 
 
 if __name__ == '__main__':
