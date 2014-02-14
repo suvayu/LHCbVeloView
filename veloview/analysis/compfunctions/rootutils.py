@@ -24,8 +24,10 @@ from ROOT import TF1
 def get_fns(fname, arg_tp, range_tp, num=1):
     """Return named TMath functions.
 
-    fname name of a TMath function.  arg_tpuple contains arguments for
-    the function.  Make num functions.
+    fname    -- name of a TMath function
+    arg_tp   -- tuple with function arguments
+    range_tp -- tuple specifying function range
+    num      -- number of functions to generate
 
     """
 

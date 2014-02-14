@@ -7,14 +7,14 @@ from rootutils import *
 
 
 class FloorThreshold(ComparisonFunction):
-    """This comparison function checks if mean is above threshold.
+    """Check if mean is above threshold.
 
     """
 
     @check_hists
     def compare(self, data_hist, ref_hist, floor):
         """Reference histogram is ignored."""
-        # pdb.set_trace()
+
         if minimum(data_hist) > floor:
             return self.create_final_dict(Score(100), ERROR_LEVELS.OK)
         else:
@@ -22,13 +22,14 @@ class FloorThreshold(ComparisonFunction):
 
 
 class CeilingThreshold(ComparisonFunction):
-    """This comparison function checks if mean is below threshold.
+    """Check if mean is below threshold.
 
     """
 
     @check_hists
     def compare(self, data_hist, ref_hist, ceiling):
         """Reference histogram is ignored."""
+
         if maximum(data_hist) < ceiling:
             return self.create_final_dict(Score(100), ERROR_LEVELS.OK)
         else:
@@ -38,18 +39,15 @@ class CeilingThreshold(ComparisonFunction):
 class MeanWidthDiffRef(ComparisonFunction):
     """Check the mean and width w.r.t. reference.
 
+    The all comparisons are done with respect to
+    tolerance*ref_hist.GetRMS(), where tolerance is a fraction smaller
+    than unity.  Weights associated to each comparison: mean - 70%,
+    width - 30%.
+
     """
 
     @check_hists
     def compare(self, data_hist, ref_hist, tolerance):
-        """Check mean/width is compatible with reference.
-
-        The all comparisons are done with respect to
-        tolerance*ref_hist.GetRMS().  Weights associated to each
-        comparison: mean - 70%, width - 30%.
-
-        """
-
         dmean = abs(data_hist.GetMean() - ref_hist.GetMean())
         dwidth = abs(data_hist.GetRMS() - ref_hist.GetRMS())
         score = 70.0 * (dmean < abs(tolerance*ref_hist.GetRMS()))
@@ -72,6 +70,9 @@ class AbsoluteBandRef(ComparisonFunction):
 
 class ZeroCentredBandRef(ComparisonFunction):
     """Check fraction outside 0-centred band.
+
+    Pass when more than 99% is inside tolerance band.  When comparing
+    with reference histogram, use a 3 sigma tolerance band.
 
     """
 
