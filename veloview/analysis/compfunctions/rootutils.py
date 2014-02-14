@@ -17,6 +17,27 @@ from ROOT import TNamed
 TNamed.Clone._creates = True
 
 
+## Functions
+from uuid import uuid4
+from ROOT import TF1
+
+def get_fns(fname, arg_tp, range_tp, num=1):
+    """Return named TMath functions.
+
+    fname name of a TMath function.  arg_tpuple contains arguments for
+    the function.  Make num functions.
+
+    """
+
+    arg_tp = ('x',) + arg_tp
+    lst = []
+    for i in range(num):
+        uuidname = 'fn-{}'.format(uuid4())
+        lst.append((uuidname, TF1(uuidname, '{}({})'.format(fname, ','.join(str(i) for i in arg_tp)), *range_tp)))
+    if len(lst) == 1: lst = lst[0]
+    return lst
+
+
 ## Histogram utils
 from ROOT import TH1
 
