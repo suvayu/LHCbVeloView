@@ -3,8 +3,19 @@ from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
 from functools import wraps
 
 
-def check_hists(comparefn):
-    """Decorator for comparison functions"""
+def check_hists1(comparefn):
+    """Decorator for comparison functions, check data histogram"""
+    @wraps(comparefn)
+    def wrapper(*args, **kwargs):
+        if args[0]:
+            return comparefn(*args, **kwargs)
+        else:
+            return ComparisonFunction().create_error_dict()
+    return wrapper
+
+
+def check_hists2(comparefn):
+    """Decorator for comparison functions, check both data and reference histogram"""
     @wraps(comparefn)
     def wrapper(*args, **kwargs):
         if args[0] and args[1]:

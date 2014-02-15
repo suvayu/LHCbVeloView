@@ -29,8 +29,17 @@ class TestInterface(unittest.TestCase):
         del self.hdata
         del self.href
 
-    def test_check_hists(self):
-        @check_hists
+    def test_check_hists1(self):
+        @check_hists1
+        def dummy(data_hist, ref_hist):
+            return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
+        result = dummy(self.hdata, None)
+        self.assertEqual(result['lvl'], ERROR_LEVELS.OK)
+        result = dummy(None, None)
+        self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
+
+    def test_check_hists2(self):
+        @check_hists2
         def dummy(data_hist, ref_hist):
             return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
         result = dummy(self.hdata, self.href)

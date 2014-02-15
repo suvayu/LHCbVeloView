@@ -1,9 +1,9 @@
 """This module will hold complex comparison functions"""
 
-from interface import ComparisonFunction, check_hists
+from interface import ComparisonFunction, check_hists1, check_hists2
 from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
 
-from rootutils import *
+from rootutils import minimum, maximum, frac_above_threshold, frac_below_threshold
 
 
 class FloorThreshold(ComparisonFunction):
@@ -11,7 +11,7 @@ class FloorThreshold(ComparisonFunction):
 
     """
 
-    @check_hists
+    @check_hists1
     def compare(self, data_hist, ref_hist, floor):
         """Reference histogram is ignored."""
 
@@ -26,7 +26,7 @@ class CeilingThreshold(ComparisonFunction):
 
     """
 
-    @check_hists
+    @check_hists1
     def compare(self, data_hist, ref_hist, ceiling):
         """Reference histogram is ignored."""
 
@@ -46,7 +46,7 @@ class MeanWidthDiffRef(ComparisonFunction):
 
     """
 
-    @check_hists
+    @check_hists2
     def compare(self, data_hist, ref_hist, tolerance):
         dmean = abs(data_hist.GetMean() - ref_hist.GetMean())
         dwidth = abs(data_hist.GetRMS() - ref_hist.GetRMS())
@@ -76,7 +76,7 @@ class ZeroCentredBandRef(ComparisonFunction):
 
     """
 
-    @check_hists
+    @check_hists2
     def compare(self, data_hist, ref_hist, abs_band):
         """If abs_band is True, reference histogram is ignored."""
 
