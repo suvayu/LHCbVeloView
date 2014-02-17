@@ -4,6 +4,7 @@ import ROOT
 
 from veloview.analysis.compfunctions.interface import ComparisonFunction
 from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
+from veloview.core.conf.env.evaluation_dictionary import FUNC_KEY, ARG_KEY
 from veloview.core.errors.exceptions import DescriptionDictionaryKeyException, \
     ComparisonFunctionNotFoundInEvalDictException, ComparisonFunctionNotCollableException
 
@@ -40,7 +41,7 @@ class Combiner(object):
 
         self.desc_dict = self.clip_desc_dict(desc_dict)
         self.children = self.create_children()
-        self.compare_func = self.get_comparison_func(eval_dict)
+        self.compare_func, self.compare_arg = self.get_comparison_data()
 
     def __str__(self):
         """Creates a string representation of a combiner for logging purposes"""
@@ -99,18 +100,29 @@ class Combiner(object):
                 for combiner_name in self.desc_dict.keys()
                 if "Combiner" in combiner_name and combiner_name != self.name]
 
-    def get_comparison_func(self, eval_dict):
+    def get_comparison_data(self):
         """Gets a comparison function for leaf combiners"""
         if not self.children:
-            if self.name in eval_dict:
-                function = eval_dict[self.name].compare
-                if not callable(function):
-                    raise ComparisonFunctionNotCollableException(self.name, function.__name__)
-                else:
-                    return function
-
+            if self.name in self.eval_dict:
+                return self.get_compare_func(), self.get_compare_arg()
             else:
                 raise ComparisonFunctionNotFoundInEvalDictException(self.name)
+        else:
+            return None, None
+
+    def get_compare_func(self):
+        function = self.eval_dict[self.name][FUNC_KEY].compare
+        if not callable(function):
+            raise ComparisonFunctionNotCollableException(self.name, function.__name__)
+        else:
+            return function
+
+    def get_compare_arg(self):
+        combiner_ed = self.eval_dict[self.name]
+        arg = None
+        if ARG_KEY in combiner_ed:
+            arg = combiner_ed[ARG_KEY]
+        return arg
 
     def evaluate(self):
         """Evaluates leaves and branches"""
@@ -128,7 +140,7 @@ class Combiner(object):
             data_file, ref_file = self.detect_zombies(data_file, ref_file)
 
             data_hist, ref_hist = self.get_histos(data_file, ref_file)
-            self.results = self.compare_func(data_hist, ref_hist)
+            self.results = self.compare_func(data_hist, ref_hist, self.compare_arg)
             #self.results = self.update_with_expected_state(result)  # TODO Uncomment when update_with-expected_state will be implemented
             #self.summary_data = self.get_summary_data_from_hist(data_hist)  # TODO Uncomment when get_summary_data_from_hist will be implemented
 
