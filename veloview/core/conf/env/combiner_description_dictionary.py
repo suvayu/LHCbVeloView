@@ -94,3 +94,6 @@ EXAMPLE_COMBINER_DESCRIPTION_DICTIONARY = {
                                 create_leaf_dict_with_path(occupancy_spectrum_hist_path, occupancy_spectrum_hist_name)),
     }
 }
+
+if __name__ == "__main__":
+    print EXAMPLE_COMBINER_DESCRIPTION_DICTIONARY
