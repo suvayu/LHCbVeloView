@@ -13,7 +13,13 @@ class FloorThreshold(ComparisonFunction):
 
     @check_hists1
     def compare(self, data_hist, ref_hist, floor):
-        """Reference histogram is ignored."""
+        """Reference histogram is ignored.
+
+        data_hist -- data histogram
+        ref_hist  -- reference histogram (ignored)
+        floor     -- floor threshold
+
+        """
 
         if minimum(data_hist) > floor:
             return self.create_final_dict(Score(100), ERROR_LEVELS.OK)
@@ -28,7 +34,13 @@ class CeilingThreshold(ComparisonFunction):
 
     @check_hists1
     def compare(self, data_hist, ref_hist, ceiling):
-        """Reference histogram is ignored."""
+        """Reference histogram is ignored.
+
+        data_hist -- data histogram
+        ref_hist  -- reference histogram (ignored)
+        ceiling   -- ceiling threshold
+
+        """
 
         if maximum(data_hist) < ceiling:
             return self.create_final_dict(Score(100), ERROR_LEVELS.OK)
@@ -39,7 +51,7 @@ class CeilingThreshold(ComparisonFunction):
 class MeanWidthDiffRef(ComparisonFunction):
     """Check the mean and width w.r.t. reference.
 
-    The all comparisons are done with respect to
+    All comparisons are done with respect to
     tolerance*ref_hist.GetRMS(), where tolerance is a fraction smaller
     than unity.  Weights associated to each comparison: mean - 70%,
     width - 30%.
@@ -48,6 +60,12 @@ class MeanWidthDiffRef(ComparisonFunction):
 
     @check_hists2
     def compare(self, data_hist, ref_hist, tolerance):
+        """
+        data_hist -- data histogram
+        ref_hist  -- reference histogram
+        tolerance -- tolerance (in fraction)
+
+        """
         dmean = abs(data_hist.GetMean() - ref_hist.GetMean())
         dwidth = abs(data_hist.GetRMS() - ref_hist.GetRMS())
         score = 70.0 * (dmean < abs(tolerance*ref_hist.GetRMS()))
@@ -78,7 +96,13 @@ class ZeroCentredBandRef(ComparisonFunction):
 
     @check_hists2
     def compare(self, data_hist, ref_hist, abs_band):
-        """If abs_band is True, reference histogram is ignored."""
+        """If abs_band is evaluates to True, reference histogram is ignored.
+
+        data_hist -- data histogram
+        ref_hist  -- reference histogram (ignored when abs_band present)
+        abs_band  -- one-sided tolerance band width (sigma/RMS)
+
+        """
 
         if not abs_band:            # 3*sigma tolerance band from reference
             abs_band = 3*ref_hist.GetRMS()
