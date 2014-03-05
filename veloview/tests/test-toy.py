@@ -18,109 +18,109 @@ from veloview.core.conf.env.combiner_description_dictionary import (STANDARD_BRA
                                                                     STANDARD_LEAF_DICT,
                                                                     merge_dicts,
                                                                     create_leaf_dict_with_path)
+from veloview.analysis.score_manipulation import ERROR_LEVELS
+# aliases
+OK = ERROR_LEVELS.OK
+WARNING = ERROR_LEVELS.WARNING
+ERROR = ERROR_LEVELS.ERROR
 
 from ROOT import TFile, TH1D, TF1
 from math import sqrt
 import unittest
 
 
+def tearDownModule():
+    for f in ['/tmp/fdata.root', '/tmp/fref.root']:
+        if os.path.exists(f):
+            os.remove(f)
+
+
 class TestCombinersWToys(unittest.TestCase):
 
     def setUp(self):
+        """Create dictionaries and ROOT files needed for testing."""
+
         self.rfdata = TFile('/tmp/fdata.root', 'recreate')
         self.rfref = TFile('/tmp/fref.root', 'recreate')
 
-        frefl, fdatal, comp_fns = [], [], []
+        fns = {}
+        fns['pol0'] = get_simple_fns('5', (-10, 10))
+        fns['gauss01'] = get_fns('TMath::Gaus', (0, 1), (-10, 10))
+        fns['gauss02'] = get_fns('TMath::Gaus', (0, 2), (-10, 10))
+        fns['gauss03'] = get_fns('TMath::Gaus', (0, 3), (-10, 10))
+        fns['gauss12'] = get_fns('TMath::Gaus', (1, 2), (-10, 10))
+        fns['landau03'] = get_fns('TMath::Landau', (0, 3), (-10, 10))
 
-        # fns = {}
-        # fns['poly'] = get_simple_fns('pol0', (-10, 10)) # for basic threshold checks
-        # fns['gauss01'] = get_fns('TMath::Gaus', (0, 1), (-10, 10))
-        # fns['gauss02'] = get_fns('TMath::Gaus', (0, 2), (-10, 10))
-        # fns['gauss03'] = get_fns('TMath::Gaus', (0, 3), (-10, 10))
-        # fns['gauss12'] = get_fns('TMath::Gaus', (1, 2), (-10, 10))
+        N = 10000
+        rho = N/100.0
+        comp_fns = []
+        comp_fns.append((FloorThreshold(), rho - 5*sqrt(rho), 'pol0', 'pol0', OK, 'FT1'))    # 5 sigma
+        comp_fns.append((FloorThreshold(), rho - sqrt(rho), 'pol0', 'pol0', ERROR, 'FT2'))   # 1 sigma
+        comp_fns.append((CeilingThreshold(), rho + 5*sqrt(rho), 'pol0', 'pol0', OK, 'CT1'))  # 5 sigma
+        comp_fns.append((CeilingThreshold(), rho + sqrt(rho), 'pol0', 'pol0', ERROR, 'CT2')) # 1 sigma
+        comp_fns.append((MeanWidthDiffRef(), 0.1, 'gauss03', 'gauss03', OK, 'MWDR1'))
+        comp_fns.append((MeanWidthDiffRef(), 0.1, 'gauss03', 'gauss12', ERROR, 'MWDR2'))
+        comp_fns.append((ZeroCentredBandRef(), 5, 'gauss01', 'gauss01', OK, 'ZCBR1'))        # 5 sigma
+        comp_fns.append((ZeroCentredBandRef(), 3, 'gauss01', 'gauss02', ERROR, 'ZCBR2'))     # 3 sigma
+        # comp_fns.append( , , 'landau03', 'landau03', )
 
-        frefl.append(('fn-pol0', TF1('fn-pol0', '5', -10, 10)))
-        fdatal.append(('fn-pol4', TF1('fn-pol4', '5', -10, 10)))
-        comp_fns.append((FloorThreshold(), 200 - 3*sqrt(200))) # 3 sigma
-
-        frefl.append(('fn-pol1', TF1('fn-pol1', '5', -10, 10)))
-        fdatal.append(('fn-pol5', TF1('fn-pol5', '5', -10, 10)))
-        comp_fns.append((FloorThreshold(), 200 - sqrt(200)))   # 1 sigma
-
-        frefl.append(('fn-pol2', TF1('fn-pol2', '5', -10, 10)))
-        fdatal.append(('fn-pol6', TF1('fn-pol6', '5', -10, 10)))
-        comp_fns.append((CeilingThreshold(), 200 + 3*sqrt(200))) # 3 sigma
-
-        frefl.append(('fn-pol3', TF1('fn-pol3', '5', -10, 10)))
-        fdatal.append(('fn-pol7', TF1('fn-pol7', '5', -10, 10)))
-        comp_fns.append((CeilingThreshold(), 200 + sqrt(200))) # 1 sigma
-
-        frefl.append(get_fns('TMath::Gaus', (0, 3), (-10, 10)))
-        fdatal.append(get_fns('TMath::Gaus', (0, 3), (-10, 10)))
-        comp_fns.append((MeanWidthDiffRef(), 0.1))            # 10%
-
-        frefl.append(get_fns('TMath::Gaus', (0, 3), (-10, 10)))
-        fdatal.append(get_fns('TMath::Gaus', (1, 2), (-10, 10)))
-        comp_fns.append((MeanWidthDiffRef(), 0.1))
-
-        frefl.append(get_fns('TMath::Gaus', (0, 1), (-10, 10)))
-        fdatal.append(get_fns('TMath::Gaus', (0, 1), (-10, 10)))
-        comp_fns.append((ZeroCentredBandRef(), 5)) # 5 sigma
-
-        frefl.append(get_fns('TMath::Gaus', (0, 1), (-10, 10)))
-        fdatal.append(get_fns('TMath::Gaus', (0, 2), (-10, 10)))
-        comp_fns.append((ZeroCentredBandRef(), 3)) # 3 sigma
-
-        # frefl.append(get_fns('TMath::Landau', (0, 3), (-10, 10)))
-        # fdatal.append(get_fns('TMath::Landau', (0, 3), (-10, 10)))
-        # comp_fns.append()
-
-        # frefl.append(get_fns('TMath::Landau', (0, 3), (-10, 10)))
-        # fdatal.append(get_fns('TMath::Landau', (0, 3), (-10, 10)))
-        # comp_fns.append()
-
-
-
-        assert(len(frefl) == len(fdatal) == len(comp_fns))
-
-        self.comb_dict = {}
-        self.eval_dict = {}
-        for i in range(len(frefl)):
-            hname = frefl[i][0].replace('fn-', 'hist-', 1)
-            self.comb_dict[frefl[i][0]+'Combiner'] = create_leaf_dict_with_path(hname)
-            self.eval_dict[frefl[i][0]+'Combiner'] = {'Function': comp_fns[i][0], 'Argument': comp_fns[i][1]}
+        comb_dict = {}
+        eval_dict = {}
+        self.results = []
+        for i in comp_fns:
+            name = '{}_{}_{}'.format(i[5], i[2], id(i)) # unique form: <name>_<fn>_<id>
+            hname = 'hist_' + name
+            cname = name + '_Combiner' # should be of the form: *Combiner
+            comb_dict[cname] = create_leaf_dict_with_path(hname)
+            eval_dict[cname] = {'Function': i[0], 'Argument': i[1]}
 
             href = TH1D(hname, '', 100, -10 ,10)
-            href.FillRandom(frefl[i][0], 10000)
+            href.FillRandom(fns[i[2]][0], N)
             self.rfref.WriteTObject(href)
             del href
             hdata = TH1D(hname, '', 100, -10 ,10)
-            hdata.FillRandom(fdatal[i][0], 10000)
+            hdata.FillRandom(fns[i[3]][0], N)
             self.rfdata.WriteTObject(hdata)
             del hdata
 
-        self.comb_dict = {
+            self.results.append((cname, i[4]))
+
+        comb_dict = {
             'MasterCombiner': merge_dicts(
                 {"weight": 1.0, "minWW": 10, "minWE": 25, "minEW": 1, "minEE": 2},
-                self.comb_dict)
+                comb_dict)
         }
+        self.results.append(('MasterCombiner', ERROR))
 
         # close files cleanly
         self.rfdata.Close()
         self.rfref.Close()
 
+        self.mycombiner = Combiner(comb_dict, eval_dict,
+                                   self.rfdata.GetName(), self.rfref.GetName())
+        self.mycombiner.evaluate()
+
     def tearDown(self):
         del self.rfdata
         del self.rfref
-        del self.comb_dict
-        del self.eval_dict
+        del self.mycombiner
 
-    def test_combiner_w_toy(self):
-        mycombiner = Combiner(self.comb_dict, self.eval_dict,
-                              self.rfdata.GetName(), self.rfref.GetName())
-        mycombiner.evaluate()
-        # print mycombiner
-        self.assertTrue(mycombiner)
+    def for_each_combiner(self, combiner, res):
+        """Call test on each node/leaf of combiner."""
+
+        if combiner.children:
+            for child_combiner in combiner.children:
+                self.for_each_combiner(child_combiner, res)
+        # append my result
+        res.append((combiner.name, combiner.results['lvl']))
+        return res
+
+    def test_combiners(self):
+        """Test all combiners recursively"""
+
+        res = self.for_each_combiner(self.mycombiner, [])
+        self.maxDiff = None
+        self.assertSequenceEqual(sorted(self.results), sorted(res))
 
 
 if __name__ == '__main__':
