@@ -21,6 +21,22 @@ TNamed.Clone._creates = True
 from uuid import uuid4
 from ROOT import TF1
 
+def get_simple_fns(fname, range_tp, num=1):
+    """Return functions without parameters.
+
+    fname    -- function name as understood by TFormula
+    range_tp -- tuple specifying function range
+    num      -- number of functions to generate
+
+    """
+
+    lst = []
+    for i in range(num):
+        uuidname = 'fn-{}'.format(uuid4())
+        lst.append((uuidname, TF1(uuidname, fname, *range_tp)))
+    if len(lst) == 1: lst = lst[0]
+    return lst
+
 def get_fns(fname, arg_tp, range_tp, num=1):
     """Return named TMath functions.
 
