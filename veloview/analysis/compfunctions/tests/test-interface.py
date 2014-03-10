@@ -47,6 +47,19 @@ class TestInterface(unittest.TestCase):
         result = dummy(self.hdata, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
+    def test_check_binning(self):
+        @check_hists2
+        @check_binning
+        def dummy(data_hist, ref_hist):
+            return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
+        result = dummy(self.hdata, self.href)
+        self.assertEqual(result['lvl'], ERROR_LEVELS.OK)
+        result = dummy(self.hdata, None)
+        self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
+        bad_href = self.href.Rebin(2, 'hdata_cl')
+        result = dummy(self.hdata, bad_href)
+        self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
+
     def test_base_class(self):
         self.assertRaises(NotImplementedError, self.cmpfn.compare,
                           self.hdata, self.href, None)

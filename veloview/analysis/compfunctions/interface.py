@@ -25,6 +25,18 @@ def check_hists2(comparefn):
     return wrapper
 
 
+def check_binning(comparefn):
+    """Decorator for comparison functions, check data and reference histogram binning"""
+    @wraps(comparefn)
+    def wrapper(*args, **kwargs):
+        if args[0].GetNbinsX() == args[1].GetNbinsX():
+            return comparefn(*args, **kwargs)
+        else:
+            # raise ValueError('Histograms with unequal number of bins')
+            return ComparisonFunction().create_error_dict()
+    return wrapper
+
+
 class ComparisonFunction(object):
     """This is an interface for all comparison functions. It mimics a normal function and returns data from the compare
      method written specifficaly for every comparison function."""
