@@ -4,12 +4,10 @@ from veloview.core.conf.env.combiner_description_dictionary import EXAMPLE_COMBI
 from veloview.core.conf.env.evaluation_dictionary import create_eval_dict
 
 
-basic_path = "/home/michal/LHCbVeloView/veloview/examples"  # !!!change path here!!!
 dqmfile = "velodqm.root"
-datafile_path = "{}/{}".format(basic_path, dqmfile)
 
 
 if __name__ == "__main__":
-    comb1 = Combiner(EXAMPLE_COMBINER_DESCRIPTION_DICTIONARY, create_eval_dict(), datafile_path, datafile_path)
+    comb1 = Combiner(EXAMPLE_COMBINER_DESCRIPTION_DICTIONARY, create_eval_dict(), dqmfile, dqmfile)
     comb1.evaluate()
     print comb1
