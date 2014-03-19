@@ -7,7 +7,8 @@ def check_hists1(comparefn):
     """Decorator for comparison functions, check data histogram"""
     @wraps(comparefn)
     def wrapper(*args, **kwargs):
-        if args[0]:
+        # args[0] is self, since comparefn is member of a class
+        if args[1]:
             return comparefn(*args, **kwargs)
         else:
             return ComparisonFunction().create_error_dict()
@@ -18,7 +19,8 @@ def check_hists2(comparefn):
     """Decorator for comparison functions, check both data and reference histogram"""
     @wraps(comparefn)
     def wrapper(*args, **kwargs):
-        if args[0] and args[1]:
+        # args[0] is self, since comparefn is member of a class
+        if args[1] and args[2]:
             return comparefn(*args, **kwargs)
         else:
             return ComparisonFunction().create_error_dict()

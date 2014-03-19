@@ -30,21 +30,23 @@ class TestInterface(unittest.TestCase):
         del self.href
 
     def test_check_hists1(self):
-        @check_hists1
-        def dummy(data_hist, ref_hist):
-            return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
-        result = dummy(self.hdata, None)
+        class dummy_class:
+            @check_hists1
+            def dummy(dummy_self, data_hist, ref_hist):
+                return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
+        result = dummy_class().dummy(self.hdata, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.OK)
-        result = dummy(None, None)
+        result = dummy_class().dummy(None, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_check_hists2(self):
-        @check_hists2
-        def dummy(data_hist, ref_hist):
-            return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
-        result = dummy(self.hdata, self.href)
+        class dummy_class:
+            @check_hists2
+            def dummy(dummy_self, data_hist, ref_hist):
+                return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
+        result = dummy_class().dummy(self.hdata, self.href)
         self.assertEqual(result['lvl'], ERROR_LEVELS.OK)
-        result = dummy(self.hdata, None)
+        result = dummy_class().dummy(self.hdata, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_check_binning(self):
