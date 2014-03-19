@@ -31,7 +31,8 @@ def check_binning(comparefn):
     """Decorator for comparison functions, check data and reference histogram binning"""
     @wraps(comparefn)
     def wrapper(*args, **kwargs):
-        if args[0].GetNbinsX() == args[1].GetNbinsX():
+        # args[0] is self, since comparefn is member of a class
+        if args[2].GetNbinsX() == args[1].GetNbinsX():
             return comparefn(*args, **kwargs)
         else:
             # raise ValueError('Histograms with unequal number of bins')
