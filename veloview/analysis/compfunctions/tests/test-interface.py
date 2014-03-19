@@ -20,54 +20,52 @@ import unittest
 class TestInterface(unittest.TestCase):
 
     def setUp(self):
-        self.cmpfn = ComparisonFunction()
         self.hdata = TH1D('hdata1', '', 100, -10 ,10)
         self.href = TH1D('href1', '', 100, -10, 10)
 
     def tearDown(self):
-        del self.cmpfn
         del self.hdata
         del self.href
 
     def test_check_hists1(self):
-        class dummy_class:
+        class dummy(ComparisonFunction):
             @check_hists1
-            def dummy(dummy_self, data_hist, ref_hist):
-                return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
-        result = dummy_class().dummy(self.hdata, None)
+            def compare(dummy_self, data_hist, ref_hist):
+                return dummy_self.create_final_dict(Score(100), ERROR_LEVELS.OK)
+        result = dummy().compare(self.hdata, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.OK)
-        result = dummy_class().dummy(None, None)
+        result = dummy().compare(None, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_check_hists2(self):
-        class dummy_class:
+        class dummy(ComparisonFunction):
             @check_hists2
-            def dummy(dummy_self, data_hist, ref_hist):
-                return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
-        result = dummy_class().dummy(self.hdata, self.href)
+            def compare(dummy_self, data_hist, ref_hist):
+                return dummy_self.create_final_dict(Score(100), ERROR_LEVELS.OK)
+        result = dummy().compare(self.hdata, self.href)
         self.assertEqual(result['lvl'], ERROR_LEVELS.OK)
-        result = dummy_class().dummy(self.hdata, None)
+        result = dummy().compare(self.hdata, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_check_binning(self):
-        class dummy_class:
+        class dummy(ComparisonFunction):
             @check_hists2
             @check_binning
-            def dummy(dummy_self, data_hist, ref_hist):
-                return self.cmpfn.create_final_dict(Score(100), ERROR_LEVELS.OK)
+            def compare(dummy_self, data_hist, ref_hist):
+                return dummy_self.create_final_dict(Score(100), ERROR_LEVELS.OK)
         # all OK
-        result = dummy_class().dummy(self.hdata, self.href)
+        result = dummy().compare(self.hdata, self.href)
         self.assertEqual(result['lvl'], ERROR_LEVELS.OK)
         # bad binning
         bad_href = self.href.Rebin(2, 'hdata_cl')
-        result = dummy_class().dummy(self.hdata, bad_href)
+        result = dummy().compare(self.hdata, bad_href)
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
         # bad histogram
-        result = dummy_class().dummy(self.hdata, None)
+        result = dummy().compare(self.hdata, None)
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_base_class(self):
-        self.assertRaises(NotImplementedError, self.cmpfn.compare,
+        self.assertRaises(NotImplementedError, ComparisonFunction().compare,
                           self.hdata, self.href, None)
 
 
