@@ -1,3 +1,4 @@
+# coding=utf-8
 """This module will hold complex comparison functions"""
 
 from interface import ComparisonFunction, check_hists2, check_binning
@@ -103,7 +104,20 @@ class KolmogorovSmirnovTest(ComparisonFunction):
 
 
 class Chi2Test(ComparisonFunction):
-    """Chi^2 test.
+    """Do a χ² comparison test between data and reference histograms.
+
+    When χ²/ndf (number of degrees of freedom) ≤ 1, we consider that
+    as an acceptable match.  If we want this precisely, we have to
+    pass either 'chi2' or 'chi2/ndf' (preferred as accounts for empty
+    bins) option.  If no option is passed, a p-value is used to do the
+    comparison.  ROOT calculates this from the cumulative χ²
+    distribution, precisely: 1 - ∫f(χ²,ndf)dχ².  Since the χ²
+    distribution maximum is at (ndf - 2), we assume χ²/ndf = 1
+    corresponds to a p-value of 0.5 approximately.
+
+    χ²/ndf or p-value corresponding to this threshold is mapped to a
+    DQ score of 80, and a perfect match to 100 (OK).  A DQ score below
+    80 is an ERROR.
 
     """
 
@@ -121,19 +135,24 @@ class Chi2Test(ComparisonFunction):
         pvalue_or_chi2 = ref_hist.Chi2Test(data_hist, options)
 
         if options.find('chi2') < 0: # p-value
-            score = Score(pvalue_or_chi2 * 100) # FIXME: is this correct?
-            if pvalue_or_chi2 < 0.8:
+            # p-value remapped such than 0.5 -> 80, 1 -> 100
+            score = Score((pvalue_or_chi2-0.5)*40 + 80.0)
+            # chi^2 distribution peaks at ndf-2.  Since we are using
+            # chi^2/ndf ~ 1 as OK, allow chi^2 pvalue to be up to 0.5
+            # (if we are exact it should actually be a bit less)
+            if pvalue_or_chi2 < 0.5:
                 lvl = ERROR_LEVELS.ERROR
             else:
                 lvl = ERROR_LEVELS.OK
         else:                   # chi2
-            if options.find('chi2/ndf') < 0: # not chi2/ndf
+            if options.find('chi2/ndf') < 0: # chi2
                 ndf = data_hist.GetNbinsX()
                 pvalue_or_chi2 = pvalue_or_chi2/ndf
+            # chi2/ndf = 1 --> Score(80),  0 --> Score(100)
             score = Score(100 - pvalue_or_chi2*20)
-            if pvalue_or_chi2 > 2:
+            if pvalue_or_chi2 > 2: # < Score(60)
                 lvl = ERROR_LEVELS.ERROR
-            elif pvalue_or_chi2 > 1:
+            elif pvalue_or_chi2 > 1: # < Score(80)
                 lvl = ERROR_LEVELS.WARNING
             else:
                 lvl = ERROR_LEVELS.OK

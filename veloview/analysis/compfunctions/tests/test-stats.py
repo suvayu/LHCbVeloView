@@ -46,7 +46,7 @@ class TestComparisons(unittest.TestCase):
         self.assertLess(dqscore['score'], Score(80))
         self.assertNotEqual(dqscore['lvl'], ERROR_LEVELS.OK)
 
-    def test_Chi2Test(self):
+    def test_Chi2Test_pvalue(self):
         cmpfn = Chi2Test()
         dqscore = cmpfn.compare(self.hdata, self.href, '')
         self.assertGreaterEqual(dqscore['score'], Score(80))
@@ -54,6 +54,15 @@ class TestComparisons(unittest.TestCase):
         dqscore = cmpfn.compare(self.hdata_bad, self.href, '')
         self.assertLess(dqscore['score'], Score(80))
         self.assertNotEqual(dqscore['lvl'], ERROR_LEVELS.OK)
+
+    def test_Chi2Test_chi2(self):
+        cmpfn = Chi2Test()
+        dqscore = cmpfn.compare(self.hdata, self.href, 'chi2')
+        self.assertGreaterEqual(dqscore['score'], Score(80))
+        self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
+        dqscore = cmpfn.compare(self.hdata, self.href, 'chi2/ndf')
+        self.assertGreaterEqual(dqscore['score'], Score(80))
+        self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
 
 
 if __name__ == '__main__':
