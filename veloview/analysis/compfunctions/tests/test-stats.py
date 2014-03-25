@@ -36,14 +36,14 @@ class TestComparisons(unittest.TestCase):
         del self.href
         del self.hdata
         del self.hdata_bad
-        
+
     def test_KolmogorovSmirnovTest(self):
         cmpfn = KolmogorovSmirnovTest()
         dqscore = cmpfn.compare(self.hdata, self.href, '')
-        self.assertGreaterEqual(dqscore['score'], Score(80))
+        self.assertGreaterEqual(dqscore['score'], Score(5))
         self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
         dqscore = cmpfn.compare(self.hdata_bad, self.href, '')
-        self.assertLess(dqscore['score'], Score(80))
+        self.assertLess(dqscore['score'], Score(5))
         self.assertNotEqual(dqscore['lvl'], ERROR_LEVELS.OK)
 
     def test_Chi2Test_pvalue(self):

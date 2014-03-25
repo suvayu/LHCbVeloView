@@ -5,77 +5,19 @@ from interface import ComparisonFunction, check_hists2, check_binning
 from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
 
 
-# /**
-#  * Kolmogorov-Smirnov goodness of fit test.
-#  * Max distance b/w distributions
-#  *
-#  * @param parent
-#  * @param test
-#  *
-#  * @return
-#  */
-# Double_t cdfKSDist(const TH1 *parent, const TH1 *test)
-# {
-#   if (parent->GetNbinsX() != test->GetNbinsX()) return -9E20;
-
-#   //Get the KS distance
-#   Double_t sumParent = 0.0, sumTest = 0.0;
-
-#   for (int i = 1; i <= parent->GetNbinsX(); ++i)
-#     {
-#       sumParent += parent->GetBinContent(i);
-#       sumTest += test->GetBinContent(i);
-#     }
-
-#   Double_t sParent = 1/sumParent;
-#   Double_t sTest = 1/sumTest;
-
-#   Double_t rSumParent = 0.0, rSumTest = 0.0, maxDiff = -9E20;
-#   for (int i = 1; i <= parent->GetNbinsX(); ++i)
-#     {
-#       rSumParent += sParent*parent->GetBinContent(i);
-#       rSumTest += sTest*test->GetBinContent(i);
-#       Double_t diff = TMath::Abs(rSumParent-rSumTest);
-#       if (diff > maxDiff) maxDiff = diff;
-#     }
-
-#   return maxDiff;
-# }
-
-
-# /**
-#  * Kolmogorov-Smirnov goodness of fit test with 1000 pseudo experiments.
-#  *
-#  * @param parent
-#  * @param test
-#  *
-#  * @return
-#  */
-# Double_t cdfKS(TH1 *parent, const TH1 *test)
-# {
-#   Double_t ksDist = cdfKSDist(parent,test);
-
-#   //Run the pseudo-experiments
-#   TH1 *peTest = (TH1*)test->Clone("peTest");
-#   peTest->SetDirectory(0); //We'll delete this ourselves at the end
-
-#   int nBigger = 0;
-#   for (int i = 0; i<1000; ++i)
-#     {
-#       peTest->Reset();
-#       peTest->FillRandom(parent,(int)test->Integral());
-#       Double_t ksPEDist = cdfKSDist(parent,peTest);
-#       if (ksPEDist > ksDist) nBigger++;
-#     }
-
-#   delete peTest;
-
-#   return ((Double_t)nBigger)/1000;
-# }
-
-
 class KolmogorovSmirnovTest(ComparisonFunction):
-    """Kolmogorov-Smirnov test.
+    """Kolmogorov-Smirnov comparison between data and reference histograms.
+
+    By default base comparison on probability.  Probability of 0.05 or
+    above are accepted as OK, anything below is flagged as ERROR.  The
+    corresponding score is obtained by remapping the probability to a
+    range of 100 - 0.
+
+    Note this comparison is useful for arbitrary (unspecified)
+    underlying true distributions.  If you know them to be Normal, use
+    Chi2Test instead.
+
+    Note: comparison based on KS distance is not yet implemented.
 
     """
 
@@ -92,8 +34,9 @@ class KolmogorovSmirnovTest(ComparisonFunction):
         KS_prob_or_dist = ref_hist.KolmogorovTest(data_hist, options)
 
         if options.find('m') < 0: # KS probability
-            score = Score((1-abs(KS_prob_or_dist-0.5)) * 100)
-            if KS_prob_or_dist < 0.5: # FIXME: not sure about this condition
+            # probability remapped such than 0.05 -> 5, 1 -> 100
+            score = Score(KS_prob_or_dist * 100)
+            if KS_prob_or_dist < 0.05:
                 lvl = ERROR_LEVELS.ERROR
             else:
                 lvl = ERROR_LEVELS.OK
