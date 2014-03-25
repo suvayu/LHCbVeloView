@@ -104,20 +104,24 @@ class KolmogorovSmirnovTest(ComparisonFunction):
 
 
 class Chi2Test(ComparisonFunction):
-    """Do a χ² comparison test between data and reference histograms.
+    """χ² comparison test between data and reference histograms.
 
-    When χ²/ndf (number of degrees of freedom) ≤ 1, we consider that
-    as an acceptable match.  If we want this precisely, we have to
-    pass either 'chi2' or 'chi2/ndf' (preferred as accounts for empty
-    bins) option.  If no option is passed, a p-value is used to do the
-    comparison.  ROOT calculates this from the cumulative χ²
-    distribution, precisely: 1 - ∫f(χ²,ndf)dχ².  Since the χ²
-    distribution maximum is at (ndf - 2), we assume χ²/ndf = 1
-    corresponds to a p-value of 0.5 approximately.
+    If no option is passed, a p-value is used to do the comparison.
+    ROOT calculates this from the cumulative χ² distribution,
+    precisely: 1 - ∫f(χ²,ndf)dχ² (ndf = number of degrees of freedom).
+    So we accept all p-values ≥ 0.05 (a 2σ deviation).
 
-    χ²/ndf or p-value corresponding to this threshold is mapped to a
-    DQ score of 80, and a perfect match to 100 (OK).  A DQ score below
-    80 is an ERROR.
+    Approximately the above corresponds to χ²/ndf ≤ 2.  If we want to
+    enforce this precisely, we have to pass options 'chi2' or
+    'chi2/ndf' (the latter is preferred, since it accounts for empty
+    bins).
+
+    The threshold χ²/ndf or p-value is mapped to a DQ score of 50 and
+    5 respectively; a perfect match (OK) is 100.  For a p-value based
+    comparison, a DQ score between 5 and 1 is a WARNING, and a score
+    below 1 (i.e. outside 3σ) is an ERROR.  Similarly for a χ² based
+    comparison, a score between 50 and 25 is a WARNING, and a score
+    below 25 is (χ²/ndf > 3, or 3σ deviation) is an ERROR.
 
     """
 
@@ -135,24 +139,23 @@ class Chi2Test(ComparisonFunction):
         pvalue_or_chi2 = ref_hist.Chi2Test(data_hist, options)
 
         if options.find('chi2') < 0: # p-value
-            # p-value remapped such than 0.5 -> 80, 1 -> 100
-            score = Score((pvalue_or_chi2-0.5)*40 + 80.0)
-            # chi^2 distribution peaks at ndf-2.  Since we are using
-            # chi^2/ndf ~ 1 as OK, allow chi^2 pvalue to be up to 0.5
-            # (if we are exact it should actually be a bit less)
-            if pvalue_or_chi2 < 0.5:
+            # p-value remapped such than 0.05 -> 5, 1 -> 100
+            score = Score(pvalue_or_chi2 * 100)
+            if pvalue_or_chi2 < 0.01: # outside 3 sigma
                 lvl = ERROR_LEVELS.ERROR
+            elif pvalue_or_chi2 < 0.05:
+                lvl = ERROR_LEVELS.WARNING
             else:
                 lvl = ERROR_LEVELS.OK
         else:                   # chi2
             if options.find('chi2/ndf') < 0: # chi2
                 ndf = data_hist.GetNbinsX()
                 pvalue_or_chi2 = pvalue_or_chi2/ndf
-            # chi2/ndf = 1 --> Score(80),  0 --> Score(100)
-            score = Score(100 - pvalue_or_chi2*20)
-            if pvalue_or_chi2 > 2: # < Score(60)
+            # chi2/ndf = 2 --> Score(50),  0 --> Score(100)
+            score = Score(100 - pvalue_or_chi2*25)
+            if pvalue_or_chi2 > 3: # < Score(25)
                 lvl = ERROR_LEVELS.ERROR
-            elif pvalue_or_chi2 > 1: # < Score(80)
+            elif pvalue_or_chi2 > 2: # < Score(50)
                 lvl = ERROR_LEVELS.WARNING
             else:
                 lvl = ERROR_LEVELS.OK

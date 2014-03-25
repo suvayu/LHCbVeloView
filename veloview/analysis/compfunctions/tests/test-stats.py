@@ -49,19 +49,19 @@ class TestComparisons(unittest.TestCase):
     def test_Chi2Test_pvalue(self):
         cmpfn = Chi2Test()
         dqscore = cmpfn.compare(self.hdata, self.href, '')
-        self.assertGreaterEqual(dqscore['score'], Score(80))
+        self.assertGreaterEqual(dqscore['score'], Score(5))
         self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
         dqscore = cmpfn.compare(self.hdata_bad, self.href, '')
-        self.assertLess(dqscore['score'], Score(80))
+        self.assertLess(dqscore['score'], Score(5))
         self.assertNotEqual(dqscore['lvl'], ERROR_LEVELS.OK)
 
     def test_Chi2Test_chi2(self):
         cmpfn = Chi2Test()
         dqscore = cmpfn.compare(self.hdata, self.href, 'chi2')
-        self.assertGreaterEqual(dqscore['score'], Score(80))
+        self.assertGreaterEqual(dqscore['score'], Score(50))
         self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
         dqscore = cmpfn.compare(self.hdata, self.href, 'chi2/ndf')
-        self.assertGreaterEqual(dqscore['score'], Score(80))
+        self.assertGreaterEqual(dqscore['score'], Score(50))
         self.assertEqual(dqscore['lvl'], ERROR_LEVELS.OK)
 
 
