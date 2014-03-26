@@ -13,7 +13,7 @@ else:
 
 from veloview import (Combiner, FloorThreshold, CeilingThreshold,
                       MeanWidthDiffRef, AbsoluteBandRef, ZeroCentredBandRef)
-from veloview.analysis.compfunctions.rootutils import get_simple_fns, get_fns
+from veloview.analysis.compfunctions import get_simple_fns, get_fns
 from veloview.core.conf.env.combiner_description_dictionary import (STANDARD_BRANCH_DICT,
                                                                     STANDARD_LEAF_DICT,
                                                                     merge_dicts,
