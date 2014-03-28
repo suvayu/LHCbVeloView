@@ -4,7 +4,11 @@ from functools import wraps
 
 
 def check_hists1(comparefn):
-    """Decorator for comparison functions, check data histogram"""
+    """Decorator for comparison functions.
+
+    Check data histogram
+
+    """
     @wraps(comparefn)
     def wrapper(*args, **kwargs):
         # args[0] is self, since comparefn is member of a class
@@ -16,7 +20,11 @@ def check_hists1(comparefn):
 
 
 def check_hists2(comparefn):
-    """Decorator for comparison functions, check both data and reference histogram"""
+    """Decorator for comparison functions.
+
+    Check both data and reference histogram
+
+    """
     @wraps(comparefn)
     def wrapper(*args, **kwargs):
         # args[0] is self, since comparefn is member of a class
@@ -28,12 +36,19 @@ def check_hists2(comparefn):
 
 
 def check_binning(comparefn):
-    """Decorator for comparison functions, check data and reference histogram binning"""
+    """Decorator for comparison functions.
+
+    Check data and reference histogram binning
+
+    """
     @wraps(comparefn)
     def wrapper(*args, **kwargs):
         # args[0] is self, since comparefn is member of a class
         if args[2].GetNbinsX() == args[1].GetNbinsX():
             return comparefn(*args, **kwargs)
+            # FIXME: this check is incomplete, bin boundaries can also
+            # be different: see TH1::CheckConsistency() (cannot use
+            # this though, protected member)
         else:
             # raise ValueError('Histograms with unequal number of bins')
             return ComparisonFunction().create_error_dict()
