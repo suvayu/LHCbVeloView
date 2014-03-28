@@ -2,12 +2,11 @@
 
 from interface import ComparisonFunction, check_hists1, check_hists2
 from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
-
-from rootutils import minimum, maximum, frac_above_threshold, frac_below_threshold
+from rootutils import maximum, min_skip_empty, frac_above_threshold, frac_below_threshold
 
 
 class FloorThreshold(ComparisonFunction):
-    """Check if mean is above threshold.
+    """Check if any bin is below threshold.
 
     """
 
@@ -21,14 +20,14 @@ class FloorThreshold(ComparisonFunction):
 
         """
 
-        if minimum(data_hist) > floor:
+        if min_skip_empty(data_hist) > floor:
             return self.create_final_dict(Score(100), ERROR_LEVELS.OK)
         else:
             return self.create_final_dict(Score(0), ERROR_LEVELS.ERROR)
 
 
 class CeilingThreshold(ComparisonFunction):
-    """Check if mean is below threshold.
+    """Check if any bin is above threshold.
 
     """
 

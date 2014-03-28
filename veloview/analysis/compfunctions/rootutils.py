@@ -77,6 +77,18 @@ def minmax(hist):
     """Return a tuple with minimum and maximum (ignores overrides)."""
     return (minimum(hist), maximum(hist))
 
+def max_skip_empty(hist):
+    """Return the maximum content skipping empty bins."""
+    bincs = [ hist.GetBinContent(i) for i in range(hist.GetNbinsX()+1)
+              if hist.GetBinContent(i) != 0 ]
+    return max(bincs)
+
+def min_skip_empty(hist):
+    """Return the minimum content skipping empty bins."""
+    bincs = [ hist.GetBinContent(i) for i in range(hist.GetNbinsX()+1)
+              if hist.GetBinContent(i) != 0 ]
+    return min(bincs)
+
 def frac_above_threshold(hist, threshold):
     """Return fraction above threshold."""
     tbin = hist.FindBin(threshold)
