@@ -1,3 +1,4 @@
+# coding=utf-8
 """This module will hold complex comparison functions"""
 
 from interface import ComparisonFunction, check_hists1, check_hists2
@@ -50,10 +51,12 @@ class CeilingThreshold(ComparisonFunction):
 class MeanWidthDiffRef(ComparisonFunction):
     """Check the mean and width w.r.t. reference.
 
-    All comparisons are done with respect to
-    tolerance*ref_hist.GetRMS(), where tolerance is a fraction smaller
-    than unity.  Weights associated to each comparison: mean - 70%,
-    width - 30%.
+    All comparisons are done with respect to the reference histogram
+    RMS.  A fluctuation of 30% of RMS is allowed for the mean.  For
+    the width (RMS) a fluctuation of tolerance*RMS is acceptable.
+    Tolerance is a fraction smaller than unity.
+
+    Weights associated to each comparison: mean - 70%, width - 30%.
 
     """
 
@@ -67,7 +70,7 @@ class MeanWidthDiffRef(ComparisonFunction):
         """
         dmean = abs(data_hist.GetMean() - ref_hist.GetMean())
         dwidth = abs(data_hist.GetRMS() - ref_hist.GetRMS())
-        score = 70.0 * (dmean < abs(tolerance*ref_hist.GetRMS()))
+        score = 70.0 * (dmean < abs(0.3*ref_hist.GetRMS()))
         score += 30.0 * (dwidth < abs(tolerance*ref_hist.GetRMS()))
         if score > 70.0:        # both passes: 100
             level = ERROR_LEVELS.OK
