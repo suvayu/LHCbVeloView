@@ -60,7 +60,11 @@ class MeanWidthDiffRef(ComparisonFunction):
     the width (RMS) a fluctuation of tolerance*RMS is acceptable.
     Tolerance is a fraction smaller than unity.
 
-    Weights associated to each comparison: mean - 70%, width - 30%.
+    Results of each comparison is treated as a boolean.  They are
+    weighted and combined to give the final DQ score.  The weights
+    are: mean - 70%, width - 30%.  A score > 70 is OK, >= 30 & < 70 is
+    a WARNING, and anything else is an ERROR.  This scheme corresponds
+    to passing both comparisons, one of the two, or none.
 
     """
 
