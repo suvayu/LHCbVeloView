@@ -138,5 +138,5 @@ if __name__ == '__main__':
     hdr_fmt = '='*5 + '{0:^{width}}' + '='*5
     print hdr_fmt.format('TestAvgHistCombiners', width=40)
     from logging import basicConfig, DEBUG, INFO, WARNING
-    basicConfig(format='%(levelname)s:%(module)s: %(message)s', level=DEBUG)
+    basicConfig(format='%(levelname)s:%(module)s: %(message)s', level=WARNING)
     unittest.main()
