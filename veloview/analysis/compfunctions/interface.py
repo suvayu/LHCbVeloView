@@ -1,6 +1,8 @@
 """Interface for the comparison functions"""
 from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
 from functools import wraps
+from logging import getLogger, warning
+logger = getLogger(__name__)
 
 
 def check_hists1(comparefn):
@@ -15,6 +17,7 @@ def check_hists1(comparefn):
         if args[1]:
             return comparefn(*args, **kwargs)
         else:
+            warning('Bad data histogram: {}'.format(args[1]))
             return ComparisonFunction().create_error_dict()
     return wrapper
 
@@ -31,6 +34,7 @@ def check_hists2(comparefn):
         if args[1] and args[2]:
             return comparefn(*args, **kwargs)
         else:
+            warning('Bad histogram, data: {}, ref: {}'.format(args[1], args[2]))
             return ComparisonFunction().create_error_dict()
     return wrapper
 
@@ -50,6 +54,7 @@ def check_binning(comparefn):
             # be different: see TH1::CheckConsistency() (cannot use
             # this though, protected member)
         else:
+            warning('Histograms with different number of bins.')
             # raise ValueError('Histograms with unequal number of bins')
             return ComparisonFunction().create_error_dict()
     return wrapper

@@ -4,6 +4,8 @@
 from interface import ComparisonFunction, check_hists1, check_hists2
 from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
 from rootutils import maximum, min_skip_empty, frac_above_threshold, frac_below_threshold
+from logging import debug, getLogger
+logger = getLogger(__name__)
 
 
 class FloorThreshold(ComparisonFunction):
@@ -21,6 +23,7 @@ class FloorThreshold(ComparisonFunction):
 
         """
 
+        debug('Min: {}'.format(min_skip_empty(data_hist)))
         if min_skip_empty(data_hist) > floor:
             return self.create_final_dict(Score(100), ERROR_LEVELS.OK)
         else:
@@ -42,6 +45,7 @@ class CeilingThreshold(ComparisonFunction):
 
         """
 
+        debug('Max: {}'.format(maximum(data_hist)))
         if maximum(data_hist) < ceiling:
             return self.create_final_dict(Score(100), ERROR_LEVELS.OK)
         else:
@@ -78,6 +82,7 @@ class MeanWidthDiffRef(ComparisonFunction):
             level = ERROR_LEVELS.WARNING
         else:                   # both fails: 0
             level = ERROR_LEVELS.ERROR
+        debug('score: {}, level: {}'.format(score, level))
         return self.create_final_dict(Score(score), level)
 
 
@@ -109,8 +114,11 @@ class ZeroCentredBandRef(ComparisonFunction):
         if not abs_band:            # 3*sigma tolerance band from reference
             abs_band = 3*ref_hist.GetRMS()
         abs_band = abs(abs_band)    # force +ve definite band
-        frac_outside = frac_above_threshold(data_hist, abs_band) \
-                       + frac_below_threshold(data_hist, -abs_band)
+        frac_above = frac_above_threshold(data_hist, abs_band)
+        frac_below = frac_below_threshold(data_hist, -abs_band)
+        frac_outside = frac_above + frac_below
+        debug('Fraction outside: {}, above: {}, below: {}'.
+              format(frac_outside, frac_above, frac_below))
         if frac_outside > 0.01:
             return self.create_final_dict(Score(0), ERROR_LEVELS.ERROR)
         else:
