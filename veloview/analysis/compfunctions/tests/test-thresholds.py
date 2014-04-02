@@ -88,6 +88,11 @@ class TestThresholds(unittest.TestCase):
         self.assertTrue(dqscore['score'] < Score(30))
         self.assertEqual(dqscore['lvl'], ERROR_LEVELS.ERROR)
 
+    @unittest.skip('Comparison function not implemented')
+    def test_absolute_band(self):
+        """Test absolute band with reference"""
+        pass
+
     def test_zero_centred_ok(self):
         """Test 0-centred band (OK)"""
         fn = get_fns('TMath::Gaus', (0, 1), (-10, 10))
