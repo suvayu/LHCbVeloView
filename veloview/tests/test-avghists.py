@@ -127,7 +127,7 @@ class TestAvgHistCombiners(unittest.TestCase):
         return res
 
     def test_combiners(self):
-        """Test all combiners recursively"""
+        """Test all combiners recursively with real-life monitoring files"""
 
         res = self.for_each_combiner(self.mycombiner, [])
         self.maxDiff = None

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 
 import sys
 import os
@@ -38,6 +39,7 @@ class TestComparisons(unittest.TestCase):
         del self.hdata_bad
 
     def test_KolmogorovSmirnovTest(self):
+        """Test KS comparison"""
         cmpfn = KolmogorovSmirnovTest()
         dqscore = cmpfn.compare(self.hdata, self.href, '')
         self.assertGreaterEqual(dqscore['score'], Score(5))
@@ -47,6 +49,7 @@ class TestComparisons(unittest.TestCase):
         self.assertNotEqual(dqscore['lvl'], ERROR_LEVELS.OK)
 
     def test_Chi2Test_pvalue(self):
+        """Test χ² comparison (pvalue)"""
         cmpfn = Chi2Test()
         dqscore = cmpfn.compare(self.hdata, self.href, '')
         self.assertGreaterEqual(dqscore['score'], Score(5))
@@ -56,6 +59,7 @@ class TestComparisons(unittest.TestCase):
         self.assertNotEqual(dqscore['lvl'], ERROR_LEVELS.OK)
 
     def test_Chi2Test_chi2(self):
+        """Test χ² comparison (χ²)"""
         cmpfn = Chi2Test()
         dqscore = cmpfn.compare(self.hdata, self.href, 'chi2')
         self.assertGreaterEqual(dqscore['score'], Score(50))

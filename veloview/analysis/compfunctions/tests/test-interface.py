@@ -28,6 +28,7 @@ class TestInterface(unittest.TestCase):
         del self.href
 
     def test_check_hists1(self):
+        """Test decorator to check only valid data histogram"""
         class dummy(ComparisonFunction):
             @check_hists1
             def compare(dummy_self, data_hist, ref_hist):
@@ -38,6 +39,7 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_check_hists2(self):
+        """Test decorator to check valid data and reference histograms"""
         class dummy(ComparisonFunction):
             @check_hists2
             def compare(dummy_self, data_hist, ref_hist):
@@ -48,6 +50,7 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_check_binning(self):
+        """Test decorator to check consistent histogram binning"""
         class dummy(ComparisonFunction):
             @check_hists2
             @check_binning
@@ -65,6 +68,7 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(result['lvl'], ERROR_LEVELS.ERROR)
 
     def test_base_class(self):
+        """Test base class"""
         self.assertRaises(NotImplementedError, ComparisonFunction().compare,
                           self.hdata, self.href, None)
 

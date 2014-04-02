@@ -107,7 +107,6 @@ class TestCombinersWToys(unittest.TestCase):
 
     def for_each_combiner(self, combiner, res):
         """Call test on each node/leaf of combiner."""
-
         if combiner.children:
             for child_combiner in combiner.children:
                 self.for_each_combiner(child_combiner, res)
@@ -116,8 +115,7 @@ class TestCombinersWToys(unittest.TestCase):
         return res
 
     def test_combiners(self):
-        """Test all combiners recursively"""
-
+        """Test all combiners recursively with toy monitoring files"""
         res = self.for_each_combiner(self.mycombiner, [])
         self.maxDiff = None
         self.assertSequenceEqual(sorted(self.results), sorted(res))
