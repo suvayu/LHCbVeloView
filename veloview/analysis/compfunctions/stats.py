@@ -3,6 +3,8 @@
 
 from interface import ComparisonFunction, check_hists2, check_binning
 from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
+from logging import debug, getLogger
+logger = getLogger(__name__)
 
 
 class KolmogorovSmirnovTest(ComparisonFunction):
@@ -25,7 +27,7 @@ class KolmogorovSmirnovTest(ComparisonFunction):
     def compare(self, data_hist, ref_hist, options=''):
         """
         data_hist -- data histogram
-        ref_hist  -- reference histogram (ignored)
+        ref_hist  -- reference histogram
         options   -- options for TH1::KolmogorovTest()
 
         """
@@ -33,15 +35,24 @@ class KolmogorovSmirnovTest(ComparisonFunction):
         options = options.lower()
         KS_prob_or_dist = ref_hist.KolmogorovTest(data_hist, options)
 
+        if (not options) or options == '':
+            _msg = 'probability'
+        elif options.find('m'):
+            _msg = 'distance'
+        debug('{}: {}'.format(_msg, KS_prob_or_dist))
+
         if options.find('m') < 0: # KS probability
             # probability remapped such than 0.05 -> 5, 1 -> 100
-            score = Score(KS_prob_or_dist * 100)
+            score = KS_prob_or_dist * 100
+            debug('raw score: {}'.format(score))
+            score = Score(score)
             if KS_prob_or_dist < 0.05:
                 lvl = ERROR_LEVELS.ERROR
             else:
                 lvl = ERROR_LEVELS.OK
         else:
             raise NotImplementedError('KS distance option not implemented yet')
+        debug('level: {}'.format(lvl))
 
         return self.create_final_dict(score, lvl)
 
@@ -81,9 +92,17 @@ class Chi2Test(ComparisonFunction):
         options = options.lower()
         pvalue_or_chi2 = ref_hist.Chi2Test(data_hist, options)
 
+        if (not options) or options == '':
+            _msg = 'pvalue'
+        else:
+            _msg = options
+        debug('{}: {}'.format(_msg, pvalue_or_chi2))
+
         if options.find('chi2') < 0: # p-value
             # p-value remapped such than 0.05 -> 5, 1 -> 100
-            score = Score(pvalue_or_chi2 * 100)
+            score = pvalue_or_chi2 * 100
+            debug('raw score: {}'.format(score))
+            score = Score(score)
             if pvalue_or_chi2 < 0.01: # outside 3 sigma
                 lvl = ERROR_LEVELS.ERROR
             elif pvalue_or_chi2 < 0.05:
@@ -94,13 +113,17 @@ class Chi2Test(ComparisonFunction):
             if options.find('chi2/ndf') < 0: # chi2
                 ndf = data_hist.GetNbinsX()
                 pvalue_or_chi2 = pvalue_or_chi2/ndf
+                debug('ndf: {}'.format(ndf))
             # chi2/ndf = 2 --> Score(50),  0 --> Score(100)
-            score = Score(100 - pvalue_or_chi2*25)
+            score = 100 - pvalue_or_chi2*25
+            debug('raw score: {}'.format(score))
+            score = Score(score)
             if pvalue_or_chi2 > 3: # < Score(25)
                 lvl = ERROR_LEVELS.ERROR
             elif pvalue_or_chi2 > 2: # < Score(50)
                 lvl = ERROR_LEVELS.WARNING
             else:
                 lvl = ERROR_LEVELS.OK
-            
+        debug('level: {}'.format(lvl))
+
         return self.create_final_dict(score, lvl)
