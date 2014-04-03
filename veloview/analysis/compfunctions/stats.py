@@ -117,7 +117,10 @@ class Chi2Test(ComparisonFunction):
             # chi2/ndf = 2 --> Score(50),  0 --> Score(100)
             score = 100 - pvalue_or_chi2*25
             debug('raw score: {}'.format(score))
-            score = Score(score)
+            if score > 0:
+                score = Score(score)
+            else:
+                score = Score(0)
             if pvalue_or_chi2 > 3: # < Score(25)
                 lvl = ERROR_LEVELS.ERROR
             elif pvalue_or_chi2 > 2: # < Score(50)
