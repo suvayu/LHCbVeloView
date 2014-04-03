@@ -38,8 +38,8 @@ class TestComparisons(unittest.TestCase):
         del self.hdata
         del self.hdata_bad
 
-    def test_KolmogorovSmirnovTest(self):
-        """Test KS comparison"""
+    def test_KolmogorovSmirnovTest_prob(self):
+        """Test KS comparison (probability)"""
         cmpfn = KolmogorovSmirnovTest()
         dqscore = cmpfn.compare(self.hdata, self.href, '')
         self.assertGreaterEqual(dqscore['score'], Score(5))
@@ -47,6 +47,13 @@ class TestComparisons(unittest.TestCase):
         dqscore = cmpfn.compare(self.hdata_bad, self.href, '')
         self.assertLess(dqscore['score'], Score(5))
         self.assertNotEqual(dqscore['lvl'], ERROR_LEVELS.OK)
+
+    def test_KolmogorovSmirnovTest_dist(self):
+        """Test KS comparison (distance)"""
+        cmpfn = KolmogorovSmirnovTest()
+        # feature not implemented yet
+        self.assertRaises(NotImplementedError, cmpfn.compare,
+                          self.hdata_bad, self.href, 'm')
 
     def test_Chi2Test_pvalue(self):
         """Test χ² comparison (pvalue)"""
