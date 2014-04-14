@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 class KolmogorovSmirnovTest(ComparisonFunction):
     """Kolmogorov-Smirnov comparison between data and reference histograms.
 
-    By default base comparison on probability.  Probability of 0.05 or
+    By default base comparison on probability.  Probability of 0.01 or
     above are accepted as OK, anything below is flagged as ERROR.  The
     corresponding score is obtained by remapping the probability to a
     range of 100 - 0.
@@ -46,7 +46,7 @@ class KolmogorovSmirnovTest(ComparisonFunction):
             score = KS_prob_or_dist * 100
             debug('raw score: {}'.format(score))
             score = Score(score)
-            if KS_prob_or_dist < 0.05:
+            if KS_prob_or_dist < 0.01:
                 lvl = ERROR_LEVELS.ERROR
             else:
                 lvl = ERROR_LEVELS.OK
