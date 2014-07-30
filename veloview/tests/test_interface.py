@@ -5,7 +5,7 @@ import os
 from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
 from veloview.analysis.compfunctions.interface import *
 from ROOT import TH1D
-import unittest2 as unittest
+import unittest
 
 
 class TestInterface(unittest.TestCase):

@@ -12,7 +12,7 @@ WARNING = ERROR_LEVELS.WARNING
 ERROR = ERROR_LEVELS.ERROR
 
 from ROOT import TFile
-import unittest2 as unittest
+import unittest
 from tests.utils import get_avg_hist, get_avg_trend
 
 

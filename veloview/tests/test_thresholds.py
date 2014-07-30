@@ -6,7 +6,7 @@ from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
 from veloview.analysis.compfunctions import *
 from veloview.analysis.compfunctions.rootutils import get_fns
 from ROOT import TH1D
-import unittest2 as unittest
+import unittest
 
 
 class TestThresholds(unittest.TestCase):

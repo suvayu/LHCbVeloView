@@ -26,7 +26,7 @@ ERROR = ERROR_LEVELS.ERROR
 
 from ROOT import TFile, TH1D, TF1
 from math import sqrt
-import unittest2 as unittest
+import unittest
 
 
 def tearDownModule():

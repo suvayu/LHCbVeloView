@@ -1,5 +1,5 @@
 """This module will test the scores_manipulation module"""
-import unittest2 as unittest
+import unittest
 
 from veloview.analysis.score_manipulation import Score
 from veloview.core.errors.exceptions import (
