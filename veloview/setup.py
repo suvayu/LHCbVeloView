@@ -26,7 +26,6 @@ setup(name='veloview',
         'veloview',
         'veloview.analysis',
         'veloview.core',
-        'veloview.data',
         'veloview.examples',
         'veloview.persistency',
         'veloview.ui'
