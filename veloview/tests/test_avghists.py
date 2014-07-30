@@ -1,17 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import os
 
-# fiddle with sys.path so that package is importable
-if __file__.startswith('/'):
-    sys.path.insert(0, os.path.join('/', *__file__.split('/')[:-3]))
-else:
-    __path_to_script__ = __file__.split('/')[:-1]  # test directory
-    __path_to_script__ += ['..', '..'] # package directory parent
-    sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
-
-from veloview import (Combiner, Chi2Test, KolmogorovSmirnovTest)
+from veloview import (Combiner, FloorThreshold, CeilingThreshold,
+                      MeanWidthDiffRef, AbsoluteBandRef, ZeroCentredBandRef)
 from veloview.core.conf.env.combiner_description_dictionary import (merge_dicts,
                                                                     create_leaf_dict_with_path)
 from veloview.analysis.score_manipulation import ERROR_LEVELS
@@ -21,8 +13,8 @@ WARNING = ERROR_LEVELS.WARNING
 ERROR = ERROR_LEVELS.ERROR
 
 from ROOT import TFile
-import unittest
-from testutils import get_avg_hist, get_avg_trend
+import unittest2 as unittest
+from tests.utils import get_avg_hist, get_avg_trend
 
 
 def tearDownModule():
@@ -31,13 +23,13 @@ def tearDownModule():
             os.remove(f)
 
 
-class TestStatsComparisonCombiners(unittest.TestCase):
+class TestAvgHistCombiners(unittest.TestCase):
 
     def setUp(self):
         """Create dictionaries needed by combiners."""
 
-        orfdata = TFile('data/dqm_data.root', 'read')
-        orfref = TFile('data/dqm_ref.root', 'read')
+        orfdata = TFile('veloview/data/dqm_data.root', 'read')
+        orfref = TFile('veloview/data/dqm_ref.root', 'read')
 
         # valid ROOT files
         assert(not orfdata.IsZombie())
@@ -46,37 +38,43 @@ class TestStatsComparisonCombiners(unittest.TestCase):
         self.rfdata = TFile('/tmp/fdata.root', 'recreate')
         self.rfref = TFile('/tmp/fref.root', 'recreate')
 
-        # histogram names: folder, old name, new name
+        # histogram recipes: function to call, dir in orig ROOT file,
+        # rest of the arguments for function (orig hist name, new hist
+        # name, other options, etc)
         hist_recipes = [
-            ('Velo/VeloClusterMonitor', '# VELO clusters', 'velo_clusters'),
-            ('Velo/VeloClusterMonitor', '# VELO clusters (zoom)', 'velo_clusters_zoom'),
-            ('Velo/VeloClusterMonitor', 'Cluster size', 'cluster_size')
+            (get_avg_trend, 'Vetra/NoiseMon/ADCCMSuppressed',
+             ('RMSNoise_vs_ChipChannel', 'AvgRMSNoise_trend')),
+            (get_avg_hist, 'Vetra/NoiseMon/ADCCMSuppressed',
+             ('RMSNoise_vs_ChipChannel', 'AvgRMSNoise_all')),
+            (get_avg_hist, 'Vetra/NoiseMon/ADCCMSuppressed',
+             ('RMSNoise_vs_ChipChannel', 'AvgRMSNoise_R', 'r')),
+            (get_avg_hist, 'Vetra/NoiseMon/ADCCMSuppressed',
+             ('RMSNoise_vs_ChipChannel', 'AvgRMSNoise_Phi', 'p')),
+            # (get_avg_hist, 'Vetra/VeloPedestalSubtractorMoni',
+            #  ('Ped_Sub_ADCs_Profile', 'Ped_Sub_ADCs_all'))
         ]
 
-        # comparison fns: fn, options, expected DQ status, histogram
+        # comparison fns: fn, argument, expected DQ status, histogram
         # to compare
         comp_fns = [
-            (KolmogorovSmirnovTest(), '', OK, 0),      # Velo clusters
-            (KolmogorovSmirnovTest(), '', OK, 1),
-            # (KolmogorovSmirnovTest(), '', ERROR, 2), # cluster size
-            (Chi2Test(), '', OK, 0),
-            (Chi2Test(), '', OK, 1),
-            (Chi2Test(), 'chi2/ndf', OK, 0),
-            (Chi2Test(), 'chi2/ndf', OK, 1),
-            # (Chi2Test(), '', ERROR, 2),
-            # (Chi2Test(), 'chi2/ndf', ERROR, 2)
+            (FloorThreshold(), 1.5, OK, 0), # avg noise trend
+            (CeilingThreshold(), 2.5, OK, 0),
+            (MeanWidthDiffRef(), 0.1, OK, 1), # avg all TELL1 noise
+            (MeanWidthDiffRef(), 0.1, OK, 2), # avg R TELL1 noise
+            (MeanWidthDiffRef(), 0.1, OK, 3), # avg Phi TELL1 noise
+            # (ZeroCentredBandRef(), 5, OK, 4), # pedestal subtracted ADC
         ]
-        # FIXME: Does not work with cluster size because of really
-        # small errors; see commit message for detailed explanation.
+
+        # FIXME: add uniformity tests, maybe in different test file
 
         comb_dict = {}
         eval_dict = {}
         self.results = []
         for i in comp_fns:
-            # last element is histogram name index
-            hname = hist_recipes[i[-1]][-1]
+            # i[] - recipe #, last element in recipe, 2nd argument
+            hname = hist_recipes[i[-1]][-1][1]
             # should be of the form: *Combiner
-            cname = '{}_{}_{}_Combiner'.format(hname, type(i[0]).__name__, i[1])
+            cname = '{}_{}_Combiner'.format(hname, type(i[0]).__name__)
             comb_dict[cname] = create_leaf_dict_with_path(hname)
             eval_dict[cname] = {'Function': i[0], 'Argument': i[1]}
             # expected result
@@ -91,12 +89,10 @@ class TestStatsComparisonCombiners(unittest.TestCase):
 
         # histograms: make, save, and cleanup
         for recipe in hist_recipes:
-            href = orfref.Get('/'.join(recipe[:-1]))
-            href.SetName(recipe[-1])
+            href = recipe[0](orfref.GetDirectory(recipe[1]), *recipe[2])
             self.rfref.WriteTObject(href)
             del href
-            hdata = orfdata.Get('/'.join(recipe[:-1]))
-            hdata.SetName(recipe[-1])
+            hdata = recipe[0](orfdata.GetDirectory(recipe[1]), *recipe[2])
             self.rfdata.WriteTObject(hdata)
             del hdata
         self.rfref.Close()
@@ -131,7 +127,7 @@ class TestStatsComparisonCombiners(unittest.TestCase):
 
 if __name__ == '__main__':
     hdr_fmt = '='*5 + '{0:^{width}}' + '='*5
-    print hdr_fmt.format('TestStatsComparisonCombiners', width=40)
+    print hdr_fmt.format('TestAvgHistCombiners', width=40)
     from logging import basicConfig, DEBUG, INFO, WARNING
     basicConfig(format='%(levelname)s:%(module)s: %(message)s', level=WARNING)
     unittest.main()

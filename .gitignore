@@ -12,3 +12,5 @@
 *.root
 *.log
 .deps
+*.egg-info
+.tox
