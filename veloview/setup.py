@@ -25,7 +25,13 @@ setup(name='veloview',
     packages=[
         'veloview',
         'veloview.analysis',
+        'veloview.analysis.compfunctions',
         'veloview.core',
+        'veloview.core.conf',
+        'veloview.core.conf.env',
+        'veloview.core.conf.env.examples',
+        'veloview.core.errors',
+        'veloview.core.tools',
         'veloview.examples',
         'veloview.persistency',
         'veloview.ui'
