@@ -2,6 +2,17 @@
 
 import os
 
+if __name__ == '__main__':
+    import sys
+
+    # fiddle with sys.path so that package is importable
+    if __file__.startswith('/'):
+        sys.path.insert(0, os.path.join('/', *__file__.split('/')[:-3]))
+    else:
+        __path_to_script__ = __file__.split('/')[:-1]  # test directory
+        __path_to_script__ += ['..'] # package directory parent
+        sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
+
 from veloview import (Combiner, FloorThreshold, CeilingThreshold,
                       MeanWidthDiffRef, AbsoluteBandRef, ZeroCentredBandRef)
 from veloview.core.conf.env.combiner_description_dictionary import (merge_dicts,
