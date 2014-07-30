@@ -39,6 +39,9 @@ class KolmogorovSmirnovTest(ComparisonFunction):
             _msg = 'probability'
         elif options.find('m'):
             _msg = 'distance'
+        else:
+            # FIXME is this a valid `else` message?
+            _msg = 'unknown'
         debug('{}: {}'.format(_msg, KS_prob_or_dist))
 
         if options.find('m') < 0: # KS probability
