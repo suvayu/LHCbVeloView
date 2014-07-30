@@ -14,7 +14,6 @@ AUTHORS = [
     'Michal Wysokinski'
 ]
 
-
 setup(name='veloview',
     version='0.0.1',
     description='A framework for analysing data from the LHCb Vertex Locator.',
@@ -23,7 +22,15 @@ setup(name='veloview',
     author_email='marco.gersabeck@cern.ch',
     url='https://git.cern.ch/web/LHCbVeloView.git',
     long_description=read('README.md'),
-    packages=['veloview'],
+    packages=[
+        'veloview',
+        'veloview.analysis',
+        'veloview.core',
+        'veloview.data',
+        'veloview.examples',
+        'veloview.persistency',
+        'veloview.ui'
+    ],
     test_suite='tests',
     tests_require=['unittest2']
 )
