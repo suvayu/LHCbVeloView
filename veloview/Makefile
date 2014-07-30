@@ -1,4 +1,4 @@
-TESTS := $(wildcard tests/test-*.py)
+TESTS := $(wildcard tests/test_*.py)
 
 .PHONY:	files tests $(TESTS:tests/%.py=%)
 
@@ -13,7 +13,7 @@ test-dqm:	files
 $(TESTS:tests/%.py=%):%:	tests/%.py
 	$^ $(OPTS)
 
-$(TESTS:tests/%.py=debug-%):debug-%:	tests/%.py
+$(TESTS:tests/%.py=debug_%):debug_%:	tests/%.py
 	python -m pdb $^
 
 files:	$(wildcard data/dqm_*.root)
