@@ -27,8 +27,8 @@ class TestStatsComparisonCombiners(unittest.TestCase):
     def setUp(self):
         """Create dictionaries needed by combiners."""
 
-        orfdata = TFile('veloview/data/dqm_data.root', 'read')
-        orfref = TFile('veloview/data/dqm_ref.root', 'read')
+        orfdata = TFile('tests/data/dqm_data.root', 'read')
+        orfref = TFile('tests/data/dqm_ref.root', 'read')
 
         # valid ROOT files
         assert(not orfdata.IsZombie())
