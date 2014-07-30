@@ -9,7 +9,17 @@ Usage
 To install the `veloview` module, you can use the [git repository](https://git.cern.ch/web/LHCbVeloView.git).
 
 ```bash
-$ pip install -e https://git.cern.ch/web/LHCbVeloView.git
+$ git clone https://git.cern.ch/reps/LHCbVeloView
+$ cd LHCbVeloView/veloview
+$ python setup.py build
+$ python setup.py install
+```
+
+Ideally we would recommend installation with [`pip`](https://pypi.python.org/pypi/pip), but there is a [bug installing modules in subdirectories](https://github.com/pypa/pip/issues/1600) which, whilst fixed in the development branch, has not been fixed in a release (as of pip 1.5.6).
+When the fix is released, you should be able to install `veloview` with
+
+```bash
+$ pip install -e "git+https://git.cern.ch/reps/LHCbVeloView#egg=veloview&subdirectory=veloview"
 ```
 
 To use the module once it's installed, just `import` it.
