@@ -1,4 +1,5 @@
-TESTS := $(wildcard tests/test_*.py)
+TESTS		:= $(wildcard tests/test_*.py)
+DQMTESTS	:= test_avghists test_statcomp
 
 .PHONY:	files tests $(TESTS:tests/%.py=%)
 
@@ -16,5 +17,5 @@ $(TESTS:tests/%.py=%):%:	tests/%.py
 $(TESTS:tests/%.py=debug_%):debug_%:	tests/%.py
 	python -m pdb $^
 
-files:	$(wildcard data/dqm_*.root)
+files:	$(wildcard tests/data/dqm_*.root)
 	@test -n "$^" || { echo Missing ROOT files && false; }
