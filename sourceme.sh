@@ -15,7 +15,7 @@ projdir=$(readlink -f ${BASH_SOURCE})
 projdir=${projdir%/sourceme.sh}
 
 # setup python path
-PYTHONPATH=$projdir:$PYTHONPATH
+PYTHONPATH=$projdir/veloview:$PYTHONPATH
 export PYTHONPATH
 
 # find ROOT
