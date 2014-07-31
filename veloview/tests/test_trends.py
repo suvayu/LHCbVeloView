@@ -16,6 +16,7 @@ if __name__ == '__main__':
 
 from veloview.analysis.compfunctions import (get_fns, Median, Mean,
                                              Variance, MPV, Landau)
+from veloview.analysis.compfunctions.trends import check_hist
 from ROOT import TH1D
 import unittest
 
@@ -30,6 +31,11 @@ class TestTrends(unittest.TestCase):
 
     def tearDown(self):
         del self.hist
+
+    def test_check_hist(self):
+        @check_hist
+        def dummy(hist): return hist
+        self.assertRaises(ValueError, dummy, None)
 
     def test_Mean(self):
         res = Mean(self.hist)
