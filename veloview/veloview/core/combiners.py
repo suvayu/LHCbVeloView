@@ -2,10 +2,10 @@
 
 import ROOT
 
-from veloview.analysis.compfunctions.interface import ComparisonFunction
-from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
-from ..core.evaluation_dictionary import FUNC_KEY, ARG_KEY
-from ..core.exceptions import DescriptionDictionaryKeyException, \
+from .interface import ComparisonFunction
+from .score_manipulation import Score, ERROR_LEVELS
+from .evaluation_dictionary import FUNC_KEY, ARG_KEY
+from .exceptions import DescriptionDictionaryKeyException, \
     ComparisonFunctionNotFoundInEvalDictException, ComparisonFunctionNotCollableException
 
 

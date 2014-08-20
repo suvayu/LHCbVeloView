@@ -1,8 +1,8 @@
 # coding=utf-8
 """This module will hold complex comparison functions"""
 
-from interface import ComparisonFunction, check_hists2, check_binning
-from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
+from ..core.interface import ComparisonFunction, check_hists2, check_binning
+from ..core.score_manipulation import ERROR_LEVELS, Score
 from logging import debug, getLogger
 logger = getLogger(__name__)
 

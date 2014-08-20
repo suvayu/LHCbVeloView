@@ -1,7 +1,7 @@
 """This module contains simple comparison functions"""
 
-from interface import ComparisonFunction
-from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
+from ..core.interface import ComparisonFunction
+from ..core.score_manipulation import ERROR_LEVELS, Score
 
 
 class ReturnAlwaysHighScore(ComparisonFunction):

@@ -1,7 +1,7 @@
 """This module is responsible for score manipulations"""
 
-from ..core.exceptions import AddingScoreException, ScoreAssignmentException, WeightedScoreException
-from ..core.utils.utils import enum
+from .exceptions import AddingScoreException, ScoreAssignmentException, WeightedScoreException
+from ..utils.utils import enum
 
 
 # definition of the error levels for the project

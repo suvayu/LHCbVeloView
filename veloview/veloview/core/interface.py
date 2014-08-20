@@ -1,5 +1,5 @@
 """Interface for the comparison functions"""
-from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
+from .score_manipulation import Score, ERROR_LEVELS
 from functools import wraps
 from logging import getLogger, warning
 logger = getLogger(__name__)

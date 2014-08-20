@@ -1,9 +1,9 @@
 # coding=utf-8
 """This module will hold complex comparison functions"""
 
-from interface import ComparisonFunction, check_hists1, check_hists2
-from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
-from rootutils import maximum, min_skip_empty, frac_above_threshold, frac_below_threshold
+from ..core.interface import ComparisonFunction, check_hists1, check_hists2
+from ..core.score_manipulation import ERROR_LEVELS, Score
+from .rootutils import maximum, min_skip_empty, frac_above_threshold, frac_below_threshold
 from logging import debug, getLogger
 logger = getLogger(__name__)
 
