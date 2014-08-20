@@ -13,10 +13,10 @@ if __name__ == '__main__':
         __path_to_script__ += ['..'] # package directory parent
         sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from veloview import (Combiner, Chi2Test, KolmogorovSmirnovTest)
-from veloview.core.conf.env.combiner_description_dictionary import (merge_dicts,
-                                                                    create_leaf_dict_with_path)
-from veloview.analysis.score_manipulation import ERROR_LEVELS
+from veloview.analysis import (Combiner, Chi2Test, KolmogorovSmirnovTest)
+from veloview.core.combiner_description_dictionary import (merge_dicts,
+                                                           create_leaf_dict_with_path)
+from veloview.core.score_manipulation import ERROR_LEVELS
 # aliases
 OK = ERROR_LEVELS.OK
 WARNING = ERROR_LEVELS.WARNING
@@ -24,7 +24,7 @@ ERROR = ERROR_LEVELS.ERROR
 
 from ROOT import TFile
 import unittest
-from tests.utils import get_avg_hist, get_avg_trend
+from veloview.utils.testutils import get_avg_hist, get_avg_trend
 
 
 def tearDownModule():

@@ -13,9 +13,9 @@ if __name__ == '__main__':
         __path_to_script__ += ['..'] # package directory parent
         sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from veloview.analysis.score_manipulation import ERROR_LEVELS, Score
-from veloview.analysis.compfunctions import *
-from veloview.analysis.compfunctions.rootutils import get_fns
+from veloview.core.score_manipulation import ERROR_LEVELS, Score
+from veloview.analysis import *
+from veloview.utils.rootutils import get_fns
 from ROOT import TH1D
 import unittest
 

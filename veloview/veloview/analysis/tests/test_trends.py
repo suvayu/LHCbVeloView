@@ -14,9 +14,9 @@ if __name__ == '__main__':
         __path_to_script__ += ['..'] # package directory parent
         sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from veloview.analysis.compfunctions import (get_fns, Median, Mean,
-                                             Variance, MPV, Landau)
-from veloview.analysis.compfunctions.trends import check_hist
+from veloview.analysis import (Median, Mean, Variance, MPV, Landau)
+from veloview.analysis.trends import check_hist
+from veloview.utils.rootutils import get_fns
 from ROOT import TH1D
 import unittest
 

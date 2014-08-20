@@ -13,14 +13,15 @@ if __name__ == '__main__':
         __path_to_script__ += ['..'] # package directory parent
         sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from veloview import (Combiner, FloorThreshold, CeilingThreshold,
-                      MeanWidthDiffRef, AbsoluteBandRef, ZeroCentredBandRef)
-from veloview.analysis.compfunctions import get_simple_fns, get_fns
-from veloview.core.conf.env.combiner_description_dictionary import (STANDARD_BRANCH_DICT,
-                                                                    STANDARD_LEAF_DICT,
-                                                                    merge_dicts,
-                                                                    create_leaf_dict_with_path)
-from veloview.analysis.score_manipulation import ERROR_LEVELS
+from veloview.analysis import (Combiner, FloorThreshold,
+                               CeilingThreshold, MeanWidthDiffRef,
+                               AbsoluteBandRef, ZeroCentredBandRef)
+from veloview.utils.rootutils import get_simple_fns, get_fns
+from veloview.core.combiner_description_dictionary import (STANDARD_BRANCH_DICT,
+                                                           STANDARD_LEAF_DICT,
+                                                           merge_dicts,
+                                                           create_leaf_dict_with_path)
+from veloview.core.score_manipulation import ERROR_LEVELS
 # aliases
 OK = ERROR_LEVELS.OK
 WARNING = ERROR_LEVELS.WARNING
