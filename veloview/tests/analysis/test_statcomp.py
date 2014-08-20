@@ -13,7 +13,8 @@ if __name__ == '__main__':
         __path_to_script__ += ['..'] # package directory parent
         sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from veloview.analysis import (Combiner, Chi2Test, KolmogorovSmirnovTest)
+from veloview.analysis import (Chi2Test, KolmogorovSmirnovTest)
+from veloview.core import Combiner
 from veloview.core.combiner_description_dictionary import (merge_dicts,
                                                            create_leaf_dict_with_path)
 from veloview.core.score_manipulation import ERROR_LEVELS
@@ -38,8 +39,9 @@ class TestStatsComparisonCombiners(unittest.TestCase):
     def setUp(self):
         """Create dictionaries needed by combiners."""
 
-        orfdata = TFile('tests/data/dqm_data.root', 'read')
-        orfref = TFile('tests/data/dqm_ref.root', 'read')
+        dirname = os.path.dirname(__file__) + '/'
+        orfdata = TFile(os.path.abspath(dirname+'data/dqm_data.root'), 'read')
+        orfref = TFile(os.path.abspath(dirname+'data/dqm_ref.root'), 'read')
 
         # valid ROOT files
         assert(not orfdata.IsZombie())

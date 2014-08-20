@@ -13,9 +13,10 @@ if __name__ == '__main__':
         __path_to_script__ += ['..'] # package directory parent
         sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from veloview.analysis import (Combiner, FloorThreshold,
-                               CeilingThreshold, MeanWidthDiffRef,
-                               AbsoluteBandRef, ZeroCentredBandRef)
+from veloview.analysis import (FloorThreshold, CeilingThreshold,
+                               MeanWidthDiffRef, AbsoluteBandRef,
+                               ZeroCentredBandRef)
+from veloview.core import Combiner
 from veloview.utils.rootutils import get_simple_fns, get_fns
 from veloview.core.combiner_description_dictionary import (STANDARD_BRANCH_DICT,
                                                            STANDARD_LEAF_DICT,

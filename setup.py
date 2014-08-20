@@ -29,6 +29,4 @@ setup(name='veloview',
         'veloview.crontools',
         'veloview.utils',
     ],
-    test_suite='tests',
-    tests_require=['unittest2']
 )

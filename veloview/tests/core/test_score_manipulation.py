@@ -16,11 +16,9 @@ if __name__ == '__main__':
 
 import unittest
 
-from veloview.analysis.score_manipulation import Score
-from veloview.core.errors.exceptions import (
-    ScoreAssignmentException,
-    AddingScoreException
-)
+from veloview.core.score_manipulation import Score
+from veloview.core.exceptions import (ScoreAssignmentException,
+                                      AddingScoreException)
 
 score_for_check = 93.0
 score_for_check1 = 25.0
