@@ -1,7 +1,7 @@
 """This is an example of a combiner description dictionary (expected state dictionary)"""
 
 import veloview.analysis.compfunctions.basic as basic_functions
-from veloview.core.conf.env.combiner_description_dictionary import TELL1_NUMBERS, noise_tell1_comb_name_scheme, \
+from .combiner_description_dictionary import TELL1_NUMBERS, noise_tell1_comb_name_scheme, \
     pedestal_subtracted_hist_name, mean_pedestal_subtracted_hist_name, number_of_clusters_hist_name, \
     active_chip_links_hist_name, cluster_size_hist_name, sensor_occupancy_hist_name, occupancy_spectrum_hist_name, \
     tell1_formatting

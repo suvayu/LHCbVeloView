@@ -1,7 +1,7 @@
 """This module is responsible for score manipulations"""
 
-from veloview.core.errors.exceptions import AddingScoreException, ScoreAssignmentException, WeightedScoreException
-from veloview.core.tools.utils import enum
+from ..core.exceptions import AddingScoreException, ScoreAssignmentException, WeightedScoreException
+from ..core.utils.utils import enum
 
 
 # definition of the error levels for the project

@@ -4,8 +4,8 @@ import ROOT
 
 from veloview.analysis.compfunctions.interface import ComparisonFunction
 from veloview.analysis.score_manipulation import Score, ERROR_LEVELS
-from veloview.core.conf.env.evaluation_dictionary import FUNC_KEY, ARG_KEY
-from veloview.core.errors.exceptions import DescriptionDictionaryKeyException, \
+from ..core.evaluation_dictionary import FUNC_KEY, ARG_KEY
+from ..core.exceptions import DescriptionDictionaryKeyException, \
     ComparisonFunctionNotFoundInEvalDictException, ComparisonFunctionNotCollableException
 
 
