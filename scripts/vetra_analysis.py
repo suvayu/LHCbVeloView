@@ -91,7 +91,7 @@ else:
 
 
 ## trim list of runs by run duration from run database.
-from velocrontools.velocronpytools.rundbquery import RunDBQuery
+from veloview.crontools.rundbquery import RunDBQuery
 
 if debug:
     print 'Run list before trimming: %s' % runs
@@ -106,7 +106,7 @@ if debug:
 
 
 ## acquire lock and run job
-from velocronpytools.runlock import (RunLock)
+from veloview.crontools.runlock import (RunLock)
 
 if _cliopts.jobopts:
     jobopts = _cliopts.jobopts
