@@ -20,7 +20,7 @@ from socket import gethostname
 __hostname__ = gethostname()
 
 
-from velocronpytools.rundbquery import (RunDBQuery)
+from veloview.crontools.rundbquery import (RunDBQuery)
 import unittest
 
 @unittest.skipIf(__hostname__.find('plus'),
