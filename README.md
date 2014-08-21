@@ -1,7 +1,19 @@
-VELO view
-=========
+LHCb VELO View
+==============
 
-A framework for analysing data from the LHCb Vertex Locator.
+A framework for analysing data quality from the LHCb Vertex Locator.
+
+Packages
+--------
+
+The project has several packages in the top-level directory.
+
+* `GiantRootFileIO` is a C++ library that provides versioned ROOT
+  objects.  This will be used for trending information and history
+  browsing.
+* `veloview` is the dqta quality analysis framework used to monitor
+  the LHCb Vertex Locator.
+* `webgui` (placeholder item)
 
 Usage
 -----
@@ -10,7 +22,7 @@ To install the `veloview` module, you can use the [git repository](https://git.c
 
 ```bash
 $ git clone https://git.cern.ch/reps/LHCbVeloView
-$ cd LHCbVeloView/veloview
+$ cd LHCbVeloView
 $ python setup.py build
 $ python setup.py install
 ```
@@ -22,7 +34,13 @@ When the fix is released, you should be able to install `veloview` with
 $ pip install -e "git+https://git.cern.ch/reps/LHCbVeloView#egg=veloview&subdirectory=veloview"
 ```
 
-To use the module once it's installed, just `import` it.
+If you do not want to install the package, instead want to run it from
+the repository (useful when developing).  Source the script,
+[sourceme.sh](sourceme.sh).  At the moment this is only supported when
+you are using bash as your shell.
+
+To use the module once it's installed (or the environment is setup
+with `sourceme.sh`), just `import` it.
 
 ```python
 import veloview
@@ -31,8 +49,9 @@ import veloview
 Dependencies
 ------------
 
-The dependencies for the `veloview` module are given in the [`requirements.txt`](requirements.txt) file.
-You can use `pip` to install them.
+`veloview` depends on ROOT and PyROOT.  Other Python dependencies are
+given in the [`requirements.txt`](requirements.txt) file.  You can use
+`pip` to install the Python dependencies.
 
 ```bash
 $ pip install -r requirements.txt
@@ -41,26 +60,43 @@ $ pip install -r requirements.txt
 Testing
 -------
 
-The test suite for the `veloview` module is contained within the [`tests`](tests) directory of this package.
+The test suite for the `veloview` module is contained within the
+[`tests`](veloview/tests) directory of the package.  It uses the
+unittest module, part of the Python standard library.  You can run the
+tests in the following ways.
 
-To run the test suite, you need to install the test dependencies in addition to the [runtime dependencies](#dependencies).
-Currently these are single package, [`tox`](https://testrun.org/tox/latest/), for running the tests.
+* When veloview has been installed or the enviroment has been setup
+  with `sourceme.sh`.
 
-```bash
-$ pip install tox
-# Run the tests
-$ tox
-```
+  ```bash
+  $ python -m unittest discover
+  $ python -m unittest veloview.tests.test_<module>_<test> # etc
+  ```
 
-Running `tox` will build the package for distribution and run the test suite under Python 2.7.
+  To get a verbose output, add the `-v` flag.
 
-### Running the tests under multiple Python versions
+* You can also run tests with make with something like this:
 
-Tox allows for simple running of the test suites under multiple Python versions with the `envlist` configuration key.
+  ```bash
+  $ cd veloview
+  $ make tests # run all tests
+  $ make dqm-tests # run tests with real-world DQM files, needs AFS
+  $ make test_<module>_<test> # ... etc (run individual tests)
+  $ make OPTS=-v test_<module>_<test> # for verbose output
+  $ make debug_test_<module>_<test> # for debugging with pdb
+  ```
 
-```
-envlist=py26,py27,flake8
-```
+Notes
+-----
 
-It's not as simple as that for us though, as the ROOT version installed will be linked to a particular version of Python.
-There are ways around this, namely making available [different ROOT versions for each test environment](https://github.com/alexpearce/travis-ci-root-builds), but setting this up on something other than [Travis CI](https://travis-ci.org/) is work that's yet to be undertaken.
+The `veloview` package provides several modules:
+[`crontools`](veloview/crontools), [`core`](veloview/core),
+[`analysis`](veloview/analysis), and [`utils`](veloview/utils).  The
+`crontools` package provides classes useful to run monitoring jobs
+(specially when run by cron).  `core` provides the data quality
+framework used for automatic analysis.  `analysis` provides various
+comparison functions to be used with the framework in `core` for
+analysis.
+
+Applications and scripts (interactive or for cron jobs) go in the
+[`bin`](bin) directory.
