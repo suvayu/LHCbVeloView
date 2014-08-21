@@ -5,12 +5,17 @@
 # necessary to run tests with this Makefile.
 #
 
-TESTS		:= $(wildcard tests/test_*.py)
+PROJECTDIR	:= $(dir $(shell pwd))
+PYTHONPATH	:= $(PROJECTDIR):$(PYTHONPATH)
+TESTS		:= $(wildcard tests/*/test_*.py)
 
 DQMTESTS	:= test_avghists test_statcomp
 DQMFILES	:= tests/data/dqm_data.root tests/data/dqm_ref.root
 
-.PHONY:	files tests discover $(TESTS:tests/%.py=%)
+.PHONY:	files tests discover $(TESTS:tests/%.py=%) bla
+
+bla:
+	python -m unittest tests.analysis.test_avghists
 
 # all tests
 tests:	$(TESTS:tests/%.py=%)
