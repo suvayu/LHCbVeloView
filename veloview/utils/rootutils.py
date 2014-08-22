@@ -4,6 +4,12 @@
 This module is a collection of ROOT utilities to manipulate or extract
 information from ROOT histograms and trees.
 
+It also provides fixes and workarounds for many ROOT eccentricities.
+To use the fixes, one should import ROOT from this module before doing
+anything.
+
+  >>> from veloview.utils.rootutils import ROOT
+
 """
 
 ## Comments
@@ -12,9 +18,32 @@ information from ROOT histograms and trees.
 # date:   [2013-12-03 Tue]
 
 
-## ROOT boiler plate
-from ROOT import TNamed
-TNamed.Clone._creates = True
+## ROOT fixes
+import ROOT
+
+# list of creators
+_creators = [
+    ROOT.TObject.Clone,
+    ROOT.TFile.Open
+]
+
+for cls, attrs in _attrs.items():
+    for attr in attrs:
+        _creators.append(getattr(cls, attr))
+# cleanup temporary vars
+del _attrs, cls, attrs, attr
+
+def set_ownership(methods):
+    """Tell Python, caller owns returned object by setting `clsmethod._creates'"""
+    def _setter(method):
+        method._creates = True
+    try:
+        for method in methods:
+            _setter(method)
+    except TypeError:
+        _setter(methods)
+
+set_ownership(_creators)
 
 
 ## Functions
