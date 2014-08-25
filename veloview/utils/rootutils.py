@@ -27,12 +27,6 @@ _creators = [
     ROOT.TFile.Open
 ]
 
-for cls, attrs in _attrs.items():
-    for attr in attrs:
-        _creators.append(getattr(cls, attr))
-# cleanup temporary vars
-del _attrs, cls, attrs, attr
-
 def set_ownership(methods):
     """Tell Python, caller owns returned object by setting `clsmethod._creates'"""
     def _setter(method):
