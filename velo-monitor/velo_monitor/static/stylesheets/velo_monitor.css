@@ -1,0 +1,48 @@
+sidebar h1 {
+  font-size: 1.2em;
+}
+
+sidebar .sensor-detail {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Insert a thin space before units of measurement */
+.unit:before {
+  content: " ";
+}
+
+.run-view-pane h1 {
+  margin: 20px 0 10px 0;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+/* Part of the $('.run-view-pane').children().hide() hack to get plots to
+ * be full-size when display: none */
+.run-view-pane, .plot {
+  width: 100%;
+}
+
+.run-view-pane .plot {
+  height: 400px;
+}
+
+.Histogram2D .tile {
+  shape-rendering: crispEdges;
+}
+
+.zscale-box {
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.velo-layout {
+  /* Center VELO layout buttons inside their container */
+  text-align: center;
+}
+
+.toggles {
+  margin-bottom: 20px;
+}
