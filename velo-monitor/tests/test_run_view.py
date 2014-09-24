@@ -1,4 +1,6 @@
+from collections import OrderedDict
 import unittest2 as unittest
+
 import mock
 from lxml.html import fromstring as parse_html
 
@@ -6,8 +8,8 @@ import velo_monitor
 from velo_monitor.run_view import sanitise
 
 # Run view pages dictionary fixture
-RUN_VIEW_PAGES = {
-    'start_page': {
+RUN_VIEW_PAGES = OrderedDict([
+    ('start_page', {
         'title': 'Start Page',
         'plots': [
             # This plot is implicitly *not* sensor dependent
@@ -16,8 +18,8 @@ RUN_VIEW_PAGES = {
                 'name': 'plot_one'
             }
         ]
-    },
-    'other_page': {
+    }),
+    ('other_page', {
         'title': 'Other Page',
         'plots': [
             {
@@ -36,12 +38,12 @@ RUN_VIEW_PAGES = {
                 'name': 'general_plot'
             }
         ]
-    },
+    }),
     # This page has no plots, and that's OK
-    'extra_page': {
+    ('extra_page', {
         'title': 'Extra page'
-    }
-}
+    })
+])
 
 # Default children dictionary fixture, setting a default run_view page
 DEFAULT_CHILDREN = {

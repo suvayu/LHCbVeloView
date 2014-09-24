@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from flask import (
     Blueprint,
     current_app,
@@ -13,11 +14,11 @@ from flask import (
 run_view = Blueprint('run_view', __name__,
                      template_folder='templates/run_view')
 
-pages = {
-    'dqs': {
+pages = OrderedDict([
+    ('dqs', {
         'title': 'DQS'
-    },
-    'pedestals': {
+    }),
+    ('pedestals', {
         'title': 'Pedestals',
         'plots': [
             {
@@ -36,8 +37,11 @@ pages = {
                 'sensor_dependent': True
             }
         ]
-    },
-    'noise': {
+    }),
+    ('common_mode', {
+        'title': 'Common mode'
+    }),
+    ('noise', {
         'title': 'Noise',
         'plots': [
             {
@@ -51,8 +55,8 @@ pages = {
                 'sensor_dependent': True
             },
         ]
-    },
-    'clusters': {
+    }),
+    ('clusters', {
         'title': 'Clusters',
         'plots': [
             {
@@ -79,8 +83,8 @@ pages = {
                 'name': 'Cluster size vs sensor'
             }
         ]
-    },
-    'occupancy': {
+    }),
+    ('occupancy', {
         'title': 'Occupancy',
         'plots': [
             {
@@ -108,8 +112,20 @@ pages = {
                 'name': 'h_veloOccVsBunchId_CSide'
             }
         ]
-    }
-}
+    }),
+    ('tracks', {
+        'title': 'Tracks'
+    }),
+    ('vertices', {
+        'title': 'Vertices'
+    }),
+    ('errors', {
+        'title': 'Errors'
+    }),
+    ('sensor_overview', {
+        'title': 'Sensor overview'
+    })
+])
 
 
 @run_view.route('/', defaults={'page': '', 'sensor': 0})
@@ -119,10 +135,14 @@ def run_view_builder(page, sensor):
     # See if the request was for a particular sensor and redirect
     if request.method == 'POST':
         sensor = int(request.form['sensor'])
-        if not valid_sensor(sensor):
-            flash('Invalid sensor "{0}", reset to "0"'.format(sensor),
-                  'error')
-            sensor = 0
+        url = url_for('run_view.run_view_builder', page=page, sensor=sensor)
+        return redirect(url)
+
+    # Check if the sensor number is valid, redirecting to default (0) if not
+    if not valid_sensor(sensor):
+        flash('Invalid sensor "{0}", reset to "0"'.format(sensor),
+              'error')
+        sensor = 0
         url = url_for('run_view.run_view_builder', page=page, sensor=sensor)
         return redirect(url)
 
@@ -138,6 +158,7 @@ def run_view_builder(page, sensor):
         abort(404)
 
     # Set up the required template variables and render the page
+    g.pages = pages
     g.page_data = page_data
     g.sensor = sensor
     g.active_page = 'run_view/{0}'.format(page)
@@ -147,6 +168,7 @@ def run_view_builder(page, sensor):
 # Delegate the page not found hits to the catchall blueprint
 @run_view.errorhandler(404)
 def page_not_found(e):
+    g.pages = pages
     g.active_page = 'run_view/404'
     return render_template('run_view/404.html'), 404
 

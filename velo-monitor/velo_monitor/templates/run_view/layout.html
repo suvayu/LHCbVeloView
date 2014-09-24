@@ -1,15 +1,8 @@
 {% extends "velo_layout.html" %}
 {% block sidebar %}
   <ul class="nav nav-sidebar">
-    {{ list_link_tag('run_view/dqs', 'DQS') }}
-    {{ list_link_tag('run_view/pedestals', 'Pedestals') }}
-    {{ list_link_tag('run_view/common_mode', 'Common mode') }}
-    {{ list_link_tag('run_view/noise', 'Noise') }}
-    {{ list_link_tag('run_view/clusters', 'Clusters') }}
-    {{ list_link_tag('run_view/occupancy', 'Occupancy') }}
-    {{ list_link_tag('run_view/tracks', 'Tracks') }}
-    {{ list_link_tag('run_view/vertices', 'Vertices') }}
-    {{ list_link_tag('run_view/errors', 'Errors') }}
-    {{ list_link_tag('run_view/sensor_overview', 'Sensor overview') }}
+    {% for page in g.pages %}
+      {{ list_link_tag('run_view/' + page, g.pages[page]['title']) }}
+    {% endfor %}
   </ul>
 {% endblock %}
