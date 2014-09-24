@@ -49,7 +49,7 @@ DEFAULT_CHILDREN = {
 }
 
 
-@mock.patch.dict('velo_monitor.run_view.pages', RUN_VIEW_PAGES)
+@mock.patch('velo_monitor.run_view.pages', RUN_VIEW_PAGES)
 class TestRunView(unittest.TestCase):
     def setUp(self):
         self.app = velo_monitor.create_app()
@@ -60,6 +60,11 @@ class TestRunView(unittest.TestCase):
     def get(self, path):
         """Return an pq instance of the lxml parsed document at path."""
         rv = self.client.get(path, follow_redirects=True)
+        return parse_html(rv.data)
+
+    def post(self, path, data):
+        """Return an pq instance of the lxml parsed document at path."""
+        rv = self.client.post(path, data=data, follow_redirects=True)
         return parse_html(rv.data)
 
     def test_sanitise_filter(self):
@@ -80,8 +85,8 @@ class TestRunView(unittest.TestCase):
         doc = self.get('/run_view/extra_page')
         header = doc.cssselect('#main > h1')[0].text_content()
         nav = doc.cssselect('.nav-sidebar li')
-        # TODO page list is hardcoded, what about ordering?
         self.assertEqual(len(nav), len(RUN_VIEW_PAGES.keys()))
+        self.assertEqual(header, 'Extra page')
 
     def test_default_page(self):
         """Should display default page if none is specified."""
@@ -115,31 +120,39 @@ class TestRunView(unittest.TestCase):
             self.assertEqual(pane.cssselect('h1')[0].text_content(), title)
 
     def test_sensor_selector(self):
-        """Sensor selector should be shown only when supported by a page."""
-        doc = self.get('/run_view/start_page')
+        """Sensor selector should be shown only when supported by a plot."""
+        doc = self.get('/run_view/other_page')
         panes = doc.cssselect('.run-view-pane')
         plots = RUN_VIEW_PAGES['start_page']['plots']
         for idx, (pane, plot) in enumerate(zip(panes, plots)):
-            selector = pane.cssselect('.sensor-select')
+            selector = pane.cssselect('.sensor-selector:nth-child({0})'.format(idx))
             expected = int(plot.get('sensor_dependent', False))
             self.assertEqual(len(selector), expected)
 
     def test_default_sensor_number(self):
         """Sensor number should be set to zero if none is specified."""
-        pass
+        doc = self.get('/run_view/other_page')
+        # We know the first plot is sensor dependent
+        field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
+        self.assertEqual(field.value, '0')
 
     def test_invalid_sensor_numbers(self):
         """Invalid sensor numbers should be set to zero and an error shown."""
-        pass
+        doc = self.get('/run_view/other_page/999')
+        field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
+        self.assertEqual(field.value, '0')
 
     def test_sensor_number_get(self):
         """Page should reflect the chosen sensor (GET request'ed)."""
-        pass
+        sensor = 32
+        doc = self.get('/run_view/other_page/{0}'.format(sensor))
+        # We know the first plot is sensor dependent
+        field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
+        self.assertEqual(field.value, str(sensor))
 
     def test_sensor_number_post(self):
         """Page should reflect the chosen sensor (POST request'ed)."""
-        pass
-
-    def test_sensor_number_formatting(self):
-        """Pages support different formats for sensor number in plot names."""
-        pass
+        sensor = 12
+        doc = self.post('/run_view/other_page', {'sensor': sensor})
+        field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
+        self.assertEqual(field.value, str(sensor))
