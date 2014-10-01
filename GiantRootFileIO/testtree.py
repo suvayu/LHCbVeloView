@@ -32,7 +32,7 @@ def createTree(filename, treename):
     # be a bit more aggressive when compressing data: we're not CPU-limited
     # when writing tuple files, but we're happy to get by using up less disk
     # bandwidth
-    f.SetCompressionSettings(ROOT.CompressionSettings(ROOT.kLZMA, 6))
+    f.SetCompressionSettings(ROOT.ROOT.CompressionSettings(ROOT.ROOT.kLZMA, 6))
     # create tree with given structure
     t = Tree(treename, 'Velo DQ Tree prototype', {
 	# define branch names and types
