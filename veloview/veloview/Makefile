@@ -39,3 +39,7 @@ files:
 # discover tests with unittest
 discover:	files
 	python -m unittest discover $(OPTS)
+
+# FIXME: special case
+test_core_io:	tests/test_core_io.py
+	LD_LIBRARY_PATH=GiantRootFileIO:$$LD_LIBRARY_PATH python $<
