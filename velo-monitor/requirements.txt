@@ -6,6 +6,9 @@ gunicorn==19.0.0
 honcho==0.5.0
 itsdangerous==0.24
 redis==2.10.1
-rq==0.4.6
+# Use a patched rq v0.4.6
+# Fixes a problem where workers would have completed status before saving the payload
+# Fix is taken from the rq HEAD (865efd6e), so can use > 0.4.6 when released
+-e git+https://github.com/alexpearce/rq.git@worker_result_fix#egg=rq
 -e git+https://github.com/alexpearce/root-web-monitoring.git#egg=webmonitor
 wsgiref==0.1.2
