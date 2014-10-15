@@ -30,6 +30,15 @@ enabled=1
 protect=0
 EOF
 
+# Add the RHEL6 nginx stable repo
+sudo cat > /etc/yum.repos.d/nginx.repo << EOF
+[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/rhel/6/\$basearch/
+gpgcheck=0
+enabled=1
+EOF
+
 echo "Updating packages"
 sudo $YUM -y update
 
@@ -39,11 +48,13 @@ echo "Installing required packages"
 #   OpenAFS
 #   ROOT dependencies
 #   XROOTD
+#   nginx
 sudo $YUM install -y \
   vim git \
   kmod-openafs openafs openafs-client \
   libXpm \
-  xrootd-client-devel xrootd-client xrootd-libs-devel xrootd-libs xrootd-server
+  xrootd-client-devel xrootd-client xrootd-libs-devel xrootd-libs xrootd-server \
+  nginx
 
 PREPFILE=$HOME/.preparation
 
@@ -79,12 +90,82 @@ sudo cat >> /etc/sysctl.conf << EOF
 vm.overcommit_memory = 1
 EOF
 
+
 echo "Configuring AFS"
 echo "cern.ch" > $HOME/ThisCell
 sudo mv $HOME/ThisCell /usr/vice/etc/ThisCell
 sudo /sbin/chkconfig --add afs
 sudo /sbin/chkconfig afs on
 sudo /sbin/service afs start
+
+echo "Configuring nginx"
+# Remove default configurations, replace with our own
+sudo rm /etc/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+sudo cat > /etc/nginx/nginx.conf << EOF
+user  nginx;
+worker_processes  1;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+events {
+  worker_connections  1024;
+}
+
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+
+  log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
+  '\$status \$body_bytes_sent "\$http_referer" '
+  '"\$http_user_agent" "\$http_x_forwarded_for"';
+
+  access_log  /var/log/nginx/access.log  main;
+
+  sendfile        on;
+
+  keepalive_timeout  65;
+
+  # Enable gzip compression
+  gzip  on;
+  gzip_http_version 1.0;
+  gzip_proxied      any;
+  gzip_min_length   500;
+  gzip_disable      "MSIE [1-6]\.";
+  gzip_types        text/plain text/xml text/css
+                    text/comma-separated-values
+                    text/javascript
+                    application/x-javascript
+                    application/atom+xml
+                    application/json;
+
+  # List of application servers
+  upstream uwsgicluster {
+    server 127.0.0.1:5000;
+    # server 127.0.0.1:5001;
+    # ..
+  }
+
+  include /etc/nginx/conf.d/*.conf;
+}
+EOF
+sudo cat > /etc/nginx/conf.d/velo-monitor.conf << EOF
+server {
+  listen 5000;
+
+  #access_log  /var/log/nginx/log/host.access.log  main;
+
+  location / {
+    proxy_pass http://127.0.0.1:8000;
+
+    proxy_redirect     off;
+    proxy_set_header   Host $host;
+    proxy_set_header   X-Real-IP $remote_addr;
+    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header   X-Forwarded-Host $server_name;
+  }
+}
+EOF
 
 # Run the user provision as the vagrant user
 su vagrant -c '/vagrant/user_provisioning.sh'
