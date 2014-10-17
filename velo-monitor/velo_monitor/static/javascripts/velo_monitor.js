@@ -36,7 +36,7 @@ var VeloMonitor = (function(window, undefined) {
   // Returns:
   //   undefined
   var displayFailure = function(msg, container) {
-    container.html(TEMPLATES.failure.format(msg));
+    container.html(TEMPLATES.failureDiv.format(msg));
   };
 
   // Add a `Spinner` object to the `element`, using `WebMonitor.settings.spinnerDefaults` as options.
