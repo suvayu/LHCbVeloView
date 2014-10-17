@@ -5,7 +5,7 @@ import mock
 from lxml.html import fromstring as parse_html
 
 import velo_monitor
-from velo_monitor.run_view import sanitise
+from velo_monitor import run_view
 
 # Run view pages dictionary fixture
 RUN_VIEW_PAGES = OrderedDict([
@@ -51,6 +51,10 @@ DEFAULT_CHILDREN = {
 }
 
 
+def mocked_run_list():
+    return range(20, 0, -1)
+
+
 @mock.patch('velo_monitor.run_view.pages', RUN_VIEW_PAGES)
 class TestRunView(unittest.TestCase):
     def setUp(self):
@@ -64,27 +68,22 @@ class TestRunView(unittest.TestCase):
         rv = self.client.get(path, follow_redirects=True)
         return parse_html(rv.data)
 
-    def post(self, path, data):
-        """Return an pq instance of the lxml parsed document at path."""
-        rv = self.client.post(path, data=data, follow_redirects=True)
-        return parse_html(rv.data)
-
     def test_sanitise_filter(self):
         """Filter lowercases and replaces non-alphanumeric characters with _."""
         s = "|P~2;-u)o.N4j]bwD^ql=vKK#'N9|Y]]hEAj:8;=9|Jj2[8=/'Y!"
         s_safe = "_P_2__u_o_N4j_bwD_ql_vKK__N9_Y__hEAj_8__9_Jj2_8___Y_".lower()
-        self.assertEqual(sanitise(s), s_safe)
+        self.assertEqual(run_view.sanitise(s), s_safe)
 
     def test_404_on_invalid_page(self):
         """Should show 404 page on page not in dictionary."""
-        doc = self.get('/run_view/fake_page')
+        doc = self.get('/run_view/0/fake_page')
         header = doc.cssselect('#main > h1')[0].text_content()
         self.assertIn('404', header)
         self.assertIn('Page not found', header)
 
     def test_display_page(self):
         """Should display current page name as a header and pages in sidebar."""
-        doc = self.get('/run_view/extra_page')
+        doc = self.get('/run_view/0/extra_page')
         header = doc.cssselect('#main > h1')[0].text_content()
         nav = doc.cssselect('.nav-sidebar li')
         self.assertEqual(len(nav), len(RUN_VIEW_PAGES.keys()))
@@ -102,13 +101,93 @@ class TestRunView(unittest.TestCase):
         self.assertNotIn('404', header)
         self.assertIn(page_title, header)
 
+    @mock.patch('veloview.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
+    def test_default_run(self, mock_dr):
+        """Run number should be set to zero if none is specified."""
+        doc = self.get('/run_view')
+        number_header = doc.cssselect('.run-number')[0].text_content()
+        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header)
+
+    @mock.patch('veloview.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
+    def test_specified_run(self, mock_dr):
+        """Run number should be set to that in the URL when given."""
+        run = 10
+        doc = self.get('/run_view/{0}'.format(run))
+        number_header = doc.cssselect('.run-number')[0].text_content()
+        self.assertIn('Run #{0}'.format(run), number_header)
+
+    @mock.patch('veloview.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
+    def test_invalid_run_number_get_params(self, mock_dr):
+        """An invalid/empty run GET parameter should redirect to the default."""
+        doc1 = self.get('/run_view/?run=')
+        doc2 = self.get('/run_view/?run=abc!')
+        number_header1 = doc1.cssselect('.run-number')[0].text_content()
+        number_header2 = doc2.cssselect('.run-number')[0].text_content()
+        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header1)
+        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header2)
+
+
+    @mock.patch('veloview.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
+    def test_invalid_run(self, mock_dr):
+        """Invalid run numbers show a warning, redirecting to the default"""
+        invalid_run = 123
+        doc = self.get('/run_view/{0}'.format(invalid_run))
+        number_header = doc.cssselect('.run-number')[0].text_content()
+        alert = doc.cssselect('.alert')[0].text_content()
+        self.assertIn('Invalid run number "{0}"'.format(invalid_run), alert)
+        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header)
+
+    @mock.patch('veloview.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
+    def test_nearby_run_list(self, mock_dr):
+        """Nearby run list should show correct runs."""
+        current_run = 6
+        expected_distance = 3
+        doc = self.get('/run_view/{0}'.format(current_run))
+        newer_opts = doc.cssselect('optgroup:nth-child(1) option')
+        current_opt = doc.cssselect('optgroup:nth-child(2) option')
+        older_opts = doc.cssselect('optgroup:nth-child(3) option')
+        # First assert that there's the expected number in each optgroup
+        self.assertEqual(len(newer_opts), expected_distance)
+        self.assertEqual(len(current_opt), 1)
+        self.assertEqual(len(older_opts), expected_distance)
+        # Then assert that the option's contents is correct
+        for i, opt in enumerate(newer_opts):
+            self.assertEqual(opt.text_content(), str(current_run + expected_distance - i))
+        self.assertEqual(current_opt[0].text_content(), str(current_run))
+        for i, opt in enumerate(older_opts):
+            self.assertEqual(opt.text_content(), str(current_run - (i + 1)))
+
+    @mock.patch('veloview.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
+    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
+    def test_run_autocomplete(self, mock_dr):
+        """Autocomplete list should be populated with all available runs."""
+        num_runs = 20
+        doc = self.get('/run_view/')
+        run_options = doc.cssselect('#runs option')
+        # First check the number of elements is correct
+        self.assertEqual(len(run_options), num_runs)
+        # Then check the list is displaying the right values
+        for i, opt in enumerate(run_options):
+            self.assertEqual(opt.text_content(), str(num_runs - i))
+
     def test_plot_per_tab(self):
         """Should display one tab per plot, each plot in its own tab pane.
 
         The short title should be display in the tab, if present, whilst the
         full title should be displayed in the pane header.
         """
-        doc = self.get('/run_view/other_page')
+        doc = self.get('/run_view/0/other_page')
         tabs = doc.cssselect('.run-view-tab')
         panes = doc.cssselect('.run-view-pane')
         plots = RUN_VIEW_PAGES['other_page']['plots']
@@ -123,7 +202,7 @@ class TestRunView(unittest.TestCase):
 
     def test_sensor_selector(self):
         """Sensor selector should be shown only when supported by a plot."""
-        doc = self.get('/run_view/other_page')
+        doc = self.get('/run_view/0/other_page')
         panes = doc.cssselect('.run-view-pane')
         plots = RUN_VIEW_PAGES['start_page']['plots']
         for idx, (pane, plot) in enumerate(zip(panes, plots)):
@@ -133,28 +212,45 @@ class TestRunView(unittest.TestCase):
 
     def test_default_sensor_number(self):
         """Sensor number should be set to zero if none is specified."""
-        doc = self.get('/run_view/other_page')
+        doc = self.get('/run_view/0/other_page')
         # We know the first plot is sensor dependent
         field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
         self.assertEqual(field.value, '0')
 
     def test_invalid_sensor_numbers(self):
         """Invalid sensor numbers should be set to zero and an error shown."""
-        doc = self.get('/run_view/other_page/999')
+        sensor = 999
+        run = run_view.default_run()
+        doc = self.get('/run_view/{0}/other_page/{1}'.format(run, sensor))
+        alert = doc.cssselect('.alert')[0].text_content()
+        self.assertIn('Invalid sensor number "{0}"'.format(sensor), alert)
         field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
         self.assertEqual(field.value, '0')
 
-    def test_sensor_number_get(self):
-        """Page should reflect the chosen sensor (GET request'ed)."""
+    def test_sensor_number_get_url(self):
+        """Page should reflect the chosen sensor (with URL structure)."""
         sensor = 32
-        doc = self.get('/run_view/other_page/{0}'.format(sensor))
+        doc = self.get('/run_view/0/other_page/{0}'.format(sensor))
         # We know the first plot is sensor dependent
         field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
         self.assertEqual(field.value, str(sensor))
 
-    def test_sensor_number_post(self):
-        """Page should reflect the chosen sensor (POST request'ed)."""
+    def test_sensor_number_get_params(self):
+        """Page should reflect the chosen sensor (with GET parameters)."""
         sensor = 12
-        doc = self.post('/run_view/other_page', {'sensor': sensor})
+        doc = self.get('/run_view/?page={0}&sensor={1}'.format('other_page', sensor))
         field = doc.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
         self.assertEqual(field.value, str(sensor))
+
+    def test_invalid_sensor_number_get_params(self):
+        """Invalid sensor number should redirect to the default."""
+        doc1 = self.get('/run_view/?page={0}&sensor='.format('other_page'))
+        doc2 = self.get('/run_view/?page={0}&sensor=abc!'.format('other_page'))
+        alert1 = doc1.cssselect('.alert')[0].text_content()
+        alert2 = doc2.cssselect('.alert')[0].text_content()
+        field1 = doc1.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
+        field2 = doc2.cssselect('.run-view-pane:first-child .sensor-selector input')[0]
+        self.assertIn('Invalid sensor number ""', alert1)
+        self.assertIn('Invalid sensor number "abc!"', alert2)
+        self.assertEqual(field1.value, str(0))
+        self.assertEqual(field2.value, str(0))

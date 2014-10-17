@@ -1,6 +1,6 @@
 {% extends "run_view/layout.html" %}
 {% block pageheader %}{{ g.page_data.title }}{% endblock %}
-{% block body %}
+{% block run_view_body %}
   {# Show flash messages, for which we only have 'error' types, so show them red #}
   {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -40,7 +40,7 @@
         {% if 'sensor_dependent' in plot and plot.sensor_dependent == True %}
           <div class="row">
           <div class="sensor-selector col-md-4 col-md-offset-4">
-            <form action="/{{ g.active_page }}" method="POST">
+            <form action="{{ url_for('run_view.run_view_builder') }}" method="GET">
               <div class="input-group">
                 <div class="input-group-btn dropup">
                   <button type="submit" class="btn btn-primary">Choose sensor</button>
@@ -52,7 +52,7 @@
                     {# Compute what the opposite sensor to the current one is #}
                     {% set corresponding_name = 'R' if g.sensor > 41 else 'Φ' %}
                     {% set corresponding_num = g.sensor - 64 if g.sensor > 41 else g.sensor + 64 %}
-                    <li><a href="/{{ g.active_page }}/{{ corresponding_num }}">
+                    <li><a href="{{ url_for('run_view.run_view_builder', run=g.run, page=g.page, sensor=corresponding_num) }}">
                       Corresponding {{ corresponding_name }} sensor (#<span id="corresponding-sensor">{{ corresponding_num }}</span>)
                     </a></li>
                     {# Show the VELO layout graphic when this anchor is clicked #}
@@ -61,6 +61,9 @@
                 </div>
                 <input type="text" class="form-control" name="sensor" min="0" max="105" step="1" list="sensors" placeholder="Sensor number" value="{{ g.sensor }}">
               </div>
+              <!-- Hidden fields to pass the current page and sensor number -->
+              <input type="hidden" name="run" value="{{ g.run }}">
+              <input type="hidden" name="page" value="{{ g.page }}">
             </form>
           </div>
           </div>
@@ -127,6 +130,7 @@
 
   {# datalist for possible sensor numbers, used for autocompletion in the sensor selection form #}
   {# Kept outside the plots loop else we'll have duplicate IDs #}
+  {# TODO polyfill this, not supported by Safari and IE < 10 #}
   <datalist id="sensors">
     {% for rsensor in range(0, 42) %}
       <option value="{{ rsensor }}">R sensor</option>

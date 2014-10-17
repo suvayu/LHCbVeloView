@@ -144,6 +144,7 @@ var VeloMonitor = (function(window, undefined) {
       // to retrieve them even when the element is hidden
       this.persistPlotDimensions();
       this.setupTabs();
+      this.setupRunSelector();
     },
     dqs: {
       init: function() {
@@ -186,12 +187,14 @@ var VeloMonitor = (function(window, undefined) {
       $('.plot').each(function(idx, el) {
         var $el = $(el),
             name = $el.data('name'),
+            run = $('#run-number').data('run'),
             title = $el.data('title'),
             plotOpts = $el.data('plot-options') || {},
             sensorDependent = $el.data('sensor-dependent'),
             sensor = $el.data('sensor');
         args = args || {};
         args.name = name;
+        args.run = run;
         // If a plot is sensor dependent and a number is given, format the
         // job's plot name argument with the sensor number
         if (sensorDependent === 'True' && sensor !== '') {
@@ -246,6 +249,27 @@ var VeloMonitor = (function(window, undefined) {
       } else {
         $tabs.children('a[href="#{0}"]'.format(hash)).click();
       }
+    },
+    // Set up the run selector form.
+    //
+    // The run selector form, shown in a modal window, shows both a select
+    // of nearby runs, and an autocompleting textfield. It's just the textfield's
+    // value that's used by the server, so when a run is picked using the select,
+    // the textfield needs to be updated to the chosen value.
+    // We also need to link the submit button outside the form element to the
+    // form itself.
+    // Returns:
+    //   undefined
+    setupRunSelector: function() {
+      var $runSelector = $('.run-selector form'),
+          $submitButton = $('.run-selector button[type=submit]'),
+          $runField = $runSelector.find('input[type=text]');
+      $runSelector.find('select').change(function() {
+        $runField.val($(this).val());
+      });
+      $submitButton.click(function() {
+        $runSelector.submit();
+      });
     },
     // Set up bindings for sensor selector buttons
     //
