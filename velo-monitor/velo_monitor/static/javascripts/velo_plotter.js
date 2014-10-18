@@ -187,7 +187,7 @@ var VeloPlotter = (function(window, undefined) {
       opts = {};
     }
     var stats, textBox;
-    if (plotType.slice(0, 3) === 'TH1') {
+    if (plotType.slice(0, 3) === 'TH1' || plotType === 'TProfile') {
       stats = [
           ['Entries', plotData.entries],
           ['Mean', Math.round(100*plotData.mean)/100],
