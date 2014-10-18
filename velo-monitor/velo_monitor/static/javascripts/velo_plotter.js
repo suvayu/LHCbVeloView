@@ -134,9 +134,13 @@ var VeloPlotter = (function(window, undefined) {
     if (!('color' in opts)) {
       opts.color = COLORS[index];
     }
-    var plotable = makePlotable(type, data, opts);
+    var plotable = makePlotable(type, data, opts),
+        stats = makeStatisticsBox(type, data, {x: 70 + (index*160), color: opts.color});
     if (plotable !== undefined) {
       chart.addPlotable(plotable);
+    }
+    if (stats !== undefined) {
+      chart.addOrnament(stats);
     }
     // Don't animate large 2D histograms, it's too slow and CPU intensive
     if (type.slice(0, 3) === 'TH2' && data.xbinning.length*data.ybinning.length > 1000) {
@@ -168,6 +172,39 @@ var VeloPlotter = (function(window, undefined) {
     // Append a title property, useful for other things to fetch later
     plotable.title = plotData.title;
     return plotable;
+  };
+
+  // Create a statistics box for the plotable
+  //
+  // Accepts:
+  //   plotType: ROOT class name
+  //   plotData: Data to be consumed by d3.plotable.TextBox
+  //   opts: Object of options passed to d3.plotable.TextBox (default: {})
+  // Returns:
+  //   A d3.plotable.TextBox if appropriate for the plotType, else undefined
+  var makeStatisticsBox = function(plotType, plotData, opts) {
+    if (opts === undefined) {
+      opts = {};
+    }
+    var stats, textBox;
+    if (plotType.slice(0, 3) === 'TH1') {
+      stats = [
+          ['Entries', plotData.entries],
+          ['Mean', Math.round(100*plotData.mean)/100],
+          ['RMS', Math.round(100*plotData.rms)/100]
+      ];
+    }
+    if (plotType.slice(0, 3) === 'TH2') {
+      stats = [
+          ['Entries', plotData.entries]
+      ];
+      // A TH2 doesn't have a single color, so make sure one isn't specified
+      delete opts.color
+    }
+    if (stats !== undefined) {
+      textBox = d3.plotable.TextBox(sanitise(plotData.name) + 'StatsBox', stats, opts);
+    }
+    return textBox;
   };
 
   // Return d3.plotable.LineChart for the TProfile data

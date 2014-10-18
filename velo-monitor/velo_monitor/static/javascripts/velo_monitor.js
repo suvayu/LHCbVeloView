@@ -15,7 +15,7 @@ var VeloMonitor = (function(window, undefined) {
   TEMPLATES.togglesContainer = '<div class="toggles col-md-4 col-md-offset-4">{0}</div>';
   TEMPLATES.togglesToggle = '<div class="toggle">'
     + '<label for="{0}">'
-    + '<input type="checkbox" id="{0}" checked> {1}'
+    + '<input type="checkbox" id="{0}" checked> <span style="color: {2}">{1}</span>'
     + '</label>'
     + '</div>';
 
@@ -120,8 +120,10 @@ var VeloMonitor = (function(window, undefined) {
     var plotables = chart.plotables(),
         toggles = '';
     for (var name in plotables) {
-      var title = plotables[name].title;
-      toggles += TEMPLATES.togglesToggle.format(name, title);
+      var title = plotables[name].title,
+          // Use the plotables color for the label, if present
+          color = plotables[name].color || 'inherit';
+      toggles += TEMPLATES.togglesToggle.format(name, title, color);
       // Bind to the checkbox's change event (i.e. when its state toggles)
       $(document).on('change', '#{0}'.format(name), function(e) {
         $('svg g.{0}'.format(e.target.id)).toggle();

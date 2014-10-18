@@ -36,7 +36,20 @@ def data_for_th1(th1):
     ]
     axis_titles = (xaxis.GetTitle(), yaxis.GetTitle())
 
+    # Histogram 'metadata'
+    entries = th1.GetEntries()
+    mean = th1.GetMean()
+    rms = th1.GetRMS()
+    # For bin number conventions see TH1::GetBinContent
+    overflow = th1.GetBinContent(0)
+    underflow = th1.GetBinContent(nbins + 1)
+
     d = dict(
+        entries=entries,
+        mean=mean,
+        rms=rms,
+        underflow=underflow,
+        overflow=overflow,
         binning=binning,
         values=values,
         uncertainties=uncertainties,
@@ -75,7 +88,11 @@ def data_for_th2(th2):
         for x in range(1, nbinsx + 1)
     ]
 
+    # Histogram 'metadata'
+    entries = th2.GetEntries()
+
     d = dict(
+        entries=entries,
         xbinning=xbins,
         ybinning=ybins,
         values=values,
