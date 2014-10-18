@@ -139,13 +139,6 @@ http {
                     application/atom+xml
                     application/json;
 
-  # List of application servers
-  upstream uwsgicluster {
-    server 127.0.0.1:5000;
-    # server 127.0.0.1:5001;
-    # ..
-  }
-
   include /etc/nginx/conf.d/*.conf;
 }
 EOF
@@ -153,16 +146,13 @@ sudo cat > /etc/nginx/conf.d/velo-monitor.conf << EOF
 server {
   listen 5000;
 
-  #access_log  /var/log/nginx/log/host.access.log  main;
-
   location / {
-    proxy_pass http://127.0.0.1:8000;
+    try_files \$uri @velo_monitor;
+  }
 
-    proxy_redirect     off;
-    proxy_set_header   Host $host;
-    proxy_set_header   X-Real-IP $remote_addr;
-    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header   X-Forwarded-Host $server_name;
+  location @velo_monitor {
+    include uwsgi_params;
+    uwsgi_pass unix:/tmp/uwsgi.sock;
   }
 }
 EOF
