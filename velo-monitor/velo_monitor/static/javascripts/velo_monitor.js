@@ -9,7 +9,7 @@ var VeloMonitor = (function(window, undefined) {
   var TEMPLATES = {}
   TEMPLATES.failureDiv = '<div class="alert alert-danger">{0}</div>';
   TEMPLATES.failureMsg = '<p>There was a problem retrieving plot '
-    + '<code>{0}.{1}</code>'
+    + '<code>{0}</code>'
     + 'Please contact the administrator. Error message:</p>';
   TEMPLATES.row = '<div class="row"></div>';
   TEMPLATES.togglesContainer = '<div class="toggles col-md-4 col-md-offset-4">{0}</div>';
@@ -54,16 +54,15 @@ var VeloMonitor = (function(window, undefined) {
     return spinner;
   }
 
-  // Load the plot(s) returned by the job 'run_view.pageName' in to container.
+  // Load the plot(s) returned by the job 'run_view.get_plot' in to container.
   // Accepts:
-  //   pageName: Method inside run_view module to run as a worker job
   //   args: Object of keyword arguments to pass to the job
   //   opts: Drawing options passed to appropriate d3.plotable
   //   container: jQuery element to load the resulting plot(s) in to, if any
   // Returns:
   //   Polling job task
-  var loadRunViewPlotInContainer = function(pageName, args, opts, container) {
-    var task = WebMonitor.createTask('run_view.{0}'.format(pageName), args),
+  var loadRunViewPlotInContainer = function(args, opts, container) {
+    var task = WebMonitor.createTask('run_view.get_plot', args),
         spinner = appendSpinner(container),
         failure = function(msg) { displayFailure(msg, container); };
 
@@ -104,7 +103,7 @@ var VeloMonitor = (function(window, undefined) {
 
     task.fail(function(message) {
       spinner.stop();
-      var msg = TEMPLATES.failureMsg.format(pageName, args.name) + message;
+      var msg = TEMPLATES.failureMsg.format(args.name) + message;
       displayFailure(msg, container);
     });
     return task;
@@ -156,35 +155,34 @@ var VeloMonitor = (function(window, undefined) {
     pedestals: {
       init: function() {
         WebMonitor.log('runView.pedestals.init');
-        runView.setupPlots('pedestals');
+        runView.setupPlots();
       }
     },
     noise: {
       init: function() {
         WebMonitor.log('runView.noise.init');
-        runView.setupPlots('noise');
+        runView.setupPlots();
       }
     },
     clusters: {
       init: function() {
         WebMonitor.log('runView.clusters.init');
-        runView.setupPlots('clusters');
+        runView.setupPlots();
       }
     },
     occupancy: {
       init: function() {
         WebMonitor.log('runView.occupancy.init');
-        runView.setupPlots('occupancy');
+        runView.setupPlots();
       }
     },
     // Load the plots in to the page
     // Accepts:
-    //   page: Name of the run view page and the job to run
     //   args: Optional object of arguments to send to the job
     //         The name of the plot is sent automatically
     // Returns:
     //   undefined
-    setupPlots: function(page, args) {
+    setupPlots: function(args) {
       var requiresSensorSelector = false;
       $('.plot').each(function(idx, el) {
         var $el = $(el),
@@ -203,7 +201,7 @@ var VeloMonitor = (function(window, undefined) {
           requiresSensorSelector = true;
           args.name = name.format(sensor)
         }
-        loadRunViewPlotInContainer(page, args, plotOpts, $el);
+        loadRunViewPlotInContainer(args, plotOpts, $el);
       });
       // We don't do this inside the each loop else bindings will be duplicated
       if (requiresSensorSelector === true) {

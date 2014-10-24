@@ -55,7 +55,7 @@ def mocked_run_list():
     return range(20, 0, -1)
 
 
-@mock.patch('velo_monitor.run_view.pages', RUN_VIEW_PAGES)
+@mock.patch('velo_monitor.run_view.pages_dict', RUN_VIEW_PAGES)
 class TestRunView(unittest.TestCase):
     def setUp(self):
         self.app = velo_monitor.create_app()
