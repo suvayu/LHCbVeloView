@@ -50,11 +50,9 @@ class GRFIO(object):
     def write_dqtree(self, dqdict):
         dqflat = flatten(dqdict)
         # FIXME: verify dqflat matches branch scheme
-        now = ROOT.TimeStamp()
         for key, value in dqflat.iteritems():
-            getattr(self.tree, key)[now] = value
-            # FIXME: check if versioned.  unversioned assignment:
-            # getattr(self.tree, key) = value
+            # NOTE: when writing, timestamp is now by default
+            setattr(self.tree, key, value)
         self.tree.Fill()
         self.tree.Write()
 
