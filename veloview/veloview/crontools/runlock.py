@@ -26,11 +26,6 @@ class RunLockExists(Exception):
     """
     pass
 
-    # def __init__(self, filename):
-    #     tokens = filename.split('.')
-    #     self.runno, self.stream = tokens[0], tokens[1]
-    #     # self.node, self.job_pid = <read filename>
-
 
 class RunLock(object):
     """RunLock object creates a lock file before a run is processed.
@@ -73,7 +68,6 @@ class RunLock(object):
         `job' is ignored for now.
 
         """
-
         self.is_locked = False
         runno = int(runno)      # ensure integer
         self.runno = runno
