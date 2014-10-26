@@ -69,6 +69,7 @@ class RunLock(object):
 
         """
         self.is_locked = False
+        self.__fallback__ = False
         runno = int(runno)      # ensure integer
         self.runno = runno
         self.stream = stream
@@ -84,11 +85,24 @@ class RunLock(object):
 
         """
         try:
-            self.__fd__ = os.open(self.lockfile, os.O_CREAT|os.O_EXCL, 0644)
-            self.is_locked = True
-        except OSError as err:
-            if err.errno == errno.EEXIST:
-                raise RunLockExists(err.filename)
+            from ROOT import DotLock
+            try:
+                self.__fd__ = DotLock(self.lockfile)
+                self.is_locked = True
+            except Exception as err:
+                if err.message.find('C++ exception') >= 0:
+                    # most likely DotLockException from DotLock
+                    raise RunLockExists(self.lockfile)
+        except ImportError as err:
+            print err
+            print 'Using alternate locking implementation'
+            try:
+                self.__fd__ = os.open(self.lockfile, os.O_CREAT|os.O_EXCL, 0644)
+                self.is_locked = True
+                self.__fallback__ = True
+            except OSError as err:
+                if err.errno == errno.EEXIST:
+                    raise RunLockExists(err.filename)
 
 
     def release(self):
@@ -99,8 +113,11 @@ class RunLock(object):
 
         """
         if self.is_locked:
-            os.close(self.__fd__)
-            os.unlink(self.lockfile)
+            if self.__fallback__:
+                os.close(self.__fd__)
+                os.unlink(self.lockfile)
+            else:
+                del self.__fd__
             self.is_locked = False
 
 
