@@ -128,5 +128,3 @@ class DotLock:
         # clean up after ourselves
         os.unlink(ftmpname) 
         self._cleanups.remove(ftmpname)
-
-dl = DotLock("foo.txt")
