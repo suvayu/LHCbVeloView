@@ -61,7 +61,7 @@ class RunLock(object):
 
     """
 
-    def __init__(self, runno, stream, timeout=3, job=None):
+    def __init__(self, wdir, runno, stream, timeout=3, job=None):
         """Initialise a run lock for `runno' and `stream'.
 
         Wait `timeout' seconds to acquire lock.  `job' is ignored for now.
@@ -73,7 +73,7 @@ class RunLock(object):
         self.runno = runno
         self.stream = stream
         self.timeout = timeout
-        self.lockfile = os.path.join(os.getcwd(), "%d.%s.lock" % (runno, stream))
+        self.lockfile = os.path.join(wdir,'vetra_moni.%d.%s.lock' % (runno, stream))
 
 
     def acquire(self):
