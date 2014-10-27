@@ -110,10 +110,11 @@ class RunDBQuery(object):
 
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
-        """Return valid runs which are longer than threshold duration.
+        """Return valid runs longer than threshold seconds.
 
-        If no threshold is passed, list of valid runs include all runs
-        started at least an hour ago from now.
+        List of valid runs include runs started at least an hour ago
+        from now.  If no threshold is passed, duration is not checked
+        and all such runs are included.
 
         """
 
@@ -122,8 +123,7 @@ class RunDBQuery(object):
 
         for run in range(self.runs[0], self.runs[-1]+1):
             info = self.get_run_info(run)
-            if not info:
-                continue
+            if not info: continue
 
             # runs in book keeping, destination offline
             if (info['state'] == 'IN BKK' and
@@ -135,10 +135,9 @@ class RunDBQuery(object):
                 info['destination'] == 'OFFLINE'):
                 fresh_runs.append(run)
 
-        if runs_in_bkk:         # new runs in book keeping
-            runlist = runs_in_bkk
-        else:
-            runlist = fresh_runs
+        # new runs in book keeping
+        if runs_in_bkk: runlist = runs_in_bkk
+        else: runlist = fresh_runs
 
         # FIXME: unaudited
         for idx, run in enumerate(runlist):
@@ -156,8 +155,9 @@ class RunDBQuery(object):
                          mktime(strptime(info['endTime'], timefmt)))
                 if epoch[1] - epoch[0] < time_threshold: # too short
                     runlist.pop(idx)
-                if not runs_in_bkk: # no new runs in book keeping
-                    if time() - epoch[1] < 3600: # run too recent
-                        runlist.pop(idx)
+
+            if not runs_in_bkk: # no new runs in book keeping
+                if time() - epoch[1] < 3600: # run too recent
+                    runlist.pop(idx)
 
         return runlist
