@@ -14,8 +14,7 @@ Adapted from a file locking class by Evan Fosmark.
 """
 
 
-import os, errno
-from traceback import print_exc
+import os, errno, sys
 
 
 class RunLockExists(Exception):
@@ -132,8 +131,8 @@ class RunLock(object):
     def __exit__(self, type, value, traceback):
         """Activated at the end of the with statement to release the lock."""
         if isinstance(value, RunLockExists):
+            print sys.exc_info()[1]
             print 'Looks like run lock exists, moving on.'
-            print_exc()
             return True
         elif self.is_locked:
             self.release()
