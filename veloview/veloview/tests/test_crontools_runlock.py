@@ -24,11 +24,11 @@ class TestExceptions(unittest.TestCase):
 
     def test_existing_lock_files(self):
         def __existing_lock_files__():
-            """Internal method."""
+            """Existing lockfiles should be skipped safely."""
             with RunLock(self.good_runno, self.stream):
                 with RunLock(self.good_runno, self.stream):
                     pass
-        self.assertTrue(__existing_lock_files__)
+        self.assertIs(__existing_lock_files__(), None)
 
     @unittest.skip('Test not finalised')
     def test_permission_problems(self):
