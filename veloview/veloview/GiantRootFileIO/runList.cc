@@ -62,11 +62,12 @@ static bool addRemoveRuns(std::vector<uint64_t>& runlist,
 	    if (std::end(runlist) == begin) {
 		// default on sorted list will be append at end
 		runlist.push_back(run);
+		begin = std::end(runlist);
 	    } else if (*begin != run) {
 		// sometimes we'll have to insert "in the middle"
 		// (shouldn't happen often, since runlist is sorted, and we add
 		// very few runs compared to the size of the runlist)
-		runlist.insert(begin, run);
+		begin = runlist.insert(begin, run);
 	    } else {
 		// already in list - do nothing
 		continue;
