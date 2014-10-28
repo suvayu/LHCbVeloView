@@ -73,7 +73,7 @@ class RunLock(object):
         self.runno = runno
         self.stream = stream
         self.timeout = timeout
-        self.lockfile = os.path.join(wdir,'vetra_moni.%d.%s.lock' % (runno, stream))
+        self.lockfile = os.path.join(wdir,'vetra_moni.%d.%s' % (runno, stream))
 
 
     def acquire(self):
@@ -85,14 +85,12 @@ class RunLock(object):
 
         """
         try:
-            from ROOT import DotLock
+            from ..GiantRootFileIO.dotlock import DotLock
             try:
                 self.__fd__ = DotLock(self.lockfile, self.timeout)
                 self.is_locked = True
-            except Exception as err:
-                if err.message.find('C++ exception') >= 0:
-                    # most likely DotLockException from DotLock
-                    raise RunLockExists(self.lockfile)
+            except OSError as err:
+                raise RunLockExists(err)
         except ImportError as err:
             print err
             print 'Using alternate locking implementation'
