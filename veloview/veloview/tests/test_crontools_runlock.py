@@ -29,14 +29,21 @@ import unittest
 class TestExceptions(unittest.TestCase):
 
     def setUp(self):
+        self.wdir = os.getcwd()
         self.stream = 'FOO'
         self.good_runno = 137259
 
     def test_existing_lock_files(self):
+        l1 = RunLock(self.wdir, self.good_runno, self.stream)
+        self.assertIs(l1.acquire(), None)
+        l2 = RunLock(self.wdir, self.good_runno, self.stream)
+        self.assertRaises(RunLockExists, l2.acquire)
+
+    def test_with_statements(self):
         def __existing_lock_files__():
             """Existing lockfiles should be skipped safely."""
-            with RunLock(os.getcwd(), self.good_runno, self.stream):
-                with RunLock(os.getcwd(), self.good_runno, self.stream):
+            with RunLock(self.wdir, self.good_runno, self.stream):
+                with RunLock(self.wdir, self.good_runno, self.stream):
                     pass
         self.assertIs(__existing_lock_files__(), None)
 
@@ -48,7 +55,7 @@ class TestExceptions(unittest.TestCase):
             __tmpdir__ = os.path.join(os.getcwd(), 'tmp')
             os.mkdir(__tmpdir__, 0555)
             with os.chdir(__tmpdir__):
-                with RunLock(os.getcwd(), self.good_runno, self.stream):
+                with RunLock(self.wdir, self.good_runno, self.stream):
                     pass
         self.assertRaises(OSError, __permission_problems__)
 
