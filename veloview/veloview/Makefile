@@ -6,7 +6,7 @@
 #
 
 TESTS		:= $(wildcard tests/test_*.py)
-SPLTESTS	:= test_core_io
+SPLTESTS	:= test_core_io test_crontools_runlock
 
 DQMTESTS	:= test_avghists test_statcomp
 DQMFILES	:= tests/data/dqm_data.root tests/data/dqm_ref.root
