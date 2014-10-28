@@ -85,7 +85,7 @@ class RunLock(object):
 
         """
         try:
-            from ..GiantRootFileIO.dotlock import DotLock
+            from .dotlock import DotLock
             try:
                 self.__fd__ = DotLock(self.lockfile, self.timeout)
                 self.is_locked = True

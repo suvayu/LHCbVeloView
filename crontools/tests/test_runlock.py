@@ -9,20 +9,10 @@ if __file__.startswith('/'):
     sys.path.insert(0, os.path.join('/', *__file__.split('/')[:-3]))
 else:
     __path_to_script__ = __file__.split('/')[:-1] # test directory
-    __path_to_script__ += ['..', '..']            # package directory parent
+    __path_to_script__ += ['..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__path_to_script__))
 
-from veloview.utils.rootutils import ROOT
-
-def setUpModule():
-    ROOT.SetMemoryPolicy(ROOT.kMemoryStrict)
-    status = ROOT.gSystem.Load('libCintex')
-    if status >= 0: ROOT.Cintex.Enable()
-    else: raise RuntimeError('Couldn\'t load libCintex')
-    status = ROOT.gSystem.Load('libVeloGUIUtils')
-    if status < 0: raise RuntimeError('Couldn\'t load libVeloGUIUtils')
-
-from veloview.crontools.runlock import (RunLock, RunLockExists)
+from crontools.runlock import (RunLock, RunLockExists)
 import unittest
 
 
