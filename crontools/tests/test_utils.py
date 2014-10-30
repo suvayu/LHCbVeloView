@@ -33,6 +33,15 @@ class TestUtils(unittest.TestCase):
     def test_dir_tree(self):
         self.assertEqual(make_dir_tree(self.runno), '50000s/54000s/54300s/')
 
+    def test_last_run(self):
+        runs = [str(i) + '\n' for i in xrange(50000, 55000)]
+        fname = '/tmp/RunList.txt'
+        testfile = file(fname, 'w')
+        testfile.writelines(runs)
+        testfile.close()
+        self.assertEqual(54999, get_last_run(fname))
+        os.remove(fname)
+
 
 if __name__ == '__main__':
     hdr_fmt = '='*5 + '{0:^{width}}' + '='*5

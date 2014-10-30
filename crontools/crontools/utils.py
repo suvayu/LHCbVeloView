@@ -21,3 +21,8 @@ def make_dir_tree(run):
         digit += get_digit(run, i)
         tree += get_mult_10(digit, i-1) + 's/'
     return tree
+
+def get_last_run(runfile):
+    """Return last run from runfile"""
+    runfile = open(runfile, 'r')
+    return int(runfile.readlines()[-1])
