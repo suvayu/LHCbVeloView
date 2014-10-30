@@ -21,6 +21,11 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         self.runno = 54321
         self.runstr = str(self.runno)
+        self.fname = '/tmp/RunList.txt'
+
+    def tearDown(self):
+        if os.path.exists(self.fname):
+            os.remove(self.fname)
 
     def test_digit(self):
         digit = get_digit(self.runno, 3)
@@ -35,12 +40,10 @@ class TestUtils(unittest.TestCase):
 
     def test_last_run(self):
         runs = [str(i) + '\n' for i in xrange(50000, 55000)]
-        fname = '/tmp/RunList.txt'
-        testfile = file(fname, 'w')
+        testfile = file(self.fname, 'w')
         testfile.writelines(runs)
         testfile.close()
-        self.assertEqual(54999, get_last_run(fname))
-        os.remove(fname)
+        self.assertEqual(54999, get_last_run(self.fname))
 
 
 if __name__ == '__main__':
