@@ -38,6 +38,14 @@ class TestUtils(unittest.TestCase):
     def test_dir_tree(self):
         self.assertEqual(make_dir_tree(self.runno), '50000s/54000s/54300s/')
 
+    def test_add_runs(self):
+        add_runs(self.runno, self.fname, prefix='bin')
+        runs = [41, 42, 43]
+        add_runs(runs, self.fname, prefix='bin')
+        runlist = open(self.fname, 'r')
+        lines = [int(i) for i in runlist.readlines()]
+        self.assertSequenceEqual(runs + [self.runno], lines)
+
     def test_last_run(self):
         runs = [str(i) + '\n' for i in xrange(50000, 55000)]
         testfile = file(self.fname, 'w')

@@ -26,3 +26,28 @@ def get_last_run(runfile):
     """Return last run from runfile"""
     runfile = open(runfile, 'r')
     return int(runfile.readlines()[-1])
+
+def add_runs(runs, runfile, prefix=''):
+    """Add run numbers to list"""
+    try:
+        runs = [str(r) for r in runs]
+    except TypeError:
+        runs = [str(runs)]
+    open(runfile, 'a').close()
+    from subprocess import call
+    if prefix: cmd = '/'.join((prefix, 'runList'))
+    else: cmd = 'runList'
+    call([cmd, '--file', runfile, '--add'] + runs)
+
+# NOTE: should never be required
+def remove_runs(runs, runfile, prefix=''):
+    """Remove run numbers from list"""
+    try:
+        runs = [str(r) for r in runs]
+    except TypeError:
+        runs = [str(runs)]
+    open(runfile, 'a').close()
+    from subprocess import call
+    if prefix: cmd = '/'.join((prefix, 'runList'))
+    else: cmd = 'runList'
+    call([cmd, '--file', runfile, '--remove'] + runs)
