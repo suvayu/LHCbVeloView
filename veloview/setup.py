@@ -29,4 +29,8 @@ setup(name='veloview',
         'veloview.crontools',
         'veloview.utils',
     ],
+    scripts=[
+        'bin/vetra_analysis.py',
+        'bin/cron_vetra_analysis.bash'
+    ]
 )
