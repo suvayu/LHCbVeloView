@@ -132,24 +132,26 @@ class RunDBQuery(object):
         if runs_in_bkk: runlist = runs_in_bkk
         else: runlist = fresh_runs
 
-        # FIXME: unaudited
-        for idx, run in enumerate(runlist):
+        def _filter_runs(run):
             if time_threshold:
+                # end-of-fill calibration runs with missing time info.
                 info = self.get_run_info(run)
-                # protect against end-of-fill calibration runs with
-                # missing time info
-                if (info['startTime'] == 'None' or
-                    info['endTime'] == 'None'):
-                    info('Skipping run: %s' % run)
-                    continue
-
+                if (info['startTime'] == 'None' or info['endTime'] == 'None'):
+                    info('Skipping end-of-fill calibration run: {}'.format(run))
+                    return False
+                # check duration
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
                          mktime(strptime(info['endTime'], timefmt)))
                 if epoch[1] - epoch[0] < time_threshold: # too short
-                    runlist.pop(idx)
+                    info('Skipping run, shorter than threshold: {} ({})'
+                         .format(run, time_threshold))
+                    return False
 
             if not runs_in_bkk: # no new runs in book keeping
                 if time() - epoch[1] < 3600: # run too recent
-                    runlist.pop(idx)
+                    info('Skipping less than 1h old run: {}'.format(run))
+                    return False
 
-        return runlist
+            return True
+
+        return filter(_filter_runs, runlist)
