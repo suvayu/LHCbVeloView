@@ -46,7 +46,8 @@ if _cliopts.debug:
     from logging import DEBUG as lvl
 else:
     from logging import INFO as lvl
-basicConfig(format='%(levelname)s:%(module)s: %(message)s', level=lvl)
+basicConfig(level=lvl, datefmt='%d-%m-%Y %H:%M:%S',
+            format='%(levelname)s:%(module)s:%(asctime)s: %(message)s')
 
 
 ## option setup

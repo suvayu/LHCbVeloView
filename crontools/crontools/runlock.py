@@ -16,6 +16,8 @@ Adapted from a file locking class by Evan Fosmark.
 
 import os, errno, sys
 
+from logging import getLogger, warning, error, debug
+
 
 class RunLockExists(Exception):
     """Exception when a run lock already exists.
@@ -92,8 +94,8 @@ class RunLock(object):
             except OSError as err:
                 raise RunLockExists(err)
         except ImportError as err:
-            print err
-            print 'Using alternate locking implementation'
+            warning(err)
+            warning('Using alternate locking implementation')
             try:
                 self.__fd__ = os.open(self.lockfile, os.O_CREAT|os.O_EXCL, 0644)
                 self.is_locked = True
@@ -129,8 +131,8 @@ class RunLock(object):
     def __exit__(self, type, value, traceback):
         """Activated at the end of the with statement to release the lock."""
         if isinstance(value, RunLockExists):
-            print sys.exc_info()[1]
-            print 'Looks like run lock exists, moving on.'
+            info(sys.exc_info()[1])
+            info('Looks like run lock exists, moving on.')
             return True
         elif self.is_locked:
             self.release()

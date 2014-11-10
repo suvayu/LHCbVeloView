@@ -7,8 +7,8 @@
 """
 
 
-# for printing exceptions
-from traceback import print_exc
+# logging
+from logging import getLogger, info, warning, error, debug
 
 
 class RunDBQuery(object):
@@ -29,7 +29,6 @@ class RunDBQuery(object):
     def __init__(self, runs):
         """`runs` can be a single run or a list of runs."""
 
-        self.debug = False
         try:
             self.runs = list(runs)
         except TypeError:
@@ -46,7 +45,7 @@ class RunDBQuery(object):
             cmd = ['rdbt', '-n'] + [str(run) for run in self.runs]
             self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
         except CalledProcessError:
-            print 'Oops! Bad rdbt command.'
+            error('Oops! Bad rdbt command.')
             raise
 
         import re
@@ -96,16 +95,10 @@ class RunDBQuery(object):
         try:
             info = self.run_info[run]
         except KeyError:
-            if self.debug:
-                print 'Non-existent run %s.' % run
-                print_exc()
+            debug('Non-existent run %s.' % run)
             return
-
         if not info:
-            if self.debug:
-                print 'Empty info (run %s), probably parsing failed.' \
-                    % run
-
+            warning('Empty info (run %s), probably parsing failed.' % run)
         return info
 
 
@@ -147,8 +140,7 @@ class RunDBQuery(object):
                 # missing time info
                 if (info['startTime'] == 'None' or
                     info['endTime'] == 'None'):
-                    if self.debug:
-                        print 'Skipping run: %s' % run
+                    info('Skipping run: %s' % run)
                     continue
 
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
