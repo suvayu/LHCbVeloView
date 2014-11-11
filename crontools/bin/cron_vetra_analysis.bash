@@ -17,7 +17,7 @@ source /cvmfs/lhcb.cern.ch/group_login.sh
 echo ${LBSCRIPTS_HOME}
 declare vetra=$(sed -ne 's/.\+export \+SHIFTERVETRAVERSION=\(.\+\)/\1/p' /group/velo/sw/scripts/velo_login.sh)
 echo "Vetra version:" $vetra
-SetupProject Vetra $vetra
+SetupProject.sh Vetra $vetra
 
 
 # set resource limits
