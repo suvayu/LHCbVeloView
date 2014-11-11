@@ -148,7 +148,8 @@ for run in runs:
             if retcode != 0:
                 warning('Oops! It seems Vetra failed!')
             else:
-                add_runs(run, runlist)
+                retcode = add_runs(run, runlist)
+                if retcode: error('Run %d couldn\'t be added to the list.')
             info('Vetra returned with: %d', retcode)
     except:
         error('Oops! Unexpected exception, crashing disgracefully.',

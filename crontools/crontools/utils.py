@@ -37,7 +37,7 @@ def add_runs(runs, runfile, prefix=''):
     from subprocess import call
     if prefix: cmd = '/'.join((prefix, 'runList'))
     else: cmd = 'runList'
-    call([cmd, '--file', runfile, '--add'] + runs)
+    return call([cmd, '--file', runfile, '--add'] + runs)
 
 # NOTE: should never be required
 def remove_runs(runs, runfile, prefix=''):
@@ -50,4 +50,4 @@ def remove_runs(runs, runfile, prefix=''):
     from subprocess import call
     if prefix: cmd = '/'.join((prefix, 'runList'))
     else: cmd = 'runList'
-    call([cmd, '--file', runfile, '--remove'] + runs)
+    return call([cmd, '--file', runfile, '--remove'] + runs)
