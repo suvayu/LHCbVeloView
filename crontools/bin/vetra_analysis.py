@@ -40,7 +40,7 @@ _cliopts = parser.parse_args()
 
 
 ## logging
-from logging import getLogger, info, warning, error, debug, basicConfig
+from logging import getLogger, debug, info, warning, error, basicConfig
 logger = getLogger(__name__)
 if _cliopts.debug:
     from logging import DEBUG as lvl

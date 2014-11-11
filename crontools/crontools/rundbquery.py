@@ -8,7 +8,7 @@
 
 
 # logging
-from logging import getLogger, info, warning, error, debug
+from logging import getLogger, debug, info, warning, error
 
 
 class RunDBQuery(object):
@@ -95,10 +95,9 @@ class RunDBQuery(object):
         try:
             info = self.run_info[run]
         except KeyError:
-            debug('Non-existent run %s.' % run)
+            debug('Run %d: non-existent', run)
             return
-        if not info:
-            warning('Empty info (run %s), probably parsing failed.' % run)
+        if not info: warning('Run %d: probably parsing failed', run)
         return info
 
 
@@ -129,27 +128,27 @@ class RunDBQuery(object):
                 fresh_runs.append(run)
 
         # new runs in book keeping
-        if runs_in_bkk: runlist = runs_in_bkk
-        else: runlist = fresh_runs
+        runlist = runs_in_bkk if runs_in_bkk else fresh_runs
 
         def _filter_runs(run):
+            """Filter to trim runlist"""
             if time_threshold:
                 # end-of-fill calibration runs with missing time info.
                 info = self.get_run_info(run)
                 if (info['startTime'] == 'None' or info['endTime'] == 'None'):
-                    info('Skipping end-of-fill calibration run: {}'.format(run))
+                    info('Run %d: end-of-fill calibration, skipping', run)
                     return False
                 # check duration
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
                          mktime(strptime(info['endTime'], timefmt)))
                 if epoch[1] - epoch[0] < time_threshold: # too short
-                    info('Skipping run, shorter than threshold: {} ({})'
-                         .format(run, time_threshold))
+                    info('Run %d: shorter than threshold (%d), skipping',
+                         run, time_threshold)
                     return False
 
             if not runs_in_bkk: # no new runs in book keeping
                 if time() - epoch[1] < 3600: # run too recent
-                    info('Skipping less than 1h old run: {}'.format(run))
+                    info('Run %d: younger than 1h, skipping', run)
                     return False
 
             return True
