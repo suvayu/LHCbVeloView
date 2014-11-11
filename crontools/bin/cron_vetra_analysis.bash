@@ -27,4 +27,4 @@ echo "Running on:" $HOSTNAME
 
 
 # run job
-exec python $srcdir/vetra_analysis.py -c $jobargs
+exec python $srcdir/vetra_analysis.py -c -v $vetra $jobargs
