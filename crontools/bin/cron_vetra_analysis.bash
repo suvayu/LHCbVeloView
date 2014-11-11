@@ -13,11 +13,11 @@ shift $#
 
 
 # initialise environment; LbLogin et al.
-source /cvmfs/lhcb.cern.ch/group_login.sh
+source /cvmfs/lhcb.cern.ch/group_login.sh &> /dev/null
 echo ${LBSCRIPTS_HOME}
 declare vetra=$(sed -ne 's/.\+export \+SHIFTERVETRAVERSION=\(.\+\)/\1/p' /group/velo/sw/scripts/velo_login.sh)
 echo "Vetra version:" $vetra
-SetupProject.sh Vetra $vetra
+SetupProject.sh Vetra $vetra &> /dev/null
 
 
 # set resource limits
