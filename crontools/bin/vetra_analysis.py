@@ -17,8 +17,8 @@ parser.formatter_class = argparse.RawDescriptionHelpFormatter
 parser.add_argument('runs', nargs='*', type=int, help='List of runs to process.')
 parser.add_argument('-r', '--run-range', nargs=2, type=int,
                     metavar=('START', 'END'), help='Run range to process.')
-parser.add_argument('-v', '--vetra-version', dest='vetra', default='v15r0',
-                    help='Vetra version to use (default: v15r0).')
+parser.add_argument('-v', '--vetra-version', dest='vetra', default='v14r0',
+                    help='Vetra version to use (default: v14r0).')
 parser.add_argument('-s', '--stream', dest='stream', default='NZS',
                     choices=['NZS', 'ZS'], help='Which stream to process '
                     '(default: NZS).')
