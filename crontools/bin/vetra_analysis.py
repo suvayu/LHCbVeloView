@@ -54,7 +54,7 @@ basicConfig(level=lvl, datefmt='%d-%m-%Y %H:%M:%S',
 debug('Script options: %s' % _cliopts)
 
 # import python modules
-import os, sys, re
+import os, errno, sys, re
 from glob import glob
 
 # stream to process
@@ -119,36 +119,43 @@ debug('Run list after trimming: %s' % runs)
 from crontools.utils import add_runs, make_dir_tree
 from crontools.runlock import (RunLock)
 for run in runs:
-    with RunLock(run, stream):
-        info('Processing run: %s, stream: %s' % (run, stream))
-        from subprocess import call
-        # FIXME: temporarily hard coded vetra script name
-        vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_{}' \
-                       '/Velo/VetraScripts/scripts/vetraOffline'.format(_cliopts.vetra)
-        cmd_w_args = ([vetraOffline] + jobopts.split(' ') +
-                      [str(run), str(_cliopts.nevents)])
-        debug('Job command: %s' % cmd_w_args)
+    info('Processing run: %s, stream: %s' % (run, stream))
+    from subprocess import call
+    # FIXME: temporarily hard coded vetra script name
+    vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_{}' \
+                   '/Velo/VetraScripts/scripts/vetraOffline'.format(_cliopts.vetra)
+    cmd_w_args = ([vetraOffline] + jobopts.split(' ') +
+                  [str(run), str(_cliopts.nevents)])
+    debug('Job command: %s', ' '.join(cmd_w_args))
 
-        # start the job
-        log_hdrs = '='*5 + '{0:^{width}}' + '='*5
-        info(log_hdrs.format('Starting Vetra', width=40))
+    # job directory
+    jobdir_t = _cliopts.jobdir + '/{}'.format(make_dir_tree(run))
+    try:
         try:
-            jobdir_t = _cliopts.jobdir + '/{}'.format(make_dir_tree(run))
             os.makedirs(jobdir_t)
-            os.chdir(jobdir_t)
+        except OSError as err:
+            if err.errno != errno.EEXIST: raise
+        os.chdir(jobdir_t)
+    except OSError as err:
+        error('Run %d, stream %s: Oops! Problem with job directory.',
+              run, stream, exc_info=True)
+        continue
+    try:
+        # start the job
+        with RunLock(jobdir_t, run, stream):
+            info('Starting Vetra')
             retcode = call(cmd_w_args)
             if retcode != 0:
                 warning('Oops! It seems Vetra failed!')
             else:
                 add_runs(run, runlist)
-            info(log_hdrs.format('Vetra returned: %d' % retcode, width=40))
-        except:
-            exc = sys.exc_info()
-            error('Oops! Unexpected exception, may crash disgracefully. ' \
-                  '(%s: %s)' % (exc[0].__name__, exc[1]))
-            raise
-        if _cliopts.cron:   # quit after 1 job when run by cron
-            debug('Running from cron, quitting after 1 job.')
-            break
+            info('Vetra returned with: %d', retcode)
+    except:
+        error('Oops! Unexpected exception, crashing disgracefully.',
+              exc_info=True)
+        raise
+    if _cliopts.cron:   # quit after 1 job when run by cron
+        debug('Running from cron, quitting after 1 job.')
+        break
 
 sys.exit('Bye bye ...')
