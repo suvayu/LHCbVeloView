@@ -119,7 +119,8 @@ class RunDBQuery(object):
 
             # runs in book keeping, destination offline
             if (info['state'] == 'IN BKK' and
-                info['destination'] == 'OFFLINE'):
+                (info['destination'] == 'OFFLINE' or
+                 info['destination'] == 'CASTOR')):
                 runs_in_bkk.append(run)
 
             # fresh runs (fallback)
