@@ -42,4 +42,4 @@ discover:	files
 
 # FIXME: special case
 test_core_io:	tests/test_core_io.py
-	LD_LIBRARY_PATH=GiantRootFileIO:$$LD_LIBRARY_PATH python $<
+	LD_LIBRARY_PATH=GiantRootFileIO:$$LD_LIBRARY_PATH python $< $(OPTS)
