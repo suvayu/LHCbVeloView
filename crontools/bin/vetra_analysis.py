@@ -148,7 +148,7 @@ for run in runs:
             if retcode != 0:
                 warning('Oops! It seems Vetra failed!')
             else:
-                retcode = add_runs(run, runlist)
+                retcode = add_runs(run, runlist, prefix=os.path.dirname(__file__))
                 if retcode: error('Run %d couldn\'t be added to the list.')
             info('Vetra returned with: %d', retcode)
     except:
