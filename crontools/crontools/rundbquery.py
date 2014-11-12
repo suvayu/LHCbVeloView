@@ -125,7 +125,8 @@ class RunDBQuery(object):
 
             # fresh runs (fallback)
             if (info['state'] == 'ENDED' and
-                info['destination'] == 'OFFLINE'):
+                (info['destination'] == 'OFFLINE' or
+                 info['destination'] == 'CASTOR')):
                 fresh_runs.append(run)
 
         # new runs in book keeping
