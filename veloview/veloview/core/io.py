@@ -6,20 +6,40 @@ from ..GiantRootFileIO.GUITree import Tree
 def flatten(pydict):
     from copy import deepcopy
     pydict = deepcopy(pydict)
-    if isinstance(pydict, dict):
-        children = {}
-        for key in pydict:
-            if isinstance(pydict[key], dict):
-                children[key] = flatten(pydict[key])
-        for key, value in children.iteritems():
-            pydict.update([('.'.join([key,k]), v) for k,v in value.iteritems()])
-            del pydict[key]
-        return pydict
-    else:
+    if not isinstance(pydict, dict):
         raise ValueError('Only dictionaries are supported: {}'.format(type(pydict)))
+    children = {}
+    for key in pydict:
+        if isinstance(pydict[key], dict):
+            children[key] = flatten(pydict[key])
+    for key, value in children.iteritems():
+        pydict.update([('.'.join([key,k]), v) for k,v in value.iteritems()])
+        del pydict[key]
+    return pydict
 
-def translate_types(pydict):
-    pass
+def unflatten(pydict):
+    from copy import deepcopy
+    pydict = deepcopy(pydict)
+    if not isinstance(pydict, dict):
+        raise ValueError('Only dictionaries are supported: {}'.format(type(pydict)))
+    def nestkey(key, value):
+        keys = key.split('.')
+        res = {}
+        for k in reversed(keys):
+            res = {k: value}
+            value = res
+        return res
+    def mergedicts(res, new):
+        for k in new:
+            if res.has_key(k):
+                mergedicts(res[k], new[k])
+            else:
+                res.update({k: new[k]})
+    rows = [nestkey(key, pydict[key]) for key in pydict]
+    res = {}
+    for row in rows:
+        mergedicts(res, row)
+    return res
     
 class GRFIO(object):
     """interface for versioned objects implemented by GiantRootFileIO."""

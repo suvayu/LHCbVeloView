@@ -41,10 +41,25 @@ class TestGRFIO(unittest.TestCase):
                         'j': {'c':3, 'd':4},
                         'k': {'e':5, 'f':6}
                     }}
+        self.f = {'l'    : 9,
+                  'm.g'  : 7,
+                  'm.h'  : 8,
+                  'm.i.a': 1,
+                  'm.i.b': 2,
+                  'm.j.c': 3,
+                  'm.j.d': 4,
+                  'm.k.e': 5,
+                  'm.k.f': 6
+              }
 
     def tearDown(self):
         if os.path.exists('/tmp/test.root'):
             os.remove('/tmp/test.root')
+
+    def test_flatten_unflatten(self):
+        from veloview.core.io import flatten, unflatten
+        self.assertEqual(flatten(self.d), self.f)
+        self.assertEqual(unflatten(self.f), self.d)
 
     def test_write_dqtree(self):
         io = GRFIO('/tmp/test.root', mode = 'update', scheme = __brscheme__)
