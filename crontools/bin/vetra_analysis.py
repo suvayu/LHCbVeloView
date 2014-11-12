@@ -129,7 +129,7 @@ for run in runs:
     debug('Job command: %s', ' '.join(cmd_w_args))
 
     # job directory
-    jobdir_t = _cliopts.jobdir + '/{}'.format(make_dir_tree(run))
+    jobdir_t = make_dir_tree(run, prefix=_cliopts.jobdir)
     try:
         try:
             os.makedirs(jobdir_t)

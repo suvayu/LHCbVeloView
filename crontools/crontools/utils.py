@@ -13,14 +13,16 @@ def if_ndigits(run, ndigits):
     """Test if run number is ndigits long"""
     return len(str(run)) == ndigits
 
-def make_dir_tree(run):
+def make_dir_tree(run, prefix=''):
     """Make directory tree from run number grouped by decades"""
     length = len(str(run))
     tree, digit = '', ''
     for i in xrange(length, 2, -1):
         digit += get_digit(run, i)
         tree += get_mult_10(digit, i-1) + 's/'
-    return tree
+    tree = tree + str(run)
+    if prefix: return prefix + '/{}'.format(tree)
+    else: return tree
 
 def get_last_run(runfile):
     """Return last run from runfile"""
