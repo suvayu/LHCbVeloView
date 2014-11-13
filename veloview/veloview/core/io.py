@@ -53,27 +53,32 @@ class GRFIO(object):
         branches -- List of branches, or dictionary of name and types
 
         """
-        mode = mode.lower()
-        if mode == 'recreate':
+        self.mode = mode.lower()
+        if self.mode == 'recreate':
             raise ValueError('recreating not allowed')
-        if ((mode == 'create' or mode == 'new') and
+        if ((self.mode == 'create' or self.mode == 'new') and
             not isinstance(branches, dict)):
             raise ValueError('Branch name-type dictionary mandatory for creation')
 
         self.lock = ROOT.DotLock(fname)
-        self.rfile = ROOT.TFile.Open(fname, mode)
+        self.rfile = ROOT.TFile.Open(fname, self.mode)
         try:
             self.tree = Tree(tree, treetitle = title, branches = branches)
         except TypeError:
             raise ValueError('Cannot find valid tree: {}'.format(tree))
 
-    def if_versioned(self, branchname):
+    @staticmethod
+    def if_versioned(tree, branchname):
         """Check if branch is versioned"""
-        branch = getattr(self.tree, branchname)
+        branch = getattr(tree, branchname)
         return (hasattr(branch, 'value'), branch)
 
     def fill(self, dqdict):
-        """Flatten and fill dictionary
+        """Flatten and fill dictionary"""
+        self._fill(self.tree, dqdict)
+
+    def _fill(self, tree, dqdict):
+        """Internal method: flatten and fill dictionary
 
         FIXME: doesn't check if branches match type'
 
@@ -82,16 +87,16 @@ class GRFIO(object):
         dqflat = flatten(dqdict)
         # FIXME: verify dqflat matches branch scheme
         for key, value in dqflat.iteritems():
-            versioned, branch = self.if_versioned(key)
+            versioned, branch = self.if_versioned(tree, key)
             if versioned: branch[now] = value
-            else: setattr(self.tree, key, value)
-        self.tree.Fill()
+            else: setattr(tree, key, value)
+        tree.Fill()
 
     def read(self, branches, version = None):
         """Read branches and return unflattened dictionaries."""
         res = {}
         for br in branches:
-            versioned, branch = self.if_versioned(br)
+            versioned, branch = self.if_versioned(self.tree, br)
             # FIXME: check if requested version is valid
             if version and versioned: value = branch[version]
             else: value = branch
