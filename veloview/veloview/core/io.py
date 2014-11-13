@@ -40,55 +40,61 @@ def unflatten(pydict):
     for row in rows:
         mergedicts(res, row)
     return res
-    
+
 class GRFIO(object):
     """interface for versioned objects implemented by GiantRootFileIO."""
 
-    def __init__(self, fname, tname='DQTree', mode='read', scheme = None):
+    def __init__(self, fname, tree='DQTree', title='', mode='read', branches = None):
         """Instantiating GRFIO needs the filename, mode, and tree name.
 
-        fname -- The ROOT file with versioned objects
-        mode  -- Mode to open the file (read, update)
-        tname -- Name of tree with versioned objects 
+        fname    -- The ROOT file with versioned objects
+        tree     -- Name of tree with versioned objects
+        mode     -- Mode to open the file (create/new, read, update)
+        branches -- List of branches, or dictionary of name and types
 
         """
         mode = mode.lower()
         if mode == 'recreate':
-            raise ValueError('Only read or update modes are allowed')
-        if mode != 'read' and not scheme:
-            raise ValueError('Branch scheme is missing')
+            raise ValueError('recreating not allowed')
+        if ((mode == 'create' or mode == 'new') and
+            not isinstance(branches, dict)):
+            raise ValueError('Branch name-type dictionary mandatory for creation')
 
         self.lock = ROOT.DotLock(fname)
         self.rfile = ROOT.TFile.Open(fname, mode)
         try:
-            self.tree = Tree(tname)
+            self.tree = Tree(tree, treetitle = title, branches = branches)
         except TypeError:
-            if mode == 'read':
-                raise ValueError('Cannot find valid tree: {}'.format(tname))
-            self.tree = Tree(tname, branches = scheme)
+            raise ValueError('Cannot find valid tree: {}'.format(tree))
 
-    def write_dqtree(self, dqdict):
+    def if_versioned(self, branchname):
+        """Check if branch is versioned"""
+        branch = getattr(self.tree, branchname)
+        return (hasattr(branch, 'value'), branch)
+
+    def fill_dqtree(self, dqdict):
+        """Flatten and fill dictionary
+
+        FIXME: doesn't check if branches match type'
+
+        """
+        now = ROOT.TimeStamp()
         dqflat = flatten(dqdict)
         # FIXME: verify dqflat matches branch scheme
         for key, value in dqflat.iteritems():
-            # NOTE: when writing, timestamp is now by default
-            setattr(self.tree, key, value)
+            versioned, branch = self.if_versioned(key)
+            if versioned: branch[now] = value
+            else: setattr(self.tree, key, value)
         self.tree.Fill()
-        self.tree.Write()
 
-    def read_leaf(self, leaf, timestamp = None):
-        # FIXME: check if leaf is versioned
-        if timestamp:
-            return getattr(self.tree, leaf)[timestamp]
-        else:
-            return getattr(self.tree, leaf)
-
-    def read_dqtree(self, branches, timestamp = None):
+    def read_dqtree(self, branches, version = None):
+        """Read branches and return unflattened dictionaries."""
         res = {}
         for br in branches:
-            # FIXME: check if leaf is versioned
-            if timestamp:
-                res[br] = getattr(self.tree, br)[timestamp]
-            else:
-                res[br] = getattr(self.tree, br)
-        return res
+            versioned, branch = self.if_versioned(br)
+            # FIXME: check if requested version is valid
+            if version and versioned: value = branch[version]
+            else: value = branch
+            if versioned: res[br] = value.value()
+            else: res[br] = value
+        return unflatten(res)

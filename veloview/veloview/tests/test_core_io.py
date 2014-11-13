@@ -21,57 +21,70 @@ def setUpModule():
     status = ROOT.gSystem.Load('libVeloGUIUtils')
     if status < 0: raise RuntimeError('Couldn\'t load libVeloGUIUtils')
 
+
 from veloview.GiantRootFileIO.GUITree import Tree
 from veloview.core.io import GRFIO
-
-__brscheme__ = {
-    'runnr':	'UInt_t', # this never gets updated, so no VersionedObject here
-    'checked':	'VersionedObject<UShort_t, TimeStamp, std::greater<TimeStamp> >',
-    'comment':	'VersionedObject<std::string, TimeStamp, std::greater<TimeStamp> >',
-    'score':    'VersionedObject<float, TimeStamp, std::greater<TimeStamp> >'
-}
 
 import unittest
 class TestGRFIO(unittest.TestCase):
     
     def setUp(self):
-        self.d = {'l': 9,
-                  'm': {'g': 7, 'h':8,
-                        'i': {'a':1, 'b':2},
-                        'j': {'c':3, 'd':4},
-                        'k': {'e':5, 'f':6}
-                    }}
-        self.f = {'l'    : 9,
-                  'm.g'  : 7,
-                  'm.h'  : 8,
-                  'm.i.a': 1,
-                  'm.i.b': 2,
-                  'm.j.c': 3,
-                  'm.j.d': 4,
-                  'm.k.e': 5,
-                  'm.k.f': 6
-              }
+        self.branches = {
+            'runnr':   'UInt_t', # this never gets updated, so no VersionedObject here
+            'checked': 'VersionedObject<UShort_t, TimeStamp, std::greater<TimeStamp> >',
+            'comment': 'VersionedObject<std::string, TimeStamp, std::greater<TimeStamp> >',
+            'score':   'VersionedObject<float, TimeStamp, std::greater<TimeStamp> >'
+        }
+        entry = {
+            'runnr':   142467,
+            'checked': 1,
+            'comment': 'Okay',
+            'score':   98.5
+        }
+        self.entries = []
+        for i in xrange(5):
+            entry['runnr'] += 1
+            self.entries.append(entry)
 
     def tearDown(self):
         if os.path.exists('/tmp/test.root'):
             os.remove('/tmp/test.root')
 
     def test_flatten_unflatten(self):
+        d = {'l': 9,
+             'm': {'g': 7, 'h':8,
+                   'i': {'a':1, 'b':2},
+               }}
+        f = {'l'    : 9,
+             'm.g'  : 7,
+             'm.h'  : 8,
+             'm.i.a': 1,
+             'm.i.b': 2
+         }
         from veloview.core.io import flatten, unflatten
-        self.assertEqual(flatten(self.d), self.f)
-        self.assertEqual(unflatten(self.f), self.d)
+        self.assertEqual(flatten(d), f)
+        self.assertEqual(unflatten(f), d)
 
-    def test_write_dqtree(self):
-        io = GRFIO('/tmp/test.root', mode = 'update', scheme = __brscheme__)
-        io.write_dqtree(self.d)
+    def test_read_write(self):
+        grf = GRFIO('/tmp/test.root', mode = 'new', branches = self.branches)
+        for entry in self.entries:
+            grf.fill_dqtree(entry)
+        grf.tree.Write()
+        branches = [key for key in self.entries[0]]
+        nentry = 0
+        for dummy in grf.tree:
+            res = grf.read_dqtree(branches)
+            self.assertEqual(self.entries[nentry], res)
+            nentry += 1
 
     @unittest.skip('Not implemented')
-    def test_read_leaf(self):
+    def test_version_browsing(self):
         pass
 
     @unittest.skip('Not implemented')
-    def test_read_dqtree(self):
+    def test_update(self):
         pass
+
 
 if __name__ == '__main__':
     hdr_fmt = '='*5 + '{0:^{width}}' + '='*5
