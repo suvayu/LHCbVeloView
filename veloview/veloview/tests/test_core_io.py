@@ -54,13 +54,20 @@ class TestGRFIO(unittest.TestCase):
         entry = {
             'runnr':   142467,
             'checked': 1,
-            'comment': 'Okay',
+            'comment': 'OK',
             'score':   98.5
         }
         self.entries = []
         for i in xrange(5):
             entry['runnr'] += 1
-            self.entries.append(entry)
+            if i % 2 == 1:
+                entry['checked'] = 2
+                entry['comment'] = 'NOK'
+            else:
+                entry['checked'] = 1
+                entry['comment'] = 'OK'
+            from copy import deepcopy
+            self.entries.append(deepcopy(entry))
         self.grf = GRFIO('/tmp/test.root', mode = 'new', branches = self.branches)
 
     def tearDown(self):
