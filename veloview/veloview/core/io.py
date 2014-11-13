@@ -98,3 +98,11 @@ class GRFIO(object):
             if versioned: res[br] = value.value()
             else: res[br] = value
         return unflatten(res)
+
+    def write(self):
+        """Write tree to disk"""
+        self.tree.Write()
+
+    def cloes(self):
+        """Close ROOT file"""
+        self.rfile.Close()

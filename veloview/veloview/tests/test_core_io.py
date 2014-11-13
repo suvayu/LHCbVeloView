@@ -22,13 +22,29 @@ def setUpModule():
     if status < 0: raise RuntimeError('Couldn\'t load libVeloGUIUtils')
 
 
-from veloview.GiantRootFileIO.GUITree import Tree
-from veloview.core.io import GRFIO
-
 import unittest
+class TestGRFIOutils(unittest.TestCase):
+
+    def test_flatten_unflatten(self):
+        from veloview.core.io import flatten, unflatten
+        d = {'l': 9,
+             'm': {'g': 7, 'h':8,
+                   'i': {'a':1, 'b':2},
+               }}
+        f = {'l'    : 9,
+             'm.g'  : 7,
+             'm.h'  : 8,
+             'm.i.a': 1,
+             'm.i.b': 2
+         }
+        self.assertEqual(flatten(d), f)
+        self.assertEqual(unflatten(f), d)
+
+
 class TestGRFIO(unittest.TestCase):
     
     def setUp(self):
+        from veloview.core.io import GRFIO
         self.branches = {
             'runnr':   'UInt_t', # this never gets updated, so no VersionedObject here
             'checked': 'VersionedObject<UShort_t, TimeStamp, std::greater<TimeStamp> >',
@@ -45,35 +61,20 @@ class TestGRFIO(unittest.TestCase):
         for i in xrange(5):
             entry['runnr'] += 1
             self.entries.append(entry)
+        self.grf = GRFIO('/tmp/test.root', mode = 'new', branches = self.branches)
 
     def tearDown(self):
         if os.path.exists('/tmp/test.root'):
             os.remove('/tmp/test.root')
 
-    def test_flatten_unflatten(self):
-        d = {'l': 9,
-             'm': {'g': 7, 'h':8,
-                   'i': {'a':1, 'b':2},
-               }}
-        f = {'l'    : 9,
-             'm.g'  : 7,
-             'm.h'  : 8,
-             'm.i.a': 1,
-             'm.i.b': 2
-         }
-        from veloview.core.io import flatten, unflatten
-        self.assertEqual(flatten(d), f)
-        self.assertEqual(unflatten(f), d)
-
     def test_read_write(self):
-        grf = GRFIO('/tmp/test.root', mode = 'new', branches = self.branches)
         for entry in self.entries:
-            grf.fill_dqtree(entry)
-        grf.tree.Write()
+            self.grf.fill_dqtree(entry)
+        self.grf.write()
         branches = [key for key in self.entries[0]]
         nentry = 0
-        for dummy in grf.tree:
-            res = grf.read_dqtree(branches)
+        for dummy in self.grf.tree:
+            res = self.grf.read_dqtree(branches)
             self.assertEqual(self.entries[nentry], res)
             nentry += 1
 
