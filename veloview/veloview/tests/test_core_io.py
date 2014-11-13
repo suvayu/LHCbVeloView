@@ -69,12 +69,12 @@ class TestGRFIO(unittest.TestCase):
 
     def test_read_write(self):
         for entry in self.entries:
-            self.grf.fill_dqtree(entry)
+            self.grf.fill(entry)
         self.grf.write()
         branches = [key for key in self.entries[0]]
         nentry = 0
         for dummy in self.grf.tree:
-            res = self.grf.read_dqtree(branches)
+            res = self.grf.read(branches)
             self.assertEqual(self.entries[nentry], res)
             nentry += 1
 

@@ -72,7 +72,7 @@ class GRFIO(object):
         branch = getattr(self.tree, branchname)
         return (hasattr(branch, 'value'), branch)
 
-    def fill_dqtree(self, dqdict):
+    def fill(self, dqdict):
         """Flatten and fill dictionary
 
         FIXME: doesn't check if branches match type'
@@ -87,7 +87,7 @@ class GRFIO(object):
             else: setattr(self.tree, key, value)
         self.tree.Fill()
 
-    def read_dqtree(self, branches, version = None):
+    def read(self, branches, version = None):
         """Read branches and return unflattened dictionaries."""
         res = {}
         for br in branches:
@@ -103,6 +103,6 @@ class GRFIO(object):
         """Write tree to disk"""
         self.tree.Write()
 
-    def cloes(self):
+    def close(self):
         """Close ROOT file"""
         self.rfile.Close()
