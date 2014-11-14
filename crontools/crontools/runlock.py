@@ -14,8 +14,9 @@ Adapted from a file locking class by Evan Fosmark.
 """
 
 
-import os, errno
-from traceback import print_exc
+import os, errno, sys
+
+from logging import getLogger, debug, info, warning, error
 
 
 class RunLockExists(Exception):
@@ -25,11 +26,6 @@ class RunLockExists(Exception):
 
     """
     pass
-
-    # def __init__(self, filename):
-    #     tokens = filename.split('.')
-    #     self.runno, self.stream = tokens[0], tokens[1]
-    #     # self.node, self.job_pid = <read filename>
 
 
 class RunLock(object):
@@ -67,18 +63,19 @@ class RunLock(object):
 
     """
 
-    def __init__(self, runno, stream, job=None):
+    def __init__(self, wdir, runno, stream, timeout=3, job=None):
         """Initialise a run lock for `runno' and `stream'.
 
-        `job' is ignored for now.
+        Wait `timeout' seconds to acquire lock.  `job' is ignored for now.
 
         """
-
         self.is_locked = False
+        self.__fallback__ = False
         runno = int(runno)      # ensure integer
         self.runno = runno
         self.stream = stream
-        self.lockfile = os.path.join(os.getcwd(), "%d.%s.lock" % (runno, stream))
+        self.timeout = timeout
+        self.lockfile = os.path.join(wdir,'vetra_moni.%d.%s' % (runno, stream))
 
 
     def acquire(self):
@@ -90,11 +87,21 @@ class RunLock(object):
 
         """
         try:
-            self.__fd__ = os.open(self.lockfile, os.O_CREAT|os.O_EXCL, 0644)
-            self.is_locked = True
-        except OSError as err:
-            if err.errno == errno.EEXIST:
-                raise RunLockExists(err.filename)
+            from .dotlock import DotLock
+            try:
+                self.__fd__ = DotLock(self.lockfile, self.timeout)
+                self.is_locked = True
+            except OSError as err:
+                raise RunLockExists(err)
+        except ImportError:
+            warning('Using alternate locking implementation', exc_info=True)
+            try:
+                self.__fd__ = os.open(self.lockfile, os.O_CREAT|os.O_EXCL, 0644)
+                self.is_locked = True
+                self.__fallback__ = True
+            except OSError as err:
+                if err.errno == errno.EEXIST:
+                    raise RunLockExists(err.filename)
 
 
     def release(self):
@@ -105,8 +112,11 @@ class RunLock(object):
 
         """
         if self.is_locked:
-            os.close(self.__fd__)
-            os.unlink(self.lockfile)
+            if self.__fallback__:
+                os.close(self.__fd__)
+                os.unlink(self.lockfile)
+            else:
+                del self.__fd__
             self.is_locked = False
 
 
@@ -120,8 +130,8 @@ class RunLock(object):
     def __exit__(self, type, value, traceback):
         """Activated at the end of the with statement to release the lock."""
         if isinstance(value, RunLockExists):
-            print 'Looks like run lock exists, moving on.'
-            print_exc()
+            info(sys.exc_info()[1])
+            info('Looks like run lock exists, moving on.')
             return True
         elif self.is_locked:
             self.release()

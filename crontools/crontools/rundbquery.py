@@ -7,8 +7,8 @@
 """
 
 
-# for printing exceptions
-from traceback import print_exc
+# logging
+from logging import getLogger, debug, info, warning, error
 
 
 class RunDBQuery(object):
@@ -29,7 +29,6 @@ class RunDBQuery(object):
     def __init__(self, runs):
         """`runs` can be a single run or a list of runs."""
 
-        self.debug = False
         try:
             self.runs = list(runs)
         except TypeError:
@@ -46,7 +45,7 @@ class RunDBQuery(object):
             cmd = ['rdbt', '-n'] + [str(run) for run in self.runs]
             self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
         except CalledProcessError:
-            print 'Oops! Bad rdbt command.'
+            error('Oops! Bad rdbt command.')
             raise
 
         import re
@@ -96,24 +95,18 @@ class RunDBQuery(object):
         try:
             info = self.run_info[run]
         except KeyError:
-            if self.debug:
-                print 'Non-existent run %s.' % run
-                print_exc()
+            debug('Run %d: non-existent', run)
             return
-
-        if not info:
-            if self.debug:
-                print 'Empty info (run %s), probably parsing failed.' \
-                    % run
-
+        if not info: warning('Run %d: probably parsing failed', run)
         return info
 
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
-        """Return valid runs which are longer than threshold duration.
+        """Return valid runs longer than threshold seconds.
 
-        If no threshold is passed, list of valid runs include all runs
-        started at least an hour ago from now.
+        List of valid runs include runs started at least an hour ago
+        from now.  If no threshold is passed, duration is not checked
+        and all such runs are included.
 
         """
 
@@ -122,42 +115,44 @@ class RunDBQuery(object):
 
         for run in range(self.runs[0], self.runs[-1]+1):
             info = self.get_run_info(run)
-            if not info:
-                continue
+            if not info: continue
 
             # runs in book keeping, destination offline
             if (info['state'] == 'IN BKK' and
-                info['destination'] == 'OFFLINE'):
+                (info['destination'] == 'OFFLINE' or
+                 info['destination'] == 'CASTOR')):
                 runs_in_bkk.append(run)
 
             # fresh runs (fallback)
             if (info['state'] == 'ENDED' and
-                info['destination'] == 'OFFLINE'):
+                (info['destination'] == 'OFFLINE' or
+                 info['destination'] == 'CASTOR')):
                 fresh_runs.append(run)
 
-        if runs_in_bkk:         # new runs in book keeping
-            runlist = runs_in_bkk
-        else:
-            runlist = fresh_runs
+        # new runs in book keeping
+        runlist = runs_in_bkk if runs_in_bkk else fresh_runs
 
-        # FIXME: unaudited
-        for idx, run in enumerate(runlist):
+        def _filter_runs(run):
+            """Filter to trim runlist"""
             if time_threshold:
+                # end-of-fill calibration runs with missing time info.
                 info = self.get_run_info(run)
-                # protect against end-of-fill calibration runs with
-                # missing time info
-                if (info['startTime'] == 'None' or
-                    info['endTime'] == 'None'):
-                    if self.debug:
-                        print 'Skipping run: %s' % run
-                    continue
-
+                if (info['startTime'] == 'None' or info['endTime'] == 'None'):
+                    info('Run %d: end-of-fill calibration, skipping', run)
+                    return False
+                # check duration
                 epoch = (mktime(strptime(info['startTime'], timefmt)),
                          mktime(strptime(info['endTime'], timefmt)))
                 if epoch[1] - epoch[0] < time_threshold: # too short
-                    runlist.pop(idx)
-                if not runs_in_bkk: # no new runs in book keeping
-                    if time() - epoch[1] < 3600: # run too recent
-                        runlist.pop(idx)
+                    info('Run %d: shorter than threshold (%d), skipping',
+                         run, time_threshold)
+                    return False
 
-        return runlist
+            if not runs_in_bkk: # no new runs in book keeping
+                if time() - epoch[1] < 3600: # run too recent
+                    info('Run %d: younger than 1h, skipping', run)
+                    return False
+
+            return True
+
+        return filter(_filter_runs, runlist)

@@ -9,7 +9,7 @@ if __file__.startswith('/'):
     sys.path.insert(0, os.path.join('/', *__file__.split('/')[:-3]))
 else:
     __pkg_dir__ = __file__.split('/')[:-1] # test directory
-    __pkg_dir__ += ['..', '..']            # package directory parent
+    __pkg_dir__ += ['..']            # package directory parent
     sys.path.insert(0, os.path.join(os.getcwd(), *__pkg_dir__))
 
 __test_dir__ = os.path.dirname(__file__) # test directory
@@ -20,7 +20,7 @@ from socket import gethostname
 __hostname__ = gethostname()
 
 
-from veloview.crontools.rundbquery import (RunDBQuery)
+from crontools.rundbquery import (RunDBQuery)
 import unittest
 
 @unittest.skipIf(__hostname__.find('plus'),

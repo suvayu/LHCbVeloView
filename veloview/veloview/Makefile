@@ -6,6 +6,7 @@
 #
 
 TESTS		:= $(wildcard tests/test_*.py)
+SPLTESTS	:= test_core_io
 
 DQMTESTS	:= test_avghists test_statcomp
 DQMFILES	:= tests/data/dqm_data.root tests/data/dqm_ref.root
@@ -39,3 +40,7 @@ files:
 # discover tests with unittest
 discover:	files
 	python -m unittest discover $(OPTS)
+
+# FIXME: special case
+$(SPLTESTS):%:	tests/%.py
+	LD_LIBRARY_PATH=GiantRootFileIO:$$LD_LIBRARY_PATH python $< $(OPTS)

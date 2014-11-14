@@ -78,13 +78,11 @@ Notes
 -----
 
 The `veloview` package provides several modules:
-[`crontools`](veloview/crontools), [`core`](veloview/core),
-[`analysis`](veloview/analysis), and [`utils`](veloview/utils).  The
-`crontools` package provides classes useful to run monitoring jobs
-(specially when run by cron).  `core` provides the data quality
-framework used for automatic analysis.  `analysis` provides various
-comparison functions to be used with the framework in `core` for
-analysis.
+[`core`](veloview/core), [`analysis`](veloview/analysis), and
+[`utils`](veloview/utils).  The `core` module provides the data
+quality framework used for automatic analysis.  `analysis` provides
+various comparison functions to be used with the framework in `core`
+for analysis.
 
-Applications and scripts (interactive or for cron jobs) go in the
-[`bin`](bin) directory.
+Any applications and scripts (interactive or for cron jobs) should go
+in the [`bin`](bin) directory.  If it doesn't exist, create it.
