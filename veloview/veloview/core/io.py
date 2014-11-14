@@ -44,12 +44,12 @@ def unflatten(pydict):
 class GRFIO(object):
     """interface for versioned objects implemented by GiantRootFileIO."""
 
-    def __init__(self, fname, tree='DQTree', title='', mode='read', branches = None):
+    def __init__(self, fname, mode='read', tree='DQTree', title='', branches = None):
         """Instantiating GRFIO needs the filename, mode, and tree name.
 
         fname    -- The ROOT file with versioned objects
-        tree     -- Name of tree with versioned objects
         mode     -- Mode to open the file (create/new, read, update)
+        tree     -- Name of tree with versioned objects
         branches -- List of branches, or dictionary of name and types
 
         """
@@ -59,9 +59,19 @@ class GRFIO(object):
         if ((self.mode == 'create' or self.mode == 'new') and
             not isinstance(branches, dict)):
             raise ValueError('Branch name-type dictionary mandatory for creation')
+        self._open_file(fname, self.mode)
+        self._open_tree(tree, title, branches)
 
+    def _open_file(self, fname, mode):
+        """Internal method to open file"""
         self.lock = ROOT.DotLock(fname)
-        self.rfile = ROOT.TFile.Open(fname, self.mode)
+        self.rfile = ROOT.TFile.Open(fname, mode)
+
+    def _open_tree(self, tree, title, branches):
+        """Internal method to open tree"""
+        self.title = title
+        self.branches = branches
+        testtree = self.rfile.Get(tree)
         try:
             self.tree = Tree(tree, treetitle = title, branches = branches)
         except TypeError:
@@ -75,6 +85,8 @@ class GRFIO(object):
 
     def fill(self, dqdict):
         """Flatten and fill dictionary"""
+        if 'read' == self.mode:
+            raise RuntimeError('Cannot fill GRF in READ mode.')
         self._fill(self.tree, dqdict)
 
     def _fill(self, tree, dqdict):
@@ -103,6 +115,41 @@ class GRFIO(object):
             if versioned: res[br] = value.value()
             else: res[br] = value
         return unflatten(res)
+
+    def edit(self, entry_p, dqdict):
+        if 'read' == self.mode:
+            raise RuntimeError('Cannot fill GRF in READ mode.')
+
+        newfilename = '{}.new'.format(self.rfile.GetName())
+        newlock = ROOT.DotLock(newfilename)
+        newfile = ROOT.TFile.Open(newfilename, 'recreate')
+        newfile.SetCompressionSettings(self.rfile.GetCompressionSettings())
+        newtree = self.tree.CloneTree(0)
+
+        for dummy in self.tree:
+            if entry_p(self.tree): # new
+                self._fill(newtree, dqdict)
+            else:               # old
+                self._fill(newtree, self.read([br for br in dqdict]))
+        newtree.Write()
+        treename = newtree.GetName()
+
+        del newtree
+        newfile.Close()
+        del newfile
+        filename = self.rfile.GetName()
+        del self.tree
+        self.rfile.Close()
+        del self.rfile
+
+        from os import rename
+        rename(newfilename, filename)
+        del self.lock
+        del newlock
+
+        self.mode = 'update'
+        self._open_file(filename, self.mode)
+        self._open_tree(treename, self.title, [br for br in self.branches])
 
     def write(self):
         """Write tree to disk"""

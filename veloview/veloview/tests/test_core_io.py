@@ -23,10 +23,10 @@ def setUpModule():
 
 
 import unittest
+from veloview.core.io import flatten, unflatten
 class TestGRFIOutils(unittest.TestCase):
 
     def test_flatten_unflatten(self):
-        from veloview.core.io import flatten, unflatten
         d = {'l': 9,
              'm': {'g': 7, 'h':8,
                    'i': {'a':1, 'b':2},
@@ -41,10 +41,10 @@ class TestGRFIOutils(unittest.TestCase):
         self.assertEqual(unflatten(f), d)
 
 
+from veloview.core.io import GRFIO
 class TestGRFIO(unittest.TestCase):
-    
+
     def setUp(self):
-        from veloview.core.io import GRFIO
         self.branches = {
             'runnr':   'UInt_t', # this never gets updated, so no VersionedObject here
             'checked': 'VersionedObject<UShort_t, TimeStamp, std::greater<TimeStamp> >',
@@ -68,16 +68,37 @@ class TestGRFIO(unittest.TestCase):
                 entry['comment'] = 'OK'
             from copy import deepcopy
             self.entries.append(deepcopy(entry))
+
+            # for test_update
+            self.run = 142470
+            if entry['runnr'] == self.run:
+                self.entry2 = deepcopy(entry)
+                self.entry2['checked'] = 3
+                self.entry2['comment'] = 'undecided'
+
         self.grf = GRFIO('/tmp/test.root', mode = 'new', branches = self.branches)
 
     def tearDown(self):
+        del self.grf
         if os.path.exists('/tmp/test.root'):
             os.remove('/tmp/test.root')
 
-    def test_read_write(self):
+        # from glob import glob
+        # locks = glob('/tmp/test.root.lock*')
+        # if locks: map(os.remove, locks)
+
+    def make_grf(self):
         for entry in self.entries:
             self.grf.fill(entry)
         self.grf.write()
+
+    def edit_grf(self):
+        self.make_grf()
+        find_run = lambda tree: 142470 == tree.runnr
+        self.grf.edit(find_run, self.entry2)
+
+    def test_read_write(self):
+        self.make_grf()
         branches = [key for key in self.entries[0]]
         nentry = 0
         for dummy in self.grf.tree:
@@ -89,9 +110,18 @@ class TestGRFIO(unittest.TestCase):
     def test_version_browsing(self):
         pass
 
-    @unittest.skip('Not implemented')
-    def test_update(self):
-        pass
+    def test_edit(self):
+        self.edit_grf()
+        branches = [key for key in self.entries[0]]
+        nentry = 0
+        for dummy in self.grf.tree:
+            res = self.grf.read(branches)
+            if res['runnr'] == self.run:
+                ref = self.entry2
+            else:
+                ref = self.entries[nentry]
+            self.assertEqual(ref, res)
+            nentry += 1
 
 
 if __name__ == '__main__':
