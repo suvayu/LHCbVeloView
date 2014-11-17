@@ -10,16 +10,28 @@ from flask import (
     g
 )
 
-from veloview.run_view import (
-    pages_dict,
-    default_run,
-    valid_run,
-    run_list,
-    nearby_runs
-)
+from veloview.core import run_view_config
+from veloview.runview import utils as runview_utils
 
 run_view = Blueprint('run_view', __name__,
                      template_folder='templates/run_view')
+
+
+def default_run():
+    """Retrieve the default run rumber from veloview.
+
+    Used when no run number is specified by the user, or if the given run is
+    invalid (as judged by valid_run`).
+    """
+    return runview_utils.run_list()[0]
+
+
+def nearby_runs(run, runs, distance=3):
+    """Return the runs +/- distance either side of run in runs."""
+    idx = runs.index(run)
+    lower = idx - distance if idx >= distance else 0
+    upper = idx + distance + 1
+    return runs[lower:upper]
 
 
 @run_view.route('/', defaults={'run': default_run(), 'page': '', 'sensor': 0})
@@ -58,7 +70,7 @@ def run_view_builder(run, page, sensor):
         return redirect(url)
 
     # Check if the run number is valid, redirecting to default if not
-    if not valid_run(run):
+    if not runview_utils.valid_run(run):
         new_run = default_run()
         flash('Invalid run number "{0}", reset to "{1}"'.format(run, new_run),
               'error')
@@ -70,7 +82,7 @@ def run_view_builder(run, page, sensor):
         return redirect(url)
 
     # Check if the sensor number is valid, redirecting to default (0) if not
-    if not valid_sensor(sensor):
+    if not runview_utils.valid_sensor(sensor):
         flash('Invalid sensor number "{0}", reset to "0"'.format(sensor),
               'error')
         sensor = 0
@@ -86,14 +98,14 @@ def run_view_builder(run, page, sensor):
         if page is not None:
             page = page[len('run_view/'):]
     # Else load the page data associated with the route's page
-    page_data = pages_dict.get(page, None)
+    page_data = run_view_config.run_view_pages.get(page, None)
 
     # Set up the required template variables and render the page
     g.page = page
-    g.pages = pages_dict
+    g.pages = run_view_config.run_view_pages
     g.page_data = page_data
     g.run = run
-    g.runs = run_list()
+    g.runs = runview_utils.run_list()
     g.nearby_runs = nearby_runs(g.run, g.runs)
     g.sensor = sensor
     g.active_page = 'run_view/{0}'.format(page)
@@ -108,7 +120,7 @@ def run_view_builder(run, page, sensor):
 # Delegate the page not found hits to the catchall blueprint
 @run_view.errorhandler(404)
 def page_not_found(e):
-    g.pages = pages_dict
+    g.pages = run_view_config.run_view_pages
     g.active_page = 'run_view/404'
     return render_template('run_view/404.html'), 404
 
@@ -119,8 +131,3 @@ def page_not_found(e):
 def sanitise(s):
     """Return s with all non-alphanumeric characters replaced with '_'."""
     return ''.join([c.lower() if c.isalnum() else '_' for c in s])
-
-
-def valid_sensor(sensor):
-    """Returns True is sensor is a valid sensor number."""
-    return 0 <= sensor < 42 or 64 <= sensor < 106
