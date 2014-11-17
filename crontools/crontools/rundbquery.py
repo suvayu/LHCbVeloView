@@ -70,7 +70,7 @@ class RunDBQuery(object):
         """
 
         self.run_info = {}
-        info = {}               # for first line (needed when no output)
+        rinfo = {}               # for first line (needed when no output)
         for line in range(0, len(self.output)):
             # each run info block starts with marker.  The length of a
             # block can vary, can't rely on that.
@@ -78,19 +78,19 @@ class RunDBQuery(object):
                 match = self._regexps_[field].match(self.output[line])
                 if match:
                     if field == 'marker': # always the first to match
-                        info = {}
+                        rinfo = {}
                     else:
                         if 'files' == field:
-                            if info.has_key('files'):
-                                info[field] += [match.groups()[0]]
+                            if rinfo.has_key('files'):
+                                rinfo[field] += [match.groups()[0]]
                             else:
-                                info[field] = [match.groups()[0]]
+                                rinfo[field] = [match.groups()[0]]
                         else:
-                            info[field] = match.groups()[0]
-                if len(info) >= len(self._regexps_)-2:
+                            rinfo[field] = match.groups()[0]
+                if len(rinfo) >= len(self._regexps_)-2:
                     # 1 less because of marker, maybe another less
                     # when files are deleted
-                    self.run_info[int(info['run'])] = info
+                    self.run_info[int(rinfo['run'])] = rinfo
 
 
     def get_run_info(self, run):
@@ -102,18 +102,18 @@ class RunDBQuery(object):
         """
 
         try:
-            info = self.run_info[run]
+            rinfo = self.run_info[run]
         except KeyError:
             debug('Run %d: non-existent', run)
             return
-        if not info: warning('Run %d: probably parsing failed', run)
-        return info
+        if not rinfo: warning('Run %d: probably parsing failed', run)
+        return rinfo
 
 
     def get_files(self, run):
         """Get RAW file names"""
-        info = self.get_run_info(run)
-        if info: return info.get('files', None)
+        rinfo = self.get_run_info(run)
+        if rinfo: return rinfo.get('files', None)
         else: return None
 
 
@@ -130,19 +130,19 @@ class RunDBQuery(object):
         runs_in_bkk, fresh_runs = [], []
 
         for run in range(self.runs[0], self.runs[-1]+1):
-            info = self.get_run_info(run)
-            if not info: continue
+            rinfo = self.get_run_info(run)
+            if not rinfo: continue
 
             # runs in book keeping, destination offline
-            if (info['state'] == 'IN BKK' and
-                (info['destination'] == 'OFFLINE' or
-                 info['destination'] == 'CASTOR')):
+            if (rinfo['state'] == 'IN BKK' and
+                (rinfo['destination'] == 'OFFLINE' or
+                 rinfo['destination'] == 'CASTOR')):
                 runs_in_bkk.append(run)
 
             # fresh runs (fallback)
-            if (info['state'] == 'ENDED' and
-                (info['destination'] == 'OFFLINE' or
-                 info['destination'] == 'CASTOR')):
+            if (rinfo['state'] == 'ENDED' and
+                (rinfo['destination'] == 'OFFLINE' or
+                 rinfo['destination'] == 'CASTOR')):
                 fresh_runs.append(run)
 
         # new runs in book keeping
@@ -152,13 +152,13 @@ class RunDBQuery(object):
             """Filter to trim runlist"""
             if time_threshold:
                 # end-of-fill calibration runs with missing time info.
-                info = self.get_run_info(run)
-                if (info['startTime'] == 'None' or info['endTime'] == 'None'):
+                rinfo = self.get_run_info(run)
+                if (rinfo['startTime'] == 'None' or rinfo['endTime'] == 'None'):
                     info('Run %d: end-of-fill calibration, skipping', run)
                     return False
                 # check duration
-                epoch = (mktime(strptime(info['startTime'], timefmt)),
-                         mktime(strptime(info['endTime'], timefmt)))
+                epoch = (mktime(strptime(rinfo['startTime'], timefmt)),
+                         mktime(strptime(rinfo['endTime'], timefmt)))
                 if epoch[1] - epoch[0] < time_threshold: # too short
                     info('Run %d: shorter than threshold (%d), skipping',
                          run, time_threshold)
