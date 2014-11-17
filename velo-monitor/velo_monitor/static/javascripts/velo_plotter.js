@@ -49,7 +49,7 @@ var VeloPlotter = (function(window, undefined) {
 
   // Display plot inside container
   //
-  // The type of plot is deduced from the 'key_class' object property on plot,
+  // The type of plot is deduced from the 'object_class' object property on plot,
   // and then the appropriate drawing method is called.
   // If the plotType is not supported, display an error in the container.
   // Accepts:
@@ -79,7 +79,7 @@ var VeloPlotter = (function(window, undefined) {
 
   // Display plots inside container
   //
-  // The type of each plot is deduced from the 'key_class' object property on
+  // The type of each plot is deduced from the 'object_class' object property on
   // the plot, and then the appropriate drawing method is called.
   // If the plotType is not supported, display an error in the container.
   // Accepts:
