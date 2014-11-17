@@ -150,6 +150,8 @@ class RunDBQuery(object):
 
         def _filter_runs(run):
             """Filter to trim runlist"""
+            epoch = (mktime(strptime(rinfo['startTime'], timefmt)),
+                     mktime(strptime(rinfo['endTime'], timefmt)))
             if time_threshold:
                 # end-of-fill calibration runs with missing time info.
                 rinfo = self.get_run_info(run)
@@ -157,13 +159,10 @@ class RunDBQuery(object):
                     info('Run %d: end-of-fill calibration, skipping', run)
                     return False
                 # check duration
-                epoch = (mktime(strptime(rinfo['startTime'], timefmt)),
-                         mktime(strptime(rinfo['endTime'], timefmt)))
                 if epoch[1] - epoch[0] < time_threshold: # too short
                     info('Run %d: shorter than threshold (%d), skipping',
                          run, time_threshold)
                     return False
-
             if not runs_in_bkk: # no new runs in book keeping
                 if time() - epoch[1] < 3600: # run too recent
                     info('Run %d: younger than 1h, skipping', run)
