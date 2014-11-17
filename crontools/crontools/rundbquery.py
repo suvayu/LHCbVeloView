@@ -21,8 +21,8 @@ class RunDBQuery(object):
     used to parse the different fields.  It can be overridden to add
     support for additional fields.
 
-    __cmd__ is the rdbt shell command used to talk to the run
-    database.  You can override this, although it is not recommended.
+    _cmd_ is the rdbt shell command used to talk to the run database.
+    You can override this, although it is not recommended.
 
     """
 
@@ -39,13 +39,7 @@ class RunDBQuery(object):
             raise ValueError('Wrong run range order: %d !> %d' %
                              (runs[1], runs[0]))
 
-        try:
-            from subprocess import (check_output, STDOUT, CalledProcessError)
-            cmd = ['rdbt', '-n', '-f'] + [str(run) for run in self.runs]
-            self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
-        except CalledProcessError:
-            error('Oops! Bad rdbt command.')
-            raise
+        self._cmd_ = ['rdbt', '-n', '-f'] + [str(run) for run in self.runs]
 
         import re
         self._regexps_ = {
@@ -58,6 +52,15 @@ class RunDBQuery(object):
             'files' : re.compile('(^([0-9]+)_([0-9]+)\.raw$)')
         }
 
+    def call_rdbt(self):
+        """Run rdbt command"""
+        try:
+            from subprocess import (check_output, STDOUT, CalledProcessError)
+            self.output = check_output(self._cmd_, stderr=STDOUT).splitlines()[1:]
+        except CalledProcessError:
+            error('Oops! Bad rdbt command.')
+            raise
+
     def parse(self):
         """Parse rdbt output and get run information.
 
@@ -67,6 +70,7 @@ class RunDBQuery(object):
 
         """
 
+        self.call_rdbt()
         self.run_info = {}
         rinfo = {}               # for first line (needed when no output)
         for line in range(0, len(self.output)):
