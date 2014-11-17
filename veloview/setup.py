@@ -30,6 +30,8 @@ setup(name='veloview',
         'veloview.utils',
     ],
     scripts=[
+        'bin/retrieve_run_view_plot.py',
+        'bin/veloview_configuration.py',
         'bin/vetra_analysis.py',
         'bin/cron_vetra_analysis.bash'
     ]
