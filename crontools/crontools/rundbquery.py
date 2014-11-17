@@ -116,6 +116,18 @@ class RunDBQuery(object):
         if rinfo: return rinfo.get('files', None)
         else: return None
 
+    def get_time(self, run, timefmt='%Y-%m-%d %H:%M:%S', epoch=False):
+        """Get run time."""
+        rinfo = self.get_run_info(run)
+        from time import time, strptime, mktime
+        if epoch:
+            run_duration = (mktime(strptime(rinfo['startTime'], timefmt)),
+                            mktime(strptime(rinfo['endTime'], timefmt)))
+        else:
+            run_duration = (strptime(rinfo['startTime'], timefmt),
+                            strptime(rinfo['endTime'], timefmt))
+        return run_duration
+
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
         """Return valid runs longer than threshold seconds.
@@ -126,7 +138,6 @@ class RunDBQuery(object):
 
         """
 
-        from time import time, strptime, mktime
         runs_in_bkk, fresh_runs = [], []
 
         for run in range(self.runs[0], self.runs[-1]+1):
@@ -150,8 +161,7 @@ class RunDBQuery(object):
 
         def _filter_runs(run):
             """Filter to trim runlist"""
-            epoch = (mktime(strptime(rinfo['startTime'], timefmt)),
-                     mktime(strptime(rinfo['endTime'], timefmt)))
+            epoch = self.get_time(run, timefmt, epoch=True)
             if time_threshold:
                 # end-of-fill calibration runs with missing time info.
                 rinfo = self.get_run_info(run)
