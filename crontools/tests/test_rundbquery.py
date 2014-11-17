@@ -42,6 +42,11 @@ class TestQuery(unittest.TestCase):
         query.parse()
         self.assertTrue(query.get_valid_runs(1800))
 
+    def test_filename_parsing(self):
+        query = RunDBQuery(self.good_runrange)
+        query.parse()
+        self.assertEqual(len(query.get_files(self.good_runno)), 70)
+
     def test_nonexistent_run_get_run_list(self):
         query = RunDBQuery(self.bad_runno)
         query.parse()

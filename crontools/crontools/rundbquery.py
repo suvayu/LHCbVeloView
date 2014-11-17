@@ -42,7 +42,7 @@ class RunDBQuery(object):
         from subprocess import (check_output, STDOUT,
                                 CalledProcessError)
         try:
-            cmd = ['rdbt', '-n'] + [str(run) for run in self.runs]
+            cmd = ['rdbt', '-n', '-f'] + [str(run) for run in self.runs]
             self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
         except CalledProcessError:
             error('Oops! Bad rdbt command.')
@@ -55,7 +55,8 @@ class RunDBQuery(object):
             'destination' : re.compile('destination:\s+([^\t]+)'),
             'state' : re.compile('state:\s+([^\t]+)'),
             'startTime' : re.compile('startTime:\s+([^\t]+)'),
-            'endTime' : re.compile('.+endTime:\s+([^\t]+)')
+            'endTime' : re.compile('.+endTime:\s+([^\t]+)'),
+            'files' : re.compile('(^([0-9]+)_([0-9]+)\.raw$)')
         }
 
 
@@ -79,8 +80,16 @@ class RunDBQuery(object):
                     if field == 'marker': # always the first to match
                         info = {}
                     else:
-                        info[field] = match.groups()[0]
-                if len(info) == len(self._regexps_)-1: # -1 because of marker
+                        if 'files' == field:
+                            if info.has_key('files'):
+                                info[field] += [match.groups()[0]]
+                            else:
+                                info[field] = [match.groups()[0]]
+                        else:
+                            info[field] = match.groups()[0]
+                if len(info) >= len(self._regexps_)-2:
+                    # 1 less because of marker, maybe another less
+                    # when files are deleted
                     self.run_info[int(info['run'])] = info
 
 
@@ -99,6 +108,13 @@ class RunDBQuery(object):
             return
         if not info: warning('Run %d: probably parsing failed', run)
         return info
+
+
+    def get_files(self, run):
+        """Get RAW file names"""
+        info = self.get_run_info(run)
+        if info: return info.get('files', None)
+        else: return None
 
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
