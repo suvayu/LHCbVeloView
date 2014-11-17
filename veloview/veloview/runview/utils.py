@@ -4,10 +4,7 @@ from veloview.utils import paths
 
 
 def run_list():
-    """Return a list of run numbers as integers.
-
-    TODO Is the run list guaranteed to be sorted, in what order?
-    """
+    """Return a list of run numbers as integers sorted high-to-low."""
     run_file_lines = tuple(open(config.processed_run_list_file, "r"))
     return sorted([int(l.strip()) for l in run_file_lines], reverse=True)
 

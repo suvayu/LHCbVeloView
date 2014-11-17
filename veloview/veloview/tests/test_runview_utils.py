@@ -1,4 +1,3 @@
-import mock
 import unittest
 
 from veloview.core import config
@@ -16,9 +15,12 @@ class TestRunViewUtils(unittest.TestCase):
         with open(config.processed_run_list_file, "w") as f:
             for r in RUNS:
                 f.write("{0}\n".format(r))
+        self.old_rdd = config.run_data_dir
+        config.run_data_dir = "/tmp"
 
     def tearDown(self):
         config.processed_run_list_file = self.old_prlf
+        config.run_data_dir = self.old_rdd
 
     def test_run_list(self):
         """Should return a list of high-low sorted run numbers as integers."""
@@ -31,8 +33,9 @@ class TestRunViewUtils(unittest.TestCase):
 
     def test_invalid_run(self):
         """Should return False if run isn't present in the run number file."""
-        self.assertTrue(1233321 not in RUNS)
-        self.assertFalse(utils.valid_run(123321))
+        probe_run = 123321
+        self.assertTrue(probe_run not in RUNS)
+        self.assertFalse(utils.valid_run(probe_run))
 
     def test_sensor_list(self):
         """Should return a number between 0-46 and 64-106 inclusive."""
@@ -43,13 +46,21 @@ class TestRunViewUtils(unittest.TestCase):
         for s in SENSORS:
             self.assertTrue(utils.valid_sensor(s))
 
+    def test_invalid_sensor(self):
+        """Return False if sensor isn't a valid sensor number."""
+        for s in range(0, 200):
+            if s not in SENSORS:
+                self.assertFalse(utils.valid_sensor(s))
+
     # def test_reference_run(plot, run):
     #     """Return the reference run number for the plot and nominal run number."""
     #     # TODO need to implement the reference database
     #     # The method can then query that DB and return the run number
     #     return run
 
-    # def test_run_file_path(run):
-    #     """Return TFile object for the given run."""
-    #     # TODO this doesn't append the filename, where will that come from?
-    #     return paths.make_dir_tree(run, config.run_data_dir)
+    def test_run_file_path(self):
+        """Should return path to ROOT file for the given run."""
+        self.assertEqual(
+            utils.run_file_path(123987),
+            "/tmp/100000s/120000s/123000s/123900s/123987"
+        )
