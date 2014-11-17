@@ -39,9 +39,8 @@ class RunDBQuery(object):
             raise ValueError('Wrong run range order: %d !> %d' %
                              (runs[1], runs[0]))
 
-        from subprocess import (check_output, STDOUT,
-                                CalledProcessError)
         try:
+            from subprocess import (check_output, STDOUT, CalledProcessError)
             cmd = ['rdbt', '-n', '-f'] + [str(run) for run in self.runs]
             self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
         except CalledProcessError:
@@ -58,7 +57,6 @@ class RunDBQuery(object):
             'endTime' : re.compile('.+endTime:\s+([^\t]+)'),
             'files' : re.compile('(^([0-9]+)_([0-9]+)\.raw$)')
         }
-
 
     def parse(self):
         """Parse rdbt output and get run information.
@@ -92,7 +90,6 @@ class RunDBQuery(object):
                     # when files are deleted
                     self.run_info[int(rinfo['run'])] = rinfo
 
-
     def get_run_info(self, run):
         """Retrive run info with necessary protections.
 
@@ -108,7 +105,6 @@ class RunDBQuery(object):
             return
         if not rinfo: warning('Run %d: probably parsing failed', run)
         return rinfo
-
 
     def get_files(self, run):
         """Get RAW file names"""
@@ -128,7 +124,6 @@ class RunDBQuery(object):
                             strptime(rinfo['endTime'], timefmt))
         return run_duration
 
-
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
         """Return valid runs longer than threshold seconds.
 
@@ -139,23 +134,19 @@ class RunDBQuery(object):
         """
 
         runs_in_bkk, fresh_runs = [], []
-
         for run in range(self.runs[0], self.runs[-1]+1):
             rinfo = self.get_run_info(run)
             if not rinfo: continue
-
             # runs in book keeping, destination offline
             if (rinfo['state'] == 'IN BKK' and
                 (rinfo['destination'] == 'OFFLINE' or
                  rinfo['destination'] == 'CASTOR')):
                 runs_in_bkk.append(run)
-
             # fresh runs (fallback)
             if (rinfo['state'] == 'ENDED' and
                 (rinfo['destination'] == 'OFFLINE' or
                  rinfo['destination'] == 'CASTOR')):
                 fresh_runs.append(run)
-
         # new runs in book keeping
         runlist = runs_in_bkk if runs_in_bkk else fresh_runs
 
