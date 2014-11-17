@@ -36,6 +36,5 @@ def reference_run(plot, run):
 
 
 def run_file_path(run):
-    """Return TFile object for the given run."""
-    # TODO this doesn't append the filename, where will that come from?
+    """Return TFile object directory path for the given run."""
     return paths.make_dir_tree(run, config.run_data_dir)

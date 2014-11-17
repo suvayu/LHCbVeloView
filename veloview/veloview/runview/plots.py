@@ -1,4 +1,6 @@
 """Methods dealing with run view plots."""
+import glob
+
 import ROOT
 
 from veloview.runview import utils
@@ -15,9 +17,21 @@ def get_run_plot(plot, run, reference=False):
     """
     if reference:
         run = utils.reference_run(plot, run)
-    f = ROOT.TFile(utils.run_file_path(run))
+
+    # Get the latest run file in the run's directory
+    base = utils.run_file_path(run)
+    files = sorted(glob.glob("{0}/*.root".format(base)))
+    try:
+        path = files[-1]
+    except IndexError:
+        raise IOError("Run file not found for run {0}".format(run))
+
+    # Try to open the file
+    f = ROOT.TFile(path)
     if f.IsZombie():
         raise IOError("Run file not found for run {0}".format(run))
+
+    # Retrieve the object
     obj = f.Get(plot)
     if not obj:
         raise KeyError("Plot {0} not found in run file {1}".format(plot, run))

@@ -8,11 +8,11 @@ from veloview.runview import plots
 
 
 NOMINAL_RUN = 123000
-NOMINAL_RUN_FILE = '/tmp/nominal_run_file.root'
+NOMINAL_RUN_FILE = "/tmp/123000/nominal_run_file.root"
 REFERENCE_RUN = 124000
-REFERENCE_RUN_FILE = '/tmp/reference_run_file.root'
+REFERENCE_RUN_FILE = "/tmp/124000/reference_run_file.root"
 # This file should not be created
-NONEXISTENT_RUN_FILE = '/tmp/nonexistent_run_file.root'
+NONEXISTENT_RUN_FILE = "/tmp/125000/nonexistent_run_file.root"
 
 
 def tearDownModule():
@@ -23,12 +23,7 @@ def tearDownModule():
 
 
 def mocked_run_file_path(run):
-    if run == NOMINAL_RUN:
-        return NOMINAL_RUN_FILE
-    elif run == REFERENCE_RUN:
-        return REFERENCE_RUN_FILE
-    else:
-        return NONEXISTENT_RUN_FILE
+    return "/tmp/{0}".format(run)
 
 
 def mocked_reference_run(plot, run):
@@ -39,6 +34,11 @@ def mocked_reference_run(plot, run):
 @mock.patch('veloview.runview.utils.run_file_path', mocked_run_file_path)
 class TestRunViewPlots(unittest.TestCase):
     def setUp(self):
+        if not os.path.exists(os.path.dirname(NOMINAL_RUN_FILE)):
+            os.mkdir(os.path.dirname(NOMINAL_RUN_FILE))
+        if not os.path.exists(os.path.dirname(REFERENCE_RUN_FILE)):
+            os.mkdir(os.path.dirname(REFERENCE_RUN_FILE))
+
         # Create two temporary 'run files', one nominal and one reference
         nom = ROOT.TFile(NOMINAL_RUN_FILE, 'recreate')
         ROOT.TH1F('h', 'h_nom', 10, -1, 1).Write()
