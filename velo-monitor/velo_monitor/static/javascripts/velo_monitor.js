@@ -54,7 +54,7 @@ var VeloMonitor = (function(window, undefined) {
     return spinner;
   }
 
-  // Load the plot(s) returned by the job 'runview.get_plot' in to container.
+  // Load the plot(s) returned by the job 'runview.plots.get_run_plot' in to container.
   // Accepts:
   //   args: Object of keyword arguments to pass to the job
   //   opts: Drawing options passed to appropriate d3.plotable
@@ -62,7 +62,7 @@ var VeloMonitor = (function(window, undefined) {
   // Returns:
   //   Polling job task
   var loadRunViewPlotInContainer = function(args, opts, container) {
-    var task = WebMonitor.createTask('runview.get_plot', args),
+    var task = WebMonitor.createTask('runview.plots.get_run_plot', args),
         spinner = appendSpinner(container),
         failure = function(msg) { displayFailure(msg, container); };
 
