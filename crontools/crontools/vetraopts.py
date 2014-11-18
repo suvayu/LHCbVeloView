@@ -32,6 +32,7 @@ def get_datacard(runinfo, files, maxevts=70000, skip=0):
 
 from Gaudi.Configuration import *
 from GaudiConf import IOHelper
+from Configurables import Vetra
 
 IOHelper().inputFiles(${urls})
 
