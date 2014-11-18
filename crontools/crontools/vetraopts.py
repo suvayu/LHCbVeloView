@@ -83,7 +83,7 @@ def get_runinfo(run, year, stream):
 
 def get_urls(urlinfo, files):
     """Get urls from files"""
-    urlfmt = "DATAFILE='PFN:{protocol}://castorlhcb.cern.ch/" \
+    urlfmt = "DATAFILE='{protocol}://castorlhcb.cern.ch/" \
              + "/castor/cern.ch/grid/lhcb/data/{year}/RAW/FULL/" \
              + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
     return [urlfmt.format(file = f, **urlinfo) for f in files]
