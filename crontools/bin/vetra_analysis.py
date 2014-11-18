@@ -127,6 +127,7 @@ for run in runs:
         except OSError as err:
             if err.errno != errno.EEXIST: raise
         os.chdir(jobdir_t)
+        debug('Job directory: %s', jobdir_t)
     except OSError as err:
         error('Run %d, stream %s: Oops! Problem with job directory.',
               run, stream, exc_info=True)
