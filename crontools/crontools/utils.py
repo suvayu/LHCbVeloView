@@ -20,6 +20,7 @@ def make_dir_tree(run, prefix=''):
     for i in xrange(length, 2, -1):
         digit += get_digit(run, i)
         tree += get_mult_10(digit, i-1) + 's/'
+    tree = tree + str(run)
     if prefix: return prefix + '/{}'.format(tree)
     else: return tree
 
