@@ -118,16 +118,11 @@ debug('Run list after trimming: %s' % runs)
 ## acquire lock and run job
 from crontools.utils import add_runs, make_dir_tree
 from crontools.runlock import (RunLock)
+from crontools.vetraopts import (get_runinfo, get_gaudi_opts, get_runinfo
+                                 get_optsfile, get_datacard)
+
 for run in runs:
     info('Processing run: %s, stream: %s' % (run, stream))
-    from subprocess import call
-    # FIXME: temporarily hard coded vetra script name
-    vetraOffline = '/cvmfs/lhcb.cern.ch/lib/lhcb/VETRA/VETRA_{}' \
-                   '/Velo/VetraScripts/scripts/vetraOffline'.format(_cliopts.vetra)
-    cmd_w_args = ([vetraOffline] + jobopts.split(' ') +
-                  [str(run), str(_cliopts.nevents)])
-    debug('Job command: %s', ' '.join(cmd_w_args))
-
     # job directory
     jobdir_t = make_dir_tree(run, prefix=_cliopts.jobdir)
     try:
@@ -143,6 +138,33 @@ for run in runs:
     try:
         # start the job
         with RunLock(jobdir_t, run, stream):
+            from subprocess import call
+            # Default Gaudi option files
+            gaudi_w_opts = get_gaudi_opts(stream)
+
+            # option files and datacards
+            year = query.get_time(run, timefmt='%Y') # info from run DB query
+            runinfo = get_runinfo(run, year, stream) # info for option files
+            prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
+            optsfiles = {
+                '{}.useropts.py'.format(prefix): get_optsfile(),
+                '{}.data.py'.format(prefix): get_datacard(runinfo, query.get_files(run))
+            }
+            # create them
+            try:
+                for optfile, contents in optfiles.items():
+                    optfile = file(optfile, 'w')
+                    optfile.write(contents)
+                    optfile.close()
+            except OSError:
+                error('Exception while writing option files', exc_info=True)
+                continue
+
+            # complete command
+            cmd_w_args = (gaudi_w_opts + optsfiles.keys() + jobopts.split(' ') +
+                          [str(run), str(_cliopts.nevents)])
+            debug('Job command: %s', ' '.join(cmd_w_args))
+
             info('Starting Vetra')
             retcode = call(cmd_w_args)
             if retcode != 0:
