@@ -162,7 +162,8 @@ for run in runs:
             debug('Job command: %s', ' '.join(cmd_w_args))
 
             info('Starting Vetra')
-            retcode = call(cmd_w_args)
+            logfile = open('{}.log'.format(prefix), 'w')
+            retcode = call(cmd_w_args, stdout=logfile)
             if retcode != 0:
                 warning('Oops! It seems Vetra failed!')
             else:
