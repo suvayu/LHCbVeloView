@@ -144,7 +144,8 @@ for run in runs:
             prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
             optfiles = {
                 # '{}.useropts.py'.format(prefix): get_optfile(), # same as FilterBeamBeam_HeartBeat
-                '{}.data.py'.format(prefix): get_datacard(runinfo, query.get_files(run))
+                '{}.data.py'.format(prefix): get_datacard(runinfo, query.get_files(run),
+                                                          maxevts = _cliopts.nevents)
             }
             # create them
             try:
@@ -157,8 +158,7 @@ for run in runs:
                 continue
 
             # complete command
-            cmd_w_args = (gaudi_w_opts + optfiles.keys() + jobopts.split(' ') +
-                          [str(run), str(_cliopts.nevents)])
+            cmd_w_args = gaudi_w_opts + optfiles.keys() + jobopts.split(' ')
             debug('Job command: %s', ' '.join(cmd_w_args))
 
             info('Starting Vetra')
