@@ -169,6 +169,7 @@ class RunDBQuery(object):
                          run, time_threshold)
                     return False
             if not runs_in_bkk: # no new runs in book keeping
+                from time import time
                 if time() - epoch[1] < 3600: # run too recent
                     info('Run %d: younger than 1h, skipping', run)
                     return False

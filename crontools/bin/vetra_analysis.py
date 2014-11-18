@@ -114,7 +114,7 @@ debug('Run list after trimming: %s' % runs)
 from crontools.utils import add_runs, make_dir_tree
 from crontools.runlock import RunLock
 from crontools.vetraopts import (get_runinfo, get_gaudi_opts, get_runinfo,
-                                 get_optsfile, get_datacard)
+                                 get_optfile, get_datacard)
 
 ## acquire lock and run job
 for run in runs:
@@ -139,11 +139,11 @@ for run in runs:
             gaudi_w_opts = get_gaudi_opts(stream)
 
             # option files and datacards
-            year = query.get_time(run, timefmt='%Y') # info from run DB query
+            year = query.get_time(run)[0].tm_year       # info from run DB query
             runinfo = get_runinfo(run, year, stream) # info for option files
             prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
-            optsfiles = {
-                # '{}.useropts.py'.format(prefix): get_optsfile(), # same as FilterBeamBeam_HeartBeat
+            optfiles = {
+                # '{}.useropts.py'.format(prefix): get_optfile(), # same as FilterBeamBeam_HeartBeat
                 '{}.data.py'.format(prefix): get_datacard(runinfo, query.get_files(run))
             }
             # create them
@@ -157,7 +157,7 @@ for run in runs:
                 continue
 
             # complete command
-            cmd_w_args = (gaudi_w_opts + optsfiles.keys() + jobopts.split(' ') +
+            cmd_w_args = (gaudi_w_opts + optfiles.keys() + jobopts.split(' ') +
                           [str(run), str(_cliopts.nevents)])
             debug('Job command: %s', ' '.join(cmd_w_args))
 
