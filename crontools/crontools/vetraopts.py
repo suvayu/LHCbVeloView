@@ -34,7 +34,7 @@ from Gaudi.Configuration import *
 from GaudiConf import IOHelper
 from Configurables import Vetra
 
-IOHelper().inputFiles(${urls})
+IOHelper("MDF").inputFiles(${urls})
 
 Vetra().EvtMax = ${maxevts}
 Vetra().SkipEvents = ${skip}
@@ -74,7 +74,7 @@ def get_runinfo(run, year, stream):
     if isinstance(run, list):
         run = run[0].split('_', 1)[0]
     return {
-        'protocol' : 'root:root',
+        'protocol' : 'mdf:root',
         'year'     : year,
         'stream'   : stream,
         'run'      : run,
@@ -83,9 +83,12 @@ def get_runinfo(run, year, stream):
 
 def get_urls(urlinfo, files):
     """Get urls from files"""
-    urlfmt = "DATAFILE='{protocol}://castorlhcb.cern.ch/" \
+    # urlfmt = "DATAFILE='{protocol}://castorlhcb.cern.ch/" \
+    #          + "/castor/cern.ch/grid/lhcb/data/{year}/RAW/FULL/" \
+    #          + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
+    urlfmt = "PFN:{protocol}://castorlhcb.cern.ch/" \
              + "/castor/cern.ch/grid/lhcb/data/{year}/RAW/FULL/" \
-             + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
+             + "VELO/{stream}/{run}/{file}"
     return [urlfmt.format(file = f, **urlinfo) for f in files]
 
 def get_username():
