@@ -17,8 +17,6 @@ parser.formatter_class = argparse.RawDescriptionHelpFormatter
 parser.add_argument('runs', nargs='*', type=int, help='List of runs to process.')
 parser.add_argument('-r', '--run-range', nargs=2, type=int,
                     metavar=('START', 'END'), help='Run range to process.')
-parser.add_argument('-v', '--vetra-version', dest='vetra', default='v14r0',
-                    help='Vetra version to use (default: v14r0).')
 parser.add_argument('-s', '--stream', dest='stream', default='NZS',
                     choices=['NZS', 'ZS'], help='Which stream to process '
                     '(default: NZS).')
@@ -85,7 +83,7 @@ else:
     # runs are likely to be skipped b/c of this condition.  Assign an
     # arbitrary run range (1k is long enough to cover a technical
     # stop) such that we always find one significant run.
-    runs = range(last_run + 1, last_run + 11) # range 10 for testing
+    runs = range(last_run + 1, last_run + 1000) # NOTE: use 10 for testing
 
     ## new: TODO
     # 1. get run fill from (1)
@@ -100,9 +98,7 @@ else:
 if _cliopts.jobopts:
     jobopts = _cliopts.jobopts
 else:
-    jobopts = '-a -t {} -d /castorfs/cern.ch/grid/lhcb/data/2011/' \
-              'RAW/FULL/LHCb/COLLISION11 -u /calib/velo/dqm/DQS/cron' \
-              '/FilterBeamBeam_Heartbeat.py'.format(stream)
+    jobopts = '/calib/velo/dqm/DQS/cron/FilterBeamBeam_Heartbeat.py'
 
 
 ## trim list of runs by run duration from run database.
@@ -115,12 +111,12 @@ runs = query.get_valid_runs(_cliopts.threshold)
 debug('Run list after trimming: %s' % runs)
 
 
-## acquire lock and run job
 from crontools.utils import add_runs, make_dir_tree
-from crontools.runlock import (RunLock)
-from crontools.vetraopts import (get_runinfo, get_gaudi_opts, get_runinfo
+from crontools.runlock import RunLock
+from crontools.vetraopts import (get_runinfo, get_gaudi_opts, get_runinfo,
                                  get_optsfile, get_datacard)
 
+## acquire lock and run job
 for run in runs:
     info('Processing run: %s, stream: %s' % (run, stream))
     # job directory
@@ -147,7 +143,7 @@ for run in runs:
             runinfo = get_runinfo(run, year, stream) # info for option files
             prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
             optsfiles = {
-                '{}.useropts.py'.format(prefix): get_optsfile(),
+                # '{}.useropts.py'.format(prefix): get_optsfile(), # same as FilterBeamBeam_HeartBeat
                 '{}.data.py'.format(prefix): get_datacard(runinfo, query.get_files(run))
             }
             # create them
