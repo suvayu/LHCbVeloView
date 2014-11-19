@@ -96,8 +96,9 @@ class TestRunViewPlots(unittest.TestCase):
         """Should correctly format a TH1 dictionary representation."""
         rep = response_formatters.th1_formatter(self.th1)
         exp = dict(
-            entries=4.0 + 9.0,
-            mean=(4.0*0.25 + 9.0*0.75)/(4.0 + 9.0),
+            entries=self.th1.GetEntries(),
+            mean=self.th1.GetMean(),
+            rms=self.th1.GetRMS(),
             underflow=1.0,
             overflow=2.0,
             binning=[(0.0, 0.5), (0.5, 1.0)],
@@ -111,7 +112,9 @@ class TestRunViewPlots(unittest.TestCase):
         """Should correctly format a TH2 dictionary representation."""
         rep = response_formatters.th2_formatter(self.th2)
         exp = dict(
-            entries=4.0 + 9.0 + 4.0 + 1.0,
+            entries=self.th2.GetEntries(),
+            mean=self.th2.GetMean(),
+            rms=self.th2.GetRMS(),
             xbinning=[(0.0, 0.5), (0.5, 1.0)],
             ybinning=[(0.0, 0.5), (0.5, 1.0)],
             values=[[4.0, 9.0], [4.0, 1.0]],

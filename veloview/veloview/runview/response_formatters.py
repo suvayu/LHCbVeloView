@@ -44,7 +44,7 @@ def th1_formatter(th1):
     """Return a data dictionary for TH1 objects.
 
     Defined keys:
-    entries -- TH1.Integral
+    entries -- TH1.GetEntries
     mean -- TH1.GetMean
     underflow -- Number of entries in the underflow bin
     overflow -- Number of entries in the overflow bin
@@ -70,8 +70,9 @@ def th1_formatter(th1):
     axis_titles = (xaxis.GetTitle(), yaxis.GetTitle())
 
     # Histogram 'metadata'
-    entries = th1.Integral()
+    entries = th1.GetEntries()
     mean = th1.GetMean()
+    rms = th1.GetRMS()
     # For bin number conventions see TH1::GetBinContent
     underflow = th1.GetBinContent(0)
     overflow = th1.GetBinContent(nbins + 1)
@@ -79,6 +80,7 @@ def th1_formatter(th1):
     return dict(
         entries=entries,
         mean=mean,
+        rms=rms,
         underflow=underflow,
         overflow=overflow,
         binning=binning,
@@ -92,7 +94,7 @@ def th2_formatter(th2):
     """Return a data dictionary for TH2 objects.
 
     Defined keys:
-    entries -- TH1.Integral
+    entries -- TH1.GetEntries
     xbinning -- List of 2-tuples of bins as (low x edge, high x edge)
     ybinning -- List of 2-tuples of bins as (low y edge, high y edge)
     values -- List of list of bin contents, (ith, jth) entry falling in the
@@ -120,10 +122,14 @@ def th2_formatter(th2):
     ]
 
     # Histogram 'metadata'
-    entries = th2.Integral()
+    entries = th2.GetEntries()
+    mean = th2.GetMean()
+    rms = th2.GetRMS()
 
     return dict(
         entries=entries,
+        mean=mean,
+        rms=rms,
         xbinning=xbins,
         ybinning=ybins,
         values=values,
