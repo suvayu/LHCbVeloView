@@ -29,5 +29,7 @@ setup(name='veloview',
         'veloview.utils',
     ],
     scripts=[
+        'bin/retrieve_run_view_plot.py',
+        'bin/veloview_configuration.py'
     ]
 )

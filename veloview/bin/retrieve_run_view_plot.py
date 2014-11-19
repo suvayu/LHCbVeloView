@@ -16,7 +16,8 @@ def create_parser():
         epilog="\n".join(__doc__.split("\n")[1:]))
     parser.add_argument("run", type=int, help="Run number")
     parser.add_argument("plot", type=str, help="Plot name in run file")
-    parser.add_argument("sensor", type=int, help="Sensor number")
+    parser.add_argument("sensor", type=int, nargs="?", default=0,
+                        help="Sensor number")
     parser.add_argument("--reference", action="store_true",
                         help="Return reference plot for the given arguments")
     return parser
