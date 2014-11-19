@@ -1,11 +1,22 @@
 from collections import OrderedDict
 import unittest2 as unittest
 
-import mock
 from lxml.html import fromstring as parse_html
 
+from tests import utils as test_utils
 import velo_monitor
+from veloview.core import run_view_config
+
+
+test_utils.set_up_run_list()
+
+
+def tearDownModule():
+    test_utils.tear_down_run_list()
+
+
 from velo_monitor import run_view
+
 
 # Run view pages dictionary fixture
 RUN_VIEW_PAGES = OrderedDict([
@@ -52,16 +63,21 @@ DEFAULT_CHILDREN = {
 
 
 def mocked_run_list():
-    return range(20, 0, -1)
+    return test_utils.RUNS
 
 
-@mock.patch('velo_monitor.run_view.pages_dict', RUN_VIEW_PAGES)
 class TestRunView(unittest.TestCase):
     def setUp(self):
         self.app = velo_monitor.create_app()
         self.app.config['TESTING'] = True
         self.app.config['DEFAULT_CHILDREN'] = DEFAULT_CHILDREN
         self.client = self.app.test_client()
+
+        self.old_rvd = run_view_config.run_view_pages
+        run_view_config.run_view_pages = RUN_VIEW_PAGES
+
+    def tearDown(self):
+        run_view_config.run_view_pages = self.old_rvd
 
     def get(self, path):
         """Return an pq instance of the lxml parsed document at path."""
@@ -101,56 +117,42 @@ class TestRunView(unittest.TestCase):
         self.assertNotIn('404', header)
         self.assertIn(page_title, header)
 
-    @mock.patch('veloview.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
-    def test_default_run(self, mock_dr):
+    def test_default_run(self):
         """Run number should be set to zero if none is specified."""
         doc = self.get('/run_view')
         number_header = doc.cssselect('.run-number')[0].text_content()
-        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header)
+        self.assertIn('Run #{0}'.format(run_view.default_run()), number_header)
 
-    @mock.patch('veloview.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
-    def test_specified_run(self, mock_dr):
+    def test_specified_run(self):
         """Run number should be set to that in the URL when given."""
-        run = 10
+        run = test_utils.RUNS[1]
         doc = self.get('/run_view/{0}'.format(run))
         number_header = doc.cssselect('.run-number')[0].text_content()
         self.assertIn('Run #{0}'.format(run), number_header)
 
-    @mock.patch('veloview.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
-    def test_invalid_run_number_get_params(self, mock_dr):
+    def test_invalid_run_number_get_params(self):
         """An invalid/empty run GET parameter should redirect to the default."""
         doc1 = self.get('/run_view/?run=')
         doc2 = self.get('/run_view/?run=abc!')
         number_header1 = doc1.cssselect('.run-number')[0].text_content()
         number_header2 = doc2.cssselect('.run-number')[0].text_content()
-        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header1)
-        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header2)
+        self.assertIn('Run #{0}'.format(run_view.default_run()), number_header1)
+        self.assertIn('Run #{0}'.format(run_view.default_run()), number_header2)
 
 
-    @mock.patch('veloview.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
-    def test_invalid_run(self, mock_dr):
+    def test_invalid_run(self):
         """Invalid run numbers show a warning, redirecting to the default"""
         invalid_run = 123
         doc = self.get('/run_view/{0}'.format(invalid_run))
         number_header = doc.cssselect('.run-number')[0].text_content()
         alert = doc.cssselect('.alert')[0].text_content()
         self.assertIn('Invalid run number "{0}"'.format(invalid_run), alert)
-        self.assertIn('Run #{0}'.format(mock_dr.return_value), number_header)
+        self.assertIn('Run #{0}'.format(run_view.default_run()), number_header)
 
-    @mock.patch('veloview.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
-    def test_nearby_run_list(self, mock_dr):
+    def test_nearby_run_list(self):
         """Nearby run list should show correct runs."""
-        current_run = 6
+        current_run_idx = 5
+        current_run = test_utils.RUNS[5]
         expected_distance = 3
         doc = self.get('/run_view/{0}'.format(current_run))
         newer_opts = doc.cssselect('optgroup:nth-child(1) option')
@@ -162,24 +164,27 @@ class TestRunView(unittest.TestCase):
         self.assertEqual(len(older_opts), expected_distance)
         # Then assert that the option's contents is correct
         for i, opt in enumerate(newer_opts):
-            self.assertEqual(opt.text_content(), str(current_run + expected_distance - i))
+            self.assertEqual(
+                opt.text_content(),
+                str(test_utils.RUNS[current_run_idx - expected_distance + i])
+            )
         self.assertEqual(current_opt[0].text_content(), str(current_run))
         for i, opt in enumerate(older_opts):
-            self.assertEqual(opt.text_content(), str(current_run - (i + 1)))
+            self.assertEqual(
+                opt.text_content(),
+                str(test_utils.RUNS[current_run_idx + i + 1])
+            )
 
-    @mock.patch('veloview.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.run_list', mocked_run_list)
-    @mock.patch('velo_monitor.run_view.default_run', return_value=10)
-    def test_run_autocomplete(self, mock_dr):
+    def test_run_autocomplete(self):
         """Autocomplete list should be populated with all available runs."""
-        num_runs = 20
+        num_runs = len(test_utils.RUNS)
         doc = self.get('/run_view/')
         run_options = doc.cssselect('#runs option')
         # First check the number of elements is correct
         self.assertEqual(len(run_options), num_runs)
         # Then check the list is displaying the right values
         for i, opt in enumerate(run_options):
-            self.assertEqual(opt.text_content(), str(num_runs - i))
+            self.assertEqual(opt.text_content(), str(test_utils.RUNS[i]))
 
     def test_plot_per_tab(self):
         """Should display one tab per plot, each plot in its own tab pane.

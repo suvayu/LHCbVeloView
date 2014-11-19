@@ -54,7 +54,7 @@ var VeloMonitor = (function(window, undefined) {
     return spinner;
   }
 
-  // Load the plot(s) returned by the job 'run_view.get_plot' in to container.
+  // Load the plot(s) returned by the job 'runview.plots.get_run_plot' in to container.
   // Accepts:
   //   args: Object of keyword arguments to pass to the job
   //   opts: Drawing options passed to appropriate d3.plotable
@@ -62,7 +62,7 @@ var VeloMonitor = (function(window, undefined) {
   // Returns:
   //   Polling job task
   var loadRunViewPlotInContainer = function(args, opts, container) {
-    var task = WebMonitor.createTask('run_view.get_plot', args),
+    var task = WebMonitor.createTask('runview.plots.get_run_plot', args),
         spinner = appendSpinner(container),
         failure = function(msg) { displayFailure(msg, container); };
 
@@ -76,11 +76,11 @@ var VeloMonitor = (function(window, undefined) {
             plotData = [];
         for (var i = 0; i < result.length; i++) {
           var resultData = result[i]['data'],
-              keyData = resultData['key_data'];
+              keyData = resultData['data'];
           // Add the key name and title on to the data passed to the plotter
-          keyData.name = resultData['key_name'];
-          keyData.title = resultData['key_title'];
-          plotTypes.push(resultData['key_class']);
+          keyData.name = resultData['name'];
+          keyData.title = resultData['title'];
+          plotTypes.push(resultData['object_class']);
           plotData.push(keyData);
         }
 
@@ -91,11 +91,11 @@ var VeloMonitor = (function(window, undefined) {
         setupPlotablesToggler(chart, $(TEMPLATES.row).insertAfter(container));
       } else {
         var resultData = result['data'],
-            plotType = resultData['key_class'],
-            plotData = resultData['key_data'];
+            plotType = resultData['object_class'],
+            plotData = resultData['data'];
         // Add the key name and title on to the data passed to the plotter
-        plotData.name = resultData['key_name'];
-        plotData.title = resultData['key_title'];
+        plotData.name = resultData['name'];
+        plotData.title = resultData['title'];
 
         VeloPlotter.displayPlot(plotType, plotData, opts, container, failure);
       }

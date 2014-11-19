@@ -1,6 +1,15 @@
 import unittest2 as unittest
 
+from tests import utils as test_utils
 import velo_monitor
+
+
+def setUpModule():
+    test_utils.set_up_run_list()
+
+
+def tearDownModule():
+    test_utils.tear_down_run_list()
 
 
 class TestPages(unittest.TestCase):
