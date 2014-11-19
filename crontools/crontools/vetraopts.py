@@ -83,9 +83,13 @@ def get_runinfo(run, year, stream):
 
 def get_urls(urlinfo, files):
     """Get urls from files"""
-    urlfmt = "DATAFILE='{protocol}://castorlhcb.cern.ch/" \
-             + "/castor/cern.ch/grid/lhcb/data/{year}/RAW/FULL/" \
-             + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
+    if urlinfo['protocol'] == 'file':
+        urlfmt = "DATAFILE='{protocol}:/daqarea/lhcb/data/{year}/RAW/FULL/" \
+                 + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
+    else:
+        urlfmt = "DATAFILE='{protocol}://castorlhcb.cern.ch/" \
+                 + "/castor/cern.ch/grid/lhcb/data/{year}/RAW/FULL/" \
+                 + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
     return [urlfmt.format(file = f, **urlinfo) for f in files]
 
 def get_username():

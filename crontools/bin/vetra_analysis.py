@@ -33,6 +33,8 @@ parser.add_argument('-c', '--cron', action='store_true',
                     help='Run from a cron job.')
 parser.add_argument('-d', '--debug', dest='debug', action='store_true',
                     help='Turn debug on messages.')
+parser.add_argument('-l', '--local', action='store_true', default=False,
+                    help='Try to find files locally.')
 
 _cliopts = parser.parse_args()
 
@@ -142,6 +144,7 @@ for run in runs:
             # option files and datacards
             year = query.get_time(run)[0].tm_year       # info from run DB query
             runinfo = get_runinfo(run, year, stream) # info for option files
+            if _cliopts.local: runinfo['protocol'] = 'file'
             prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
             optfiles = {
                 # '{}.useropts.py'.format(prefix): get_optfile(), # same as FilterBeamBeam_HeartBeat
