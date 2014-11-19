@@ -40,7 +40,7 @@ def retrieve_run_view_plot(run, plot, sensor, reference):
 
     # Try to the get the plot object
     try:
-        plot_obj = plots.get_plot(plot, run, reference=reference)
+        plot_obj = plots.get_run_plot(plot, run, reference=reference)
     except KeyError, e:
         sys.stderr.write("Invalid plot name provided: {0}".format(plot))
         sys.stderr.write("Exception caught: {0}".format(e))
