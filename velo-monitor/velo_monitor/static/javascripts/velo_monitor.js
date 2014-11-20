@@ -146,35 +146,7 @@ var VeloMonitor = (function(window, undefined) {
       this.persistPlotDimensions();
       this.setupTabs();
       this.setupRunSelector();
-    },
-    dqs: {
-      init: function() {
-        WebMonitor.log('runView.dqs.init');
-      }
-    },
-    pedestals: {
-      init: function() {
-        WebMonitor.log('runView.pedestals.init');
-        runView.setupPlots();
-      }
-    },
-    noise: {
-      init: function() {
-        WebMonitor.log('runView.noise.init');
-        runView.setupPlots();
-      }
-    },
-    clusters: {
-      init: function() {
-        WebMonitor.log('runView.clusters.init');
-        runView.setupPlots();
-      }
-    },
-    occupancy: {
-      init: function() {
-        WebMonitor.log('runView.occupancy.init');
-        runView.setupPlots();
-      }
+      this.setupPlots();
     },
     // Load the plots in to the page
     // Accepts:
