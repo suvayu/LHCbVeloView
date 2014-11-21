@@ -269,8 +269,8 @@ VersionedObject<OBJ, VEROBJ, CMP>::rend() const
 template<class OBJ, class VEROBJ, class CMP>
 std::pair<typename VersionedObject<OBJ, VEROBJ, CMP>::iterator, bool>
 VersionedObject<OBJ, VEROBJ, CMP>::insert(
-	const typename VersionedObject<OBJ, VEROBJ, CMP>::value_type& value)
-{ return m_objs.insert(value); }
+	const typename VersionedObject<OBJ, VEROBJ, CMP>::value_type& val)
+{ return m_objs.insert(val); }
 
 template<class OBJ, class VEROBJ, class CMP>
 std::pair<typename VersionedObject<OBJ, VEROBJ, CMP>::iterator, bool>
