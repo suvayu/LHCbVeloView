@@ -63,6 +63,16 @@
 # 	get the rootcint rules to work with ROOT 6 (i.e. 5.99/...)
 # v0.18 2013-10-25 Manuel Schiller <manuel.schiller@nikhef.nl>
 # 	add some FreeBSD/NetBSD compatibility code
+# v0.19 2013-11-14 Manuel Schiller <manuel.schiller@nikhef.nl>
+#	better clang support, nicer formatting of error messages
+# v0.20 2014-03-04 Manuel Schiller <manuel.schiller@nikhef.nl>
+#	make GCCXML on SLC6 pick up the compiler that is being used
+# v0.21	2014-11-21 Manuel Schiller <Manuel.Schiller@cern.ch>
+# 	work around broken root-configs which hardcode AFS, even if
+# 	AFS is unavailable (guess compiler lcg-compiler-version in
+# 	that case)
+# 	correct RVersion handling
+# 	include documentation fix from Paul Seyfert
 #######################################################################
 
 #######################################################################
@@ -191,13 +201,14 @@
 # YourLibRflx.h file would then contain:
 #
 # #ifndef _YOURLIBRFLX_H
+# #define _YOURLIBRFLX_H
 #
 # #include "YourClass.h"
 # #include "yourFunc.h"
 # 
 # #endif
 # 
-# The corresponding YourRflxLib.xml file would look like this:
+# The corresponding YourLibRflx.xml file would look like this:
 #
 # <lcgdict>
 #     <selection>
@@ -275,6 +286,7 @@ HEAD = head
 TAIL = tail
 GREP = grep
 CAT = cat
+CUT = cut
 TR = tr
 
 # get compiler version(s) used to compile ROOT
@@ -285,8 +297,11 @@ LD = $(shell $(ROOTCONFIG) --ld)
 CPP = $(CC) -E
 ROOTCONFIG_HASF77 := \
     $(strip $(shell $(ROOTCONFIG) --help | tr ' ' '\n' | grep -- '--f77'))
-ROOT_VERSION_CODE := $(shell $(AWK) '/define ROOT_VERSION_CODE/ { print $$3; }' < $(shell $(ROOTCONFIG) --incdir)/RVersion.h)
-ROOTCONFIG_ROOT56 := $(shell $(TEST) $(ROOT_VERSION_CODE) -ge 353024 && $(ECHO) ROOT6 || $(ECHO) ROOT5)
+ROOT_VERSION_CODE := $(shell $(AWK) '/define ROOT_VERSION_CODE/ { \
+    for (i = 1; i <= NF; ++i) if (0+$$i > 10000) print $$i; }' \
+    < $(shell $(ROOTCONFIG) --incdir)/RVersion.h)
+ROOTCONFIG_ROOT56 := $(shell $(TEST) $(ROOT_VERSION_CODE) -ge 353024 && \
+    $(ECHO) ROOT6 || $(ECHO) ROOT5)
 ifneq ($(ROOTCONFIG_HASF77),)
 ifneq ($(FC),/usr/bin/f77)
 # if FC points to /usr/bin/f77 (which is usually f2c in disguise), we
@@ -351,6 +366,15 @@ ROOTCFLAGS = $(shell $(ROOTCONFIG) --auxcflags)
 # some versions of ROOT have libGenVector, others libMathCore
 LIBGENVECTOR = $(shell $(TEST) -e $(ROOTLIBDIR)/libGenVector.so && \
 		$(ECHO) '-lGenVector' || $(ECHO) '-lMathCore')
+
+# nice error message formatting - need to know how many columns the terminal
+# has
+COLUMNS = $(shell test -x `which stty` && stty size | $(CUT) -d' ' -f2)
+ifeq ($(COLUMNS),)
+# assume 80 characters if we don't know better
+COLUMNS = 80
+endif
+WARNWIDTH = $(shell $(ECHO) $$(($(COLUMNS) - 2)) )
 endif
 else
 # nothing to do if toolchain is set up
@@ -399,6 +423,7 @@ HEAD := $(HEAD)
 TAIL := $(TAIL)
 GREP := $(GREP)
 CAT := $(CAT)
+CUT := $(CUT)
 TR := $(TR)
 TUNEFLAGS := $(TUNEFLAGS)
 ROOTLIBDIR := $(ROOTLIBDIR)
@@ -410,6 +435,7 @@ GCCXML := $(GCCXML)
 GCCXMLDIR := $(GCCXMLDIR)
 GENREFLEX := $(GENREFLEX)
 ROOTCINT := $(ROOTCINT)
+WARNWIDTH := $(WARNWIDTH)
 
 #######################################################################
 # detect OS/compiler flavour
@@ -486,10 +512,10 @@ PIPEFLAG.Intel ?= -pipe
 PIPEFLAG.Clang ?= -pipe
 PIPEFLAG.GNU ?= -pipe
 # turn on warnings
-WARNFLAGS.GNU ?= -Wall -Wextra -Wshadow -fmessage-length=78
-WARNFLAGS.Clang ?= -Wall -Wextra -fmessage-length=78
-WARNFLAGS.Intel ?= -Wall -Wextra -Wshadow -fmessage-length=78
-WARNFLAGS.Open64 ?= -Wall -Wextra -fmessage-length=78
+WARNFLAGS.GNU ?= -Wall -Wextra -Wshadow -fmessage-length=$(WARNWIDTH)
+WARNFLAGS.Clang ?= -Wall -Wextra -Wshadow -fmessage-length=$(WARNWIDTH)
+WARNFLAGS.Intel ?= -Wall -Wextra -Wshadow -fmessage-length=$(WARNWIDTH)
+WARNFLAGS.Open64 ?= -Wall -Wextra -fmessage-length=$(WARNWIDTH)
 WARNFLAGS.PathScale ?= -Wall -Wshadow
 WARNFLAGS.SunPro ?= +w +w2
 WARNFLAGS.Unknown ?=
@@ -520,11 +546,11 @@ CSTD.Intel ?= -std=c9x
 CSTD.SunPro ?= -xc99
 # C++ language standard
 CXXSTD.Unknown ?=
-CXXSTD.GNU ?= -std=gnu++98
-CXXSTD.Clang ?= -std=gnu++98
-CXXSTD.Intel ?= -std=gnu++98
-CXXSTD.Open64 ?= -std=gnu++98
-CXXSTD.PathScale ?= -std=gnu++98
+CXXSTD.GNU ?= -std=c++11
+CXXSTD.Clang ?= -std=c++11
+CXXSTD.Intel ?= -std=c++11
+CXXSTD.Open64 ?= -std=c++1
+CXXSTD.PathScale ?= -std=c++11
 CXXSTD.SunPro ?= -compat=g
 # Fortran language standard - default to Fortran 77 where possible
 FSTD.Unknown ?=
@@ -594,6 +620,39 @@ TUNEFLAGS.PathScale ?= -march=auto -OPT:Ofast -OPT:ro=3 \
     `$(ECHO) $$CMTCONFIG | $(GREP) -q slc5- && echo $(GREP) -v avx || \
     $(ECHO) $(CAT)` | $(TR) '\n' ' ')
 TUNEFLAGS.SunPro ?= -xtarget=native -xarch=native -xbuiltin -fsimple=2
+
+# make sure gccxml picks up the "right" C++ compiler ("right" is difficult to
+# get right here, gccxml has defaults which may or may not work - thanks to
+# CERN compiling everything assuming AFS to be available, and if the defaults
+# do not work, try to find a usable substitute using some kind of heuristics)
+# 
+# logic is: if unset, try gccxml's default, $(CXX), g++ in path, c++ in path,
+# /usr/bin/g++, /usr/bin/c++; take the first one that works
+ifeq ($(GCCXML_COMPILER),)
+ifeq ($(shell $(GCCXML) --print > /dev/zero 2>&1; $(ECHO) $$?),0)
+GCCXML_COMPILER=$(shell $(GCCXML) --print | $(GREP) GCCXML_COMPILER | $(CUT) -d= -f2-)
+else
+ifeq ($(shell $(GCCXML) --gccxml-compiler $(CXX) --print > /dev/zero 2>&1; $(ECHO) $$?),0)
+GCCXML_COMPILER=$(CXX)
+else
+ifeq ($(shell $(GCCXML) --gccxml-compiler $$(which g++) --print > /dev/zero 2>&1; $(ECHO) $$?),0)
+GCCXML_COMPILER=$(shell which g++)
+else
+ifeq ($(shell $(GCCXML) --gccxml-compiler $$(which c++) --print > /dev/zero 2>&1; $(ECHO) $$?),0)
+GCCXML_COMPILER=$(shell which c++)
+else
+ifeq ($(shell $(GCCXML) --gccxml-compiler /usr/bin/g++ --print > /dev/zero 2>&1; $(ECHO) $$?),0)
+GCCXML_COMPILER=/usr/bin/g++
+else
+GCCXML_COMPILER=/usr/bin/c++
+endif
+endif
+endif
+endif
+endif
+endif
+GCCXML_COMPILER:=$(GCCXML_COMPILER)
+export GCCXML_COMPILER
 
 #######################################################################
 # compiler flags
@@ -677,9 +736,10 @@ export ROOTCONFIG ROOTLIBS ROOTLIBDIR ROOTINCLUDES ROOTCFLAGS LIBGENVECTOR \
     ROOT_VERSION_CODE ROOTCONFIG_ROOT56
 # *nix like tools for text processing, copying/moving files etc.
 export AWK SED CPP CP MV MKDIR RMDIR TEST ECHO TRUE FALSE TOUCH UNAME \
-    HEAD TAIL GREP
+    HEAD TAIL GREP CAT CUT
 # communicate make(1) related options to subprocesses
 export MAKEFLAGS COLORMAKE UNAME_SYS CC_FLAVOUR CXX_FLAVOUR FC_FLAVOUR
+export WARNWIDTH
 
 #######################################################################
 # collect source files in current directory
