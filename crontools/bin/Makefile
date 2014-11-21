@@ -1,3 +1,5 @@
+TARGETS = runList
+
 include Rules.mk
 
 # runList standalone executable; link with C++ compiler, use C++11

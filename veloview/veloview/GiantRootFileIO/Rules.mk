@@ -296,6 +296,25 @@ else
 FC = $(shell $(ROOTCONFIG) --f77 | $(SED) -e 's/ -[-a-zA-Z0-9_=:,]\\+//g')
 endif
 endif
+
+# work around broken ROOT builds where root-config reports some compiler
+# loaction on AFS, but AFS is not accessible; we try to guess a compiler name
+# along the lines of "lcg-compiler-version" then, and check with which to get
+# its path
+AFSFIXUPMAGIC=$(SED) -Ee 's,/afs/.+/gcc/([0-9.]+)/.+-slc.+/(gcc|g\+\+|gfortran|cc|c\+\+|clang|clang\+\+|icc-[0-9]+|icpc-[0-9]+)$$,lcg-\2-\1,'
+ifeq ($(shell which $(CC) 2>/dev/zero),)
+CC:=$(shell which $(shell $(ECHO) $(CC) | $(AFSFIXUPMAGIC)))
+endif
+ifeq ($(shell which $(CXX) 2>/dev/zero),)
+CXX:=$(shell which $(shell $(ECHO) $(CXX) | $(AFSFIXUPMAGIC)))
+endif
+ifeq ($(shell which $(FC) 2>/dev/zero),)
+FC:=$(shell which $(shell $(ECHO) $(FC) | $(AFSFIXUPMAGIC)))
+endif
+ifeq ($(shell which $(LD) 2>/dev/zero),)
+LD:=$(shell which $(shell $(ECHO) $(LD) | $(AFSFIXUPMAGIC)))
+endif
+
 # locate genreflex, rootcint, gccxml for dictionaries
 GENREFLEX = $(shell $(ROOTCONFIG) --bindir)/genreflex
 ROOTCINT = $(shell $(ROOTCONFIG) --bindir)/rootcint
