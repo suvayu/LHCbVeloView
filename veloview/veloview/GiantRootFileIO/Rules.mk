@@ -73,6 +73,7 @@
 # 	that case)
 # 	correct RVersion handling
 # 	include documentation fix from Paul Seyfert
+# 	move from gnu++98 C++ standard to c++11
 #######################################################################
 
 #######################################################################
