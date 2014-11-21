@@ -1,8 +1,8 @@
-TARGETS = VeloGUIUtilsRflx.cxx libVeloGUIUtils.so runList
+TARGETS = VeloGUIUtilsRflx.cxx libVeloGUIUtils.so
 alldicts += VeloGUIUtilsRflx.cxx
 
 include Rules.mk
 
 VeloGUIUtilsRflx.cxx: VeloGUIUtilsRflx.h VeloGUIUtilsRflx.xml
 
-libVeloGUIUtils.so: VeloGUIUtilsRflx.os $(patsubst %.cc,%.os,$(filter-out runList.cc,$(allsrc)))
+libVeloGUIUtils.so: VeloGUIUtilsRflx.os $(patsubst %.cc,%.os,$(allsrc))
