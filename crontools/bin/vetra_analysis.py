@@ -18,8 +18,11 @@ parser.add_argument('run', type=int, help='Run to process.')
 parser.add_argument('-r', '--run-range', nargs=2, type=int,
                     metavar=('START', 'END'), help='Run range to process.')
 parser.add_argument('-s', '--stream', dest='stream', default='NZS',
-                    choices=['NZS', 'ZS'], help='Which stream to process '
-                    '(default: NZS).')
+                    choices=['NZS', 'ZS', 'NZS+ZS', 'TED', 'NOISE', 'RR',
+                             'ADCDELAYSCAN', 'GAIN', 'TAE', 'EXCM', 'ERROR',
+                             'ALLZS', 'DEBUG', 'COLLISION', 'BADSTRIPS',
+                             'HVOff', 'HVOn'],
+                    help='Which stream to process (default: NZS).')
 parser.add_argument('-n', '--nevents', dest='nevents', type=int, default=70000,
                     help='Number of events to process (default: 70000).')
 parser.add_argument('-t', '--time-threshold', dest='threshold', default=1800,
@@ -58,7 +61,9 @@ import os, errno, sys, re
 from glob import glob
 
 # stream to process
-pattern = re.compile('NZS|ZS')
+pattern = re.compile('NZS|ZS|NZS\+ZS|TED|NOISE|RR|ADCDELAYSCAN'
+                     '|GAIN|TAE|EXCM|ERROR|ALLZS|DEBUG|COLLISION'
+                     '|BADSTRIPS|HVOff|HVOn')
 if pattern.match(_cliopts.stream):
     stream = _cliopts.stream
 else:
