@@ -27,7 +27,8 @@ def make_dir_tree(run, prefix=''):
 def get_last_run(runfile):
     """Return last run from runfile"""
     runfile = open(runfile, 'r')
-    return int(runfile.readlines()[-1])
+    lines = runfile.readlines()
+    return int(lines[-1]) if lines else None
 
 def add_runs(runs, runfile, prefix=''):
     """Add run numbers to list"""
