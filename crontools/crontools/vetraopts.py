@@ -69,13 +69,14 @@ CondDB().IgnoreHeartBeat = True
 """
     return tmpl
 
-def get_runinfo(run, year, stream):
+def get_runinfo(run, year, partition, stream):
     """Create basic run info dictionary for datacard template"""
     if isinstance(run, list):
         run = run[0].split('_', 1)[0]
     return {
         'protocol' : 'root:root',
         'year'     : year,
+        'partition': partition
         'stream'   : stream,
         'run'      : run,
         'timestamp': get_timestamp()
@@ -85,11 +86,11 @@ def get_urls(urlinfo, files):
     """Get urls from files"""
     if urlinfo['protocol'] == 'file':
         urlfmt = "DATAFILE='{protocol}:/daqarea/lhcb/data/{year}/RAW/FULL/" \
-                 + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
+                 + "{partition}/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
     else:
         urlfmt = "DATAFILE='{protocol}://castorlhcb.cern.ch/" \
                  + "/castor/cern.ch/grid/lhcb/data/{year}/RAW/FULL/" \
-                 + "VELO/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
+                 + "{partition}/{stream}/{run}/{file}' SVC='LHCb::MDFSelector'"
     return [urlfmt.format(file = f, **urlinfo) for f in files]
 
 def get_username():

@@ -142,7 +142,8 @@ for run in runs:
 
             # option files and datacards
             year = query.get_time(run)[0].tm_year       # info from run DB query
-            runinfo = get_runinfo(run, year, stream) # info for option files
+            partition = query.get_run_info(run)['partitionName']
+            runinfo = get_runinfo(run, year, partition, stream) # info for option files
             if _cliopts.local: runinfo['protocol'] = 'file'
             prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
             optfiles = {
