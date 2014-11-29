@@ -49,7 +49,9 @@ class RunDBQuery(object):
             'state' : re.compile('state:\s+([^\t]+)'),
             'startTime' : re.compile('startTime:\s+([^\t]+)'),
             'endTime' : re.compile('.+endTime:\s+([^\t]+)'),
-            'files' : re.compile('(^([0-9]+)_([0-9]+)\.raw$)')
+            'files' : re.compile('(^([0-9]+)_([0-9]+)\.raw$)'),
+            'partitionName' : re.compile('partitionName:\s+([A-Za-z0-9]+)'),
+            'runType' : re.compile('.+runType:\s+([[_A-Z0-9]+])')
         }
 
     def call_rdbt(self):
@@ -173,7 +175,6 @@ class RunDBQuery(object):
                 if time() - epoch[1] < 3600: # run too recent
                     info('Run %d: younger than 1h, skipping', run)
                     return False
-
             return True
 
         return filter(_filter_runs, runlist)
