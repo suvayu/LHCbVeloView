@@ -19,9 +19,37 @@ def get_gaudi_opts(option):
     if option == 'NZS':
         opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-NZS_Data-Emul.py']
     elif option == 'ZS':
-        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-NZS_Data.py']
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-ZS_Data.py']
     elif option == 'NZS+ZS':
-        opts += [os.environ['VETRAROOT']+ '/options/Velo/Vetra-Default-NZS+ZS_Data-Emul.py']
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-NZS+ZS_Data-Emul.py']
+    elif option == 'TED':
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-TED_Data-2014-11.py']
+    elif option == 'NOISE' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-NoiseNoBeam.py']
+    elif option == 'RR' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-RoundRobin.py']
+    elif option == 'ADCDELAYSCAN' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-ADCDelayScan.py']
+    elif option == 'GAIN' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-GainMon_TestPulse.py']
+    elif option == 'TAE' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-ZS_Data.py']
+    elif option == 'EXCM' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-ZS_Data.py']
+    elif option == 'ERROR' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-ZS_Data.py']
+    elif option == 'ALLZS' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-ZS_Data.py']
+    elif option == 'DEBUG' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-VeloDebug.py']
+    elif option == 'COLLISION' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-2015-Collisions.py']
+    elif option == 'BADSTRIPS' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-BADSTRIPS_Data-Emul.py']
+    elif option == 'HVOff' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-HVOff-BADSTRIPS_Data-Emul.py']
+    elif option == 'HVOn' :
+        opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-HVOn-BADSTRIPS_Data-Emul.py']
     else:
         warning('Unknown option!')
     return ['gaudirun.py'] + opts
