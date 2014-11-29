@@ -36,7 +36,8 @@ class TestUtils(unittest.TestCase):
         self.assertTrue(if_ndigits(self.runno, 5))
 
     def test_dir_tree(self):
-        self.assertEqual(make_dir_tree(self.runno), '50000s/54000s/54300s/')
+        self.assertEqual(make_dir_tree(self.runno),
+                         '50000s/54000s/54300s/{}'.format(self.runno))
 
     def test_add_runs(self):
         add_runs(self.runno, self.fname, prefix='bin')
