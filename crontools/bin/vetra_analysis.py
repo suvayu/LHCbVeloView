@@ -14,7 +14,7 @@ import argparse
 parser = argparse.ArgumentParser(description=__doc__)
 parser.formatter_class = argparse.RawDescriptionHelpFormatter
 
-parser.add_argument('runs', nargs='*', type=int, help='List of runs to process.')
+parser.add_argument('run', type=int, help='Run to process.')
 parser.add_argument('-r', '--run-range', nargs=2, type=int,
                     metavar=('START', 'END'), help='Run range to process.')
 parser.add_argument('-s', '--stream', dest='stream', default='NZS',
@@ -70,11 +70,10 @@ from crontools.utils import get_last_run
 
 # run range to process (old: 1k runs from last processed run in DQS
 # directory).
-if _cliopts.runs:
-    runs = _cliopts.runs
+if _cliopts.run:
+    runs = _cliopts.run
 elif _cliopts.run_range:
-    runs = range(int(_cliopts.run_range[0]),
-                 int(_cliopts.run_range[1])+1)
+    runs = _cliopts.run_range
 else:
     debug('No run range or list was provided. ' \
           'List of runs will be determined automagically!')
@@ -85,7 +84,7 @@ else:
     # runs are likely to be skipped b/c of this condition.  Assign an
     # arbitrary run range (1k is long enough to cover a technical
     # stop) such that we always find one significant run.
-    runs = range(last_run + 1, last_run + 1000) # NOTE: use 10 for testing
+    runs = [last_run + 1, last_run + 1000]
 
     ## new: TODO
     # 1. get run fill from (1)
