@@ -39,7 +39,7 @@ class RunDBQuery(object):
             raise ValueError('Wrong run range order: %d !> %d' %
                              (runs[1], runs[0]))
 
-        self._cmd_ = ['rdbt', '-n', '-f'] + [str(run) for run in self.runs]
+        self._cmd_ = ['/group/online/scripts/rdbt', '-n', '-f'] + [str(run) for run in self.runs]
 
         import re
         self._regexps_ = {
