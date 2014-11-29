@@ -109,6 +109,13 @@ debug('Run list before trimming: %s' % runs)
 query = RunDBQuery(runs)
 query.parse()
 runs = query.get_valid_runs(_cliopts.threshold)
+# NOTE: If there is a need to further filter the run list according to
+# other criteria, one can use something like this:
+# def _my_filter(run):
+#     rinfo = query.get_run_info(run)
+#     if test(rinfo): return True
+#     return False
+# runs = filter(_my_filter, runs)
 debug('Run list after trimming: %s' % runs)
 
 
