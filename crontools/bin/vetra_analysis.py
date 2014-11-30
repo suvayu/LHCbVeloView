@@ -31,7 +31,7 @@ parser.add_argument('-t', '--time-threshold', dest='threshold', default=1800,
                     type=int, help='Minimum run duration in seconds.')
 parser.add_argument('-jd', '--job-dir', dest='jobdir', help='Job directory.',
                     default='/calib/velo/dqm/VeloView/VetraOutput')
-parser.add_argument('-o', '--job-options', dest='jobopts',
+parser.add_argument('-o', '--job-options', dest='jobopts', default='',
                     help='Override default Vetra job options (quoted).')
 parser.add_argument('-c', '--cron', action='store_true',
                     help='Run from a cron job.')
@@ -54,28 +54,19 @@ basicConfig(level=lvl, datefmt='%d-%m-%Y %H:%M:%S',
 
 
 ## option setup
+import os, errno, sys
+
 debug('Script options: %s' % _cliopts)
-
-# import python modules
-import os, errno, sys, re
-from glob import glob
-
 # stream to process
-pattern = re.compile('NZS|ZS|NZS\+ZS|TED|NOISE|RR|ADCDELAYSCAN'
-                     '|GAIN|TAE|EXCM|ERROR|ALLZS|DEBUG|COLLISION'
-                     '|BADSTRIPS|HVOff|HVOn')
-if pattern.match(_cliopts.stream):
-    stream = _cliopts.stream
-else:
-    sys.exit('Unknown stream: %s. Exiting.' % _cliopts.stream)
-
+stream = _cliopts.stream
 jobdir = _cliopts.jobdir
+jobopts = _cliopts.jobopts
+# old jobopts: '/calib/velo/dqm/DQS/cron/FilterBeamBeam_Heartbeat.py'
+
+from crontools.utils import get_last_run
 runlist = '/calib/velo/dqm/VeloView/VetraOutput/RunList.txt'
 graveyardrunlist = '/calib/velo/dqm/VeloView/VetraOutput/GraveyardRunList.txt'
-from crontools.utils import get_last_run
-
-# run range to process (old: 1k runs from last processed run in DQS
-# directory).
+# run range to process (1k runs from last processed run)
 if _cliopts.run:
     runs = _cliopts.run
 elif _cliopts.run_range:
@@ -83,21 +74,13 @@ elif _cliopts.run_range:
 else:
     debug('No run range or list was provided. ' \
           'List of runs will be determined automagically!')
-
-    ## old: last processed + 1k
+    # NOTE: We only process runs longer than time threshold (~30 min
+    # default), many runs are likely to be skipped b/c of this
+    # condition.  Assign an arbitrary run range (1k is long enough to
+    # cover a technical stop) such that we always find at least one
+    # significant run.
     last_run = max(get_last_run(runlist),get_last_run(graveyardrunlist))
-    # We only process runs longer than time threshold (~30 min), many
-    # runs are likely to be skipped b/c of this condition.  Assign an
-    # arbitrary run range (1k is long enough to cover a technical
-    # stop) such that we always find one significant run.
     runs = [last_run + 1, last_run + 1000]
-
-# job options
-if _cliopts.jobopts:
-    jobopts = _cliopts.jobopts
-else:
-    jobopts = ''
-    # jobopts = '/calib/velo/dqm/DQS/cron/FilterBeamBeam_Heartbeat.py'
 
 
 ## trim list of runs by run duration from run database.
