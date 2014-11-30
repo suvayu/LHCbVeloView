@@ -71,6 +71,7 @@ else:
 
 jobdir = _cliopts.jobdir
 runlist = '/calib/velo/dqm/VeloView/VetraOutput/RunList.txt'
+graveyardrunlist = '/calib/velo/dqm/VeloView/VetraOutput/GraveyardRunList.txt'
 from crontools.utils import get_last_run
 
 # run range to process (old: 1k runs from last processed run in DQS
@@ -84,27 +85,19 @@ else:
           'List of runs will be determined automagically!')
 
     ## old: last processed + 1k
-    last_run = get_last_run(runlist)
+    last_run = max(get_last_run(runlist),get_last_run(graveyardrunlist))
     # We only process runs longer than time threshold (~30 min), many
     # runs are likely to be skipped b/c of this condition.  Assign an
     # arbitrary run range (1k is long enough to cover a technical
     # stop) such that we always find one significant run.
     runs = [last_run + 1, last_run + 1000]
 
-    ## new: TODO
-    # 1. get run fill from (1)
-    #
-    # 2. get latest fill (is getting latest physics fill sufficient?
-    #    probably not)
-    #
-    # 3. generate list of runs from fill id (2), last processed run (1)
-    #    and latest fill (3).
-
 # job options
 if _cliopts.jobopts:
     jobopts = _cliopts.jobopts
 else:
-    jobopts = '/calib/velo/dqm/DQS/cron/FilterBeamBeam_Heartbeat.py'
+    jobopts = ''
+    # jobopts = '/calib/velo/dqm/DQS/cron/FilterBeamBeam_Heartbeat.py'
 
 
 ## trim list of runs by run duration from run database.
@@ -144,6 +137,8 @@ for run in runs:
     except OSError as err:
         error('Run %d, stream %s: Oops! Problem with job directory.',
               run, stream, exc_info=True)
+        retcode = add_runs(run, graveyardrunlist, prefix=os.path.dirname(__file__))
+        if retcode: error('Run %d couldn\'t be added to the graveyard list.')
         continue
     try:
         # start the job
@@ -155,11 +150,12 @@ for run in runs:
             # option files and datacards
             year = query.get_time(run)[0].tm_year       # info from run DB query
             partition = query.get_run_info(run)['partitionName']
-            runinfo = get_runinfo(run, year, partition, stream) # info for option files
+            # info for option files, time stamp is also created here
+            runinfo = get_runinfo(run, year, partition, stream)
             if _cliopts.local: runinfo['protocol'] = 'file'
             prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
             optfiles = {
-                # '{}.useropts.py'.format(prefix): get_optfile(), # same as FilterBeamBeam_HeartBeat
+                '{}.useropts.py'.format(prefix): get_optfile(), # same as FilterBeamBeam_HeartBeat
                 '{}.data.py'.format(prefix): get_datacard(runinfo, query.get_files(run),
                                                           maxevts = _cliopts.nevents)
             }
@@ -181,11 +177,13 @@ for run in runs:
             logfile = open('{}.log'.format(prefix), 'w')
             retcode = call(cmd_w_args, stdout=logfile)
             if retcode != 0:
-                warning('Oops! It seems Vetra failed!')
+                warning('Oops! It seems Vetra failed: %d', retcode)
+                retcode = add_runs(run, graveyardrunlist, prefix=os.path.dirname(__file__))
+                if retcode: error('Run %d couldn\'t be added to the graveyard list.')
             else:
+                info('Vetra returned with: %d', retcode)
                 retcode = add_runs(run, runlist, prefix=os.path.dirname(__file__))
                 if retcode: error('Run %d couldn\'t be added to the list.')
-            info('Vetra returned with: %d', retcode)
     except:
         error('Oops! Unexpected exception, crashing disgracefully.',
               exc_info=True)
