@@ -21,7 +21,7 @@ parser.add_argument('run', type=int, help='Run to process.')
 parser.add_argument('-r', '--run-range', nargs=2, type=int,
                     metavar=('START', 'END'), help='Run range to process.')
 parser.add_argument('-s', '--stream', dest='stream', default='NZS',
-                    choices=['NZS', 'ZS', 'NZS+ZS', 'TED', 'NOISE', 'RR',
+                    choices=['NZS', 'ZS', 'NZS+ZS', 'TED14', 'NOISE', 'RR',
                              'ADCDELAYSCAN', 'GAIN', 'TAE', 'EXCM', 'ERROR',
                              'ALLZS', 'DEBUG', 'COLLISION', 'BADSTRIPS',
                              'HVOff', 'HVOn'], help='Which stream to process.')

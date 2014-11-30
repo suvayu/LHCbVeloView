@@ -22,7 +22,7 @@ def get_gaudi_opts(option):
         opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-ZS_Data.py']
     elif option == 'NZS+ZS':
         opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-Default-NZS+ZS_Data-Emul.py']
-    elif option == 'TED':
+    elif option == 'TED14':
         opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-TED_Data-2014-11.py']
     elif option == 'NOISE' :
         opts += [os.environ['VETRAROOT'] + '/options/Velo/Vetra-NoiseNoBeam.py']
@@ -104,7 +104,7 @@ def get_runinfo(run, year, partition, stream):
     return {
         'protocol' : 'root:root',
         'year'     : year,
-        'partition': partition
+        'partition': partition,
         'stream'   : stream,
         'run'      : run,
         'timestamp': get_timestamp()
