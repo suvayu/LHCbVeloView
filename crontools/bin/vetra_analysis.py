@@ -182,6 +182,9 @@ for run in runs:
                 if retcode: error('Run %d couldn\'t be added to the graveyard list.')
             else:
                 info('Vetra returned with: %d', retcode)
+                size = os.stat('{}.root'.format(prefix)).st_size
+                if size < 3000000:
+                    warning('Output root file is too small: %d bytes.', size)
                 retcode = add_runs(run, runlist, prefix=os.path.dirname(__file__))
                 if retcode: error('Run %d couldn\'t be added to the list.')
     except:
