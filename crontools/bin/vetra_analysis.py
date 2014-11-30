@@ -12,7 +12,10 @@
 ## option parsing
 import argparse
 parser = argparse.ArgumentParser(description=__doc__)
-parser.formatter_class = argparse.RawDescriptionHelpFormatter
+class RawArgDefaultFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                             argparse.RawDescriptionHelpFormatter):
+    pass
+parser.formatter_class = RawArgDefaultFormatter
 
 parser.add_argument('run', type=int, help='Run to process.')
 parser.add_argument('-r', '--run-range', nargs=2, type=int,
@@ -21,15 +24,13 @@ parser.add_argument('-s', '--stream', dest='stream', default='NZS',
                     choices=['NZS', 'ZS', 'NZS+ZS', 'TED', 'NOISE', 'RR',
                              'ADCDELAYSCAN', 'GAIN', 'TAE', 'EXCM', 'ERROR',
                              'ALLZS', 'DEBUG', 'COLLISION', 'BADSTRIPS',
-                             'HVOff', 'HVOn'],
-                    help='Which stream to process (default: NZS).')
-parser.add_argument('-n', '--nevents', dest='nevents', type=int, default=70000,
-                    help='Number of events to process (default: 70000).')
+                             'HVOff', 'HVOn'], help='Which stream to process.')
+parser.add_argument('-n', '--nevents', dest='nevents', type=int, default=20000,
+                    help='Number of events to process.')
 parser.add_argument('-t', '--time-threshold', dest='threshold', default=1800,
-                    type=int, help='Minimum run duration in seconds (default: 1800).')
-parser.add_argument('-jd', '--job-dir', dest='jobdir',
-                    default='/calib/velo/dqm/VeloView/VetraOutput', help='Job '
-                    'directory (default: /calib/velo/dqm/VeloView/VetraOutput).')
+                    type=int, help='Minimum run duration in seconds.')
+parser.add_argument('-jd', '--job-dir', dest='jobdir', help='Job directory.',
+                    default='/calib/velo/dqm/VeloView/VetraOutput')
 parser.add_argument('-o', '--job-options', dest='jobopts',
                     help='Override default Vetra job options (quoted).')
 parser.add_argument('-c', '--cron', action='store_true',
@@ -38,7 +39,6 @@ parser.add_argument('-d', '--debug', dest='debug', action='store_true',
                     help='Turn debug on messages.')
 parser.add_argument('-l', '--local', action='store_true', default=False,
                     help='Try to find files locally.')
-
 _cliopts = parser.parse_args()
 
 
@@ -117,12 +117,12 @@ runs = query.get_valid_runs(_cliopts.threshold)
 debug('Run list after trimming: %s' % runs)
 
 
+## acquire lock and run job
 from crontools.utils import add_runs, make_dir_tree
 from crontools.runlock import RunLock
 from crontools.vetraopts import (get_runinfo, get_gaudi_opts, get_runinfo,
                                  get_optfile, get_datacard)
 
-## acquire lock and run job
 for run in runs:
     info('Processing run: %s, stream: %s' % (run, stream))
     # job directory
