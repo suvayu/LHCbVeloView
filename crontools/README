@@ -1,0 +1,56 @@
+# -*- mode: org; -*-
+
+* About ~crontools~
+This package provides tools to make life easy when writing Vetra
+scripts.  The ~bin/~ directory has a Python script that could be used
+as replacement for ~vetraOffline~ from ~VetraScripts~.  It also has a
+Bash script that can be used unattended (e.g. from cron jobs).
+
+* Scripts
+- ~vetra_analysis.py~ :: Python script that can process RAW data with
+     different options for a specific run, or a range of runs.
+- ~cron_vetra_analysis.bash~ :: Bash script that sets up the LHCb
+     software environment, and runs the above script.  This is meant
+     to be run from a cron job.
+
+* Modules
+- ~dotlock~ :: a file locking utility.  It uses the runList C++ binary
+     in the bin directory.  It is smart enough to handle corner cases
+     one might see on a networked filesystem.
+- ~rundbquery~ :: a LHCb run database querying interface.  This parses
+     output from the run database cli tool (~rdbt~) to provide the
+     requested information in inside Python.
+- ~runlock~ :: a simple utility to "lock" run numbers to prevent
+     multiple Vetra jobs from processing the same runs simultaneously.
+     This is required to prevent the Vetra jobs from overwriting each
+     other's output files.
+- ~utils~ :: some simple utilities for script writing.
+- ~vetraopts~ :: utilities and templates for generating Gaudi & Vetra
+     job options, and datacards.
+
+* Notes for users
+- At the moment the Python and Bash scripts provided in the ~bin/~
+  directory can be only run from plus nodes.
+
+* Notes for developers
+- Setup :: the crontools directory should be present in ~PYTHONPATH~
+     or ~sys.path~ for the scripts to work.  An example of the former
+     is present in the Bash script.  Boiler-plate code for the later
+     can be found at the top of the various tests in the ~tests/~
+     directory.
+- Adding templates :: to add templates, look at the ~get_datacard~,
+     and ~get_optfile~ methods for ideas.  Simply add a similar method
+     for your template, and pass required parameters as a dictionary.
+- Adding Gaudi options :: add a new option line to the ~if .. elif~
+     cascade.
+- Utilities :: any template, or job option related utilities should go
+     into ~vetraopts~, other general scripting utilities should go in
+     utils.
+
+* Issues
+- ~rundbquery~ :: at the moment rdbt calls nsls when asking for
+     individual file names for a given run.  This can be painstakingly
+     slow (~7 minutes).  If you know of a resolution, please contact
+     the developers.
+- ~cron_vetra_analysis.bash~ :: relies on the local version of Vetra
+     as some option files are not available in the released version.

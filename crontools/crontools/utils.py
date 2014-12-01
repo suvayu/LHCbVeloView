@@ -20,13 +20,15 @@ def make_dir_tree(run, prefix=''):
     for i in xrange(length, 2, -1):
         digit += get_digit(run, i)
         tree += get_mult_10(digit, i-1) + 's/'
+    tree = tree + str(run)
     if prefix: return prefix + '/{}'.format(tree)
     else: return tree
 
 def get_last_run(runfile):
     """Return last run from runfile"""
     runfile = open(runfile, 'r')
-    return int(runfile.readlines()[-1])
+    lines = runfile.readlines()
+    return int(lines[-1]) if lines else None
 
 def add_runs(runs, runfile, prefix=''):
     """Add run numbers to list"""

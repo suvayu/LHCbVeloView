@@ -1,0 +1,13 @@
+#!/bin/bash
+
+declare loc=$(dirname $0)
+
+if [[ $1 -eq 1 ]]; then
+    cat $loc/rdbt_run_range.txt
+elif [[ $1 -eq 2 ]]; then
+    cat $loc/rdbt_single_run.txt
+elif [[ $1 -eq 3 ]]; then
+    cat $loc/rdbt_w_files_1.txt
+elif [[ $1 -eq 4 ]]; then
+    cat $loc/rdbt_w_files_2.txt
+fi

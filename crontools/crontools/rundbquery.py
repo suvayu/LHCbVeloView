@@ -8,7 +8,7 @@
 
 
 # logging
-from logging import getLogger, debug, info, warning, error
+from logging import debug, info, warning, error
 
 
 class RunDBQuery(object):
@@ -21,8 +21,8 @@ class RunDBQuery(object):
     used to parse the different fields.  It can be overridden to add
     support for additional fields.
 
-    __cmd__ is the rdbt shell command used to talk to the run
-    database.  You can override this, although it is not recommended.
+    _cmd_ is the rdbt shell command used to talk to the run database.
+    You can override this, although it is not recommended.
 
     """
 
@@ -39,14 +39,7 @@ class RunDBQuery(object):
             raise ValueError('Wrong run range order: %d !> %d' %
                              (runs[1], runs[0]))
 
-        from subprocess import (check_output, STDOUT,
-                                CalledProcessError)
-        try:
-            cmd = ['rdbt', '-n'] + [str(run) for run in self.runs]
-            self.output = check_output(cmd, stderr=STDOUT).splitlines()[1:]
-        except CalledProcessError:
-            error('Oops! Bad rdbt command.')
-            raise
+        self._cmd_ = ['/group/online/scripts/rdbt', '-n', '-f'] + [str(run) for run in self.runs]
 
         import re
         self._regexps_ = {
@@ -55,9 +48,20 @@ class RunDBQuery(object):
             'destination' : re.compile('destination:\s+([^\t]+)'),
             'state' : re.compile('state:\s+([^\t]+)'),
             'startTime' : re.compile('startTime:\s+([^\t]+)'),
-            'endTime' : re.compile('.+endTime:\s+([^\t]+)')
+            'endTime' : re.compile('.+endTime:\s+([^\t]+)'),
+            'files' : re.compile('(^([0-9]+)_([0-9]+)\.raw$)'),
+            'partitionName' : re.compile('partitionName:\s+([A-Za-z0-9]+)'),
+            'runType' : re.compile('.+runType:\s+([[_A-Z0-9]+])')
         }
 
+    def call_rdbt(self):
+        """Run rdbt command"""
+        try:
+            from subprocess import (check_output, STDOUT, CalledProcessError)
+            self.output = check_output(self._cmd_, stderr=STDOUT).splitlines()[1:]
+        except CalledProcessError:
+            error('Oops! Bad rdbt command.')
+            raise
 
     def parse(self):
         """Parse rdbt output and get run information.
@@ -68,8 +72,9 @@ class RunDBQuery(object):
 
         """
 
+        self.call_rdbt()
         self.run_info = {}
-        info = {}               # for first line (needed when no output)
+        rinfo = {}               # for first line (needed when no output)
         for line in range(0, len(self.output)):
             # each run info block starts with marker.  The length of a
             # block can vary, can't rely on that.
@@ -77,12 +82,19 @@ class RunDBQuery(object):
                 match = self._regexps_[field].match(self.output[line])
                 if match:
                     if field == 'marker': # always the first to match
-                        info = {}
+                        rinfo = {}
                     else:
-                        info[field] = match.groups()[0]
-                if len(info) == len(self._regexps_)-1: # -1 because of marker
-                    self.run_info[int(info['run'])] = info
-
+                        if 'files' == field:
+                            if rinfo.has_key('files'):
+                                rinfo[field] += [match.groups()[0]]
+                            else:
+                                rinfo[field] = [match.groups()[0]]
+                        else:
+                            rinfo[field] = match.groups()[0]
+                if len(rinfo) >= len(self._regexps_)-2:
+                    # 1 less because of marker, maybe another less
+                    # when files are deleted
+                    self.run_info[int(rinfo['run'])] = rinfo
 
     def get_run_info(self, run):
         """Retrive run info with necessary protections.
@@ -93,13 +105,30 @@ class RunDBQuery(object):
         """
 
         try:
-            info = self.run_info[run]
+            rinfo = self.run_info[run]
         except KeyError:
             debug('Run %d: non-existent', run)
             return
-        if not info: warning('Run %d: probably parsing failed', run)
-        return info
+        if not rinfo: warning('Run %d: probably parsing failed', run)
+        return rinfo
 
+    def get_files(self, run):
+        """Get RAW file names"""
+        rinfo = self.get_run_info(run)
+        if rinfo: return rinfo.get('files', None)
+        else: return None
+
+    def get_time(self, run, timefmt='%Y-%m-%d %H:%M:%S', epoch=False):
+        """Get run time."""
+        rinfo = self.get_run_info(run)
+        from time import time, strptime, mktime
+        if epoch:
+            run_duration = (mktime(strptime(rinfo['startTime'], timefmt)),
+                            mktime(strptime(rinfo['endTime'], timefmt)))
+        else:
+            run_duration = (strptime(rinfo['startTime'], timefmt),
+                            strptime(rinfo['endTime'], timefmt))
+        return run_duration
 
     def get_valid_runs(self, time_threshold=None, timefmt='%Y-%m-%d %H:%M:%S'):
         """Return valid runs longer than threshold seconds.
@@ -110,49 +139,42 @@ class RunDBQuery(object):
 
         """
 
-        from time import time, strptime, mktime
         runs_in_bkk, fresh_runs = [], []
-
         for run in range(self.runs[0], self.runs[-1]+1):
-            info = self.get_run_info(run)
-            if not info: continue
-
+            rinfo = self.get_run_info(run)
+            if not rinfo: continue
             # runs in book keeping, destination offline
-            if (info['state'] == 'IN BKK' and
-                (info['destination'] == 'OFFLINE' or
-                 info['destination'] == 'CASTOR')):
+            if (rinfo['state'] == 'IN BKK' and
+                (rinfo['destination'] == 'OFFLINE' or
+                 rinfo['destination'] == 'CASTOR')):
                 runs_in_bkk.append(run)
-
             # fresh runs (fallback)
-            if (info['state'] == 'ENDED' and
-                (info['destination'] == 'OFFLINE' or
-                 info['destination'] == 'CASTOR')):
+            if (rinfo['state'] == 'ENDED' and
+                (rinfo['destination'] == 'OFFLINE' or
+                 rinfo['destination'] == 'CASTOR')):
                 fresh_runs.append(run)
-
         # new runs in book keeping
         runlist = runs_in_bkk if runs_in_bkk else fresh_runs
 
         def _filter_runs(run):
             """Filter to trim runlist"""
+            epoch = self.get_time(run, timefmt, epoch=True)
             if time_threshold:
                 # end-of-fill calibration runs with missing time info.
-                info = self.get_run_info(run)
-                if (info['startTime'] == 'None' or info['endTime'] == 'None'):
+                rinfo = self.get_run_info(run)
+                if (rinfo['startTime'] == 'None' or rinfo['endTime'] == 'None'):
                     info('Run %d: end-of-fill calibration, skipping', run)
                     return False
                 # check duration
-                epoch = (mktime(strptime(info['startTime'], timefmt)),
-                         mktime(strptime(info['endTime'], timefmt)))
                 if epoch[1] - epoch[0] < time_threshold: # too short
                     info('Run %d: shorter than threshold (%d), skipping',
                          run, time_threshold)
                     return False
-
             if not runs_in_bkk: # no new runs in book keeping
+                from time import time
                 if time() - epoch[1] < 3600: # run too recent
                     info('Run %d: younger than 1h, skipping', run)
                     return False
-
             return True
 
         return filter(_filter_runs, runlist)
