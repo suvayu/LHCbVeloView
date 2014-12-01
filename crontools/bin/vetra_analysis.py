@@ -138,9 +138,10 @@ for run in runs:
             if _cliopts.local: runinfo['protocol'] = 'file'
             prefix = 'VELODQM_{}_{}_{}'.format(run, runinfo['timestamp'], stream)
             optfiles = {
-                '{}.useropts.py'.format(prefix): get_optfile(), # same as FilterBeamBeam_HeartBeat
-                '{}.data.py'.format(prefix): get_datacard(runinfo, query.get_files(run),
-                                                          maxevts = _cliopts.nevents)
+                # same as FilterBeamBeam_HeartBeat.py
+                '{}/{}.useropts.py'.format(jobdir_t,prefix): get_optfile(runinfo),
+                '{}/{}.data.py'.format(jobdir_t,prefix):
+                get_datacard(runinfo, query.get_files(run), maxevts = _cliopts.nevents)
             }
             # create them
             try:
