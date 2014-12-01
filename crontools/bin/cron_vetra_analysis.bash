@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash --login
 
 # for debugging
 # set -o xtrace
