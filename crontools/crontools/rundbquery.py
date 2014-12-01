@@ -8,7 +8,7 @@
 
 
 # logging
-from logging import getLogger, debug, info, warning, error
+from logging import debug, info, warning, error
 
 
 class RunDBQuery(object):

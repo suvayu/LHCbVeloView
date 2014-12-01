@@ -16,7 +16,7 @@ Adapted from a file locking class by Evan Fosmark.
 
 import os, errno, sys
 
-from logging import getLogger, debug, info, warning, error
+from logging import debug, info, warning, error
 
 
 class RunLockExists(Exception):
