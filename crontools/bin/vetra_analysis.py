@@ -31,8 +31,8 @@ parser.add_argument('-t', '--time-threshold', dest='threshold', default=1800,
                     type=int, help='Minimum run duration in seconds.')
 parser.add_argument('-jd', '--job-dir', dest='jobdir', help='Job directory.',
                     default='/calib/velo/dqm/VeloView/VetraOutput')
-parser.add_argument('-o', '--job-options', dest='jobopts', default='',
-                    help='Override default Vetra job options (quoted).')
+parser.add_argument('-o', '--job-options', dest='jobopts', action='append', default=[],
+                    help='Extra job options for Vetra (can use multiple times).')
 parser.add_argument('-c', '--cron', action='store_true',
                     help='Run from a cron job.')
 parser.add_argument('-d', '--debug', dest='debug', action='store_true',
@@ -154,7 +154,7 @@ for run in runs:
                 continue
 
             # complete command
-            cmd_w_args = gaudi_w_opts + optfiles.keys() + jobopts.split(' ')
+            cmd_w_args = gaudi_w_opts + optfiles.keys() + jobopts
             debug('Job command: %s', ' '.join(cmd_w_args))
 
             info('Starting Vetra')
