@@ -17,7 +17,10 @@ source /cvmfs/lhcb.cern.ch/group_login.sh &> /dev/null
 echo ${LBSCRIPTS_HOME}
 declare vetra=$(sed -ne 's/.\+export \+SHIFTERVETRAVERSION=\(.\+\)/\1/p' /group/velo/sw/scripts/velo_login.sh)
 echo "Vetra version:" $vetra
-source SetupProject.sh Vetra $vetra &> /dev/null
+# FIXME: using local Vetra since some option files are not available
+# in the released version.
+source /calib/velo/dqm/Vetra_v15r0/Velo/VetraScripts/scripts/setup_shifters.sh
+# source SetupProject.sh Vetra $vetra &> /dev/null
 # Add VeloView/crontools to PYTHONPATH
 export PYTHONPATH=$srcdir/..:$PYTHONPATH
 
