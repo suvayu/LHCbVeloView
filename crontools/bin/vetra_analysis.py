@@ -54,7 +54,7 @@ basicConfig(level=lvl, datefmt='%d-%m-%Y %H:%M:%S',
 
 
 ## option setup
-import os, errno, sys
+import os, sys
 
 debug('Script options: %s' % _cliopts)
 # stream to process
@@ -101,7 +101,8 @@ debug('Run list after trimming: %s' % runs)
 
 
 ## acquire lock and run job
-from crontools.utils import add_runs, make_dir_tree
+from glob import glob
+from crontools.utils import add_runs, get_dir_tree, mkdir_p
 from crontools.runlock import RunLock
 from crontools.vetraopts import (get_runinfo, get_gaudi_opts, get_runinfo,
                                  get_optfile, get_datacard)
@@ -109,12 +110,9 @@ from crontools.vetraopts import (get_runinfo, get_gaudi_opts, get_runinfo,
 for run in runs:
     info('Processing run: %s, stream: %s' % (run, stream))
     # job directory
-    jobdir_t = make_dir_tree(run, prefix=_cliopts.jobdir)
+    jobdir_t = '{}/jobdir'.format(jobdir)
     try:
-        try:
-            os.makedirs(jobdir_t)
-        except OSError as err:
-            if err.errno != errno.EEXIST: raise
+        mkdir_p(jobdir_t)
         os.chdir(jobdir_t)
         debug('Job directory: %s', jobdir_t)
     except OSError as err:
@@ -157,11 +155,17 @@ for run in runs:
             cmd_w_args = gaudi_w_opts + optfiles.keys() + jobopts
             debug('Job command: %s', ' '.join(cmd_w_args))
 
+            arxivdir = get_dir_tree(run, prefix=jobdir)
+            mkdir_p(arxivdir)
+            debug('Archive directory: %s', arxivdir)
+
             info('Starting Vetra')
             logfile = open('{}.log'.format(prefix), 'w')
             retcode = call(cmd_w_args, stdout=logfile)
+            fnames = glob('{}.*'.format(prefix))
             if retcode != 0:
                 warning('Oops! It seems Vetra failed: %d', retcode)
+                fnames = filter(lambda fname: 'root' not in fname, fnames)
                 retcode = add_runs(run, graveyardrunlist, prefix=os.path.dirname(__file__))
                 if retcode: error('Run %d couldn\'t be added to the graveyard list.')
             else:
@@ -169,8 +173,16 @@ for run in runs:
                 size = os.stat('{}.root'.format(prefix)).st_size
                 if size < 3000000:
                     warning('Output root file is too small: %d bytes.', size)
+                    fnames = filter(lambda fname: 'root' not in fname, fnames)
                 retcode = add_runs(run, runlist, prefix=os.path.dirname(__file__))
                 if retcode: error('Run %d couldn\'t be added to the list.')
+            map(os.rename, fnames, ['{}/{}'.format(arxivdir, fname) for fname in fnames])
+            if reduce(lambda i, j: i or j,
+                      map(lambda fname: 'root' in fname, fnames)):
+                info('Job succeeded!')
+            else:
+                warning('Job failed!')
+            os.removedirs(jobdir_t)
     except:
         error('Oops! Unexpected exception, crashing disgracefully.',
               exc_info=True)

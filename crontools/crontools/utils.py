@@ -13,7 +13,7 @@ def if_ndigits(run, ndigits):
     """Test if run number is ndigits long"""
     return len(str(run)) == ndigits
 
-def make_dir_tree(run, prefix=''):
+def get_dir_tree(run, prefix=''):
     """Make directory tree from run number grouped by decades"""
     length = len(str(run))
     tree, digit = '', ''
@@ -23,6 +23,13 @@ def make_dir_tree(run, prefix=''):
     tree = tree + str(run)
     if prefix: return prefix + '/{}'.format(tree)
     else: return tree
+
+def mkdir_p(dir_path):
+    import errno, os
+    try:
+        os.makedirs(dir_path)
+    except OSError as err:
+        if err.errno != errno.EEXIST: raise
 
 def get_last_run(runfile):
     """Return last run from runfile"""
