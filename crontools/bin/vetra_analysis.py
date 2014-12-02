@@ -118,8 +118,10 @@ for run in runs:
     except OSError as err:
         error('Run %d, stream %s: Oops! Problem with job directory.',
               run, stream, exc_info=True)
-        retcode = add_runs(run, graveyardrunlist, prefix=os.path.dirname(__file__))
-        if retcode: error('Run %d couldn\'t be added to the graveyard list.')
+        retcode = add_runs(run, graveyardrunlist,
+                           prefix=os.path.dirname(__file__))
+        if retcode: error('Run %d couldn\'t be added to the '
+                          'graveyard list.')
         continue
     try:
         # start the job
@@ -139,7 +141,8 @@ for run in runs:
                 # same as FilterBeamBeam_HeartBeat.py
                 '{}/{}.useropts.py'.format(jobdir_t,prefix): get_optfile(runinfo),
                 '{}/{}.data.py'.format(jobdir_t,prefix):
-                get_datacard(runinfo, query.get_files(run), maxevts = _cliopts.nevents)
+                get_datacard(runinfo, query.get_files(run),
+                             maxevts = _cliopts.nevents)
             }
             # create them
             try:
@@ -166,17 +169,21 @@ for run in runs:
             if retcode != 0:
                 warning('Oops! It seems Vetra failed: %d', retcode)
                 fnames = filter(lambda fname: 'root' not in fname, fnames)
-                retcode = add_runs(run, graveyardrunlist, prefix=os.path.dirname(__file__))
-                if retcode: error('Run %d couldn\'t be added to the graveyard list.')
+                retcode = add_runs(run, graveyardrunlist,
+                                   prefix=os.path.dirname(__file__))
+                if retcode: error('Run %d couldn\'t be added to the '
+                                  'graveyard list.')
             else:
                 info('Vetra returned with: %d', retcode)
                 size = os.stat('{}.root'.format(prefix)).st_size
                 if size < 3000000:
                     warning('Output root file is too small: %d bytes.', size)
                     fnames = filter(lambda fname: 'root' not in fname, fnames)
-                retcode = add_runs(run, runlist, prefix=os.path.dirname(__file__))
+                retcode = add_runs(run, runlist,
+                                   prefix=os.path.dirname(__file__))
                 if retcode: error('Run %d couldn\'t be added to the list.')
-            map(os.rename, fnames, ['{}/{}'.format(arxivdir, fname) for fname in fnames])
+            map(os.rename, fnames, ['{}/{}'.format(arxivdir, fname)
+                                    for fname in fnames])
             if reduce(lambda i, j: i or j,
                       map(lambda fname: 'root' in fname, fnames)):
                 info('Job succeeded!')
