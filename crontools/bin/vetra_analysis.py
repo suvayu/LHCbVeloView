@@ -179,9 +179,14 @@ for run in runs:
                 if size < 3000000:
                     warning('Output root file is too small: %d bytes.', size)
                     fnames = filter(lambda fname: 'root' not in fname, fnames)
-                retcode = add_runs(run, runlist,
-                                   prefix=os.path.dirname(__file__))
-                if retcode: error('Run %d couldn\'t be added to the list.')
+                    retcode = add_runs(run, graveyardrunlist,
+                                       prefix=os.path.dirname(__file__))
+                    if retcode: error('Run %d couldn\'t be added to the '
+                                      'graveyard list.')
+                else:
+                    retcode = add_runs(run, runlist,
+                                       prefix=os.path.dirname(__file__))
+                    if retcode: error('Run %d couldn\'t be added to the list.')
             map(os.rename, fnames, ['{}/{}'.format(arxivdir, fname)
                                     for fname in fnames])
             if reduce(lambda i, j: i or j,
