@@ -189,7 +189,8 @@ for run in runs:
                 info('Job succeeded!')
             else:
                 warning('Job failed!')
-            os.removedirs(jobdir_t)
+        import shutil
+        shutil.rmtree(jobdir_t)
     except:
         error('Oops! Unexpected exception, crashing disgracefully.',
               exc_info=True)
